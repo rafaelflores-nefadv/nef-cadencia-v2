@@ -23,89 +23,176 @@
     </form>
   </section>
 
-  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-3">
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
     <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
-      <div class="text-xs text-[color:var(--color-text-muted)]">Agentes com stats</div>
+      <div class="text-xs text-[color:var(--color-text-muted)]">Agentes ativos</div>
+      <div class="text-2xl font-semibold mt-1">{{ active_agents_count }}</div>
+    </article>
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+      <div class="text-xs text-[color:var(--color-text-muted)]">Agentes com atividade no dia</div>
+      <div class="text-2xl font-semibold mt-1">{{ agents_with_activity_count }}</div>
+    </article>
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+      <div class="text-xs text-[color:var(--color-text-muted)]">Total de eventos no dia</div>
+      <div class="text-2xl font-semibold mt-1">{{ total_events_day }}</div>
+    </article>
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+      <div class="text-xs text-[color:var(--color-text-muted)]">Stats gerados no dia</div>
       <div class="text-2xl font-semibold mt-1">{{ agents_with_stats_count }}</div>
     </article>
     <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
       <div class="text-xs text-[color:var(--color-text-muted)]">Total de pausas</div>
       <div class="text-2xl font-semibold mt-1">{{ total_pausas_hoje }}</div>
+      <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Tempo em pausas: {{ tempo_total_pausas_hhmm }}</div>
     </article>
     <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
-      <div class="text-xs text-[color:var(--color-text-muted)]">Tempo total pausas (HH:MM)</div>
-      <div class="text-2xl font-semibold mt-1">{{ tempo_total_pausas_hhmm }}</div>
-    </article>
-    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
-      <div class="text-xs text-[color:var(--color-text-muted)]">Ultimo sync</div>
-      {% if last_sync %}
-        <div class="mt-2 flex items-center gap-2 text-sm">
-          <span class="inline-flex rounded-full px-2 py-1 text-xs {% if last_sync.status == 'SUCCESS' %}bg-emerald-500/20 text-emerald-300{% elif last_sync.status == 'ERROR' %}bg-red-500/20 text-red-300{% else %}bg-amber-500/20 text-amber-300{% endif %}">{{ last_sync.status }}</span>
-          <span class="text-[color:var(--color-text-muted)]">Duracao: {{ last_sync_duration }}</span>
-        </div>
-        <div class="mt-2 text-xs text-[color:var(--color-text-muted)]">Inicio: {{ last_sync.started_at|date:"d/m/Y H:i:s" }}</div>
-        <div class="text-xs text-[color:var(--color-text-muted)]">Fim: {% if last_sync.finished_at %}{{ last_sync.finished_at|date:"d/m/Y H:i:s" }}{% else %}-{% endif %}</div>
-      {% else %}
-        <p class="mt-2 text-sm text-[color:var(--color-text-muted)]">Nenhuma execucao encontrada.</p>
-      {% endif %}
-    </article>
-  </section>
-
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
-    <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
-      <h2 class="text-sm font-semibold">Top agentes no periodo</h2>
-    </div>
-
-    {% if top_page.object_list %}
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
-              <th class="px-4 py-3 font-medium">Codigo</th>
-              <th class="px-4 py-3 font-medium">Nome</th>
-              <th class="px-4 py-3 font-medium">Code</th>
-              <th class="px-4 py-3 font-medium">Qtd pausas</th>
-              <th class="px-4 py-3 font-medium">Tempo pausas</th>
-              <th class="px-4 py-3 font-medium">Ultima pausa inicio</th>
-              <th class="px-4 py-3 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in top_page.object_list %}
-              <tr class="border-b border-[color:var(--color-border)] last:border-0">
-                <td class="px-4 py-3">{{ item.cd_operador }}</td>
-                <td class="px-4 py-3">{{ item.agent.nm_agente|default:"-" }}</td>
-                <td class="px-4 py-3">{{ item.agent.nm_agente_code|default:"-" }}</td>
-                <td class="px-4 py-3">{{ item.qtd_pausas }}</td>
-                <td class="px-4 py-3">{{ item.tempo_pausas_hhmm }}</td>
-                <td class="px-4 py-3">{% if item.ultima_pausa_inicio %}{{ item.ultima_pausa_inicio|date:"d/m/Y H:i" }}{% else %}-{% endif %}</td>
-                <td class="px-4 py-3 text-right">
-                  <a class="inline-flex h-9 items-center rounded-lg px-3 border border-[color:var(--color-border)]" href="{% url 'agent-detail' pk=item.agent_id %}">Detalhes</a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="text-xs text-[color:var(--color-text-muted)]">Tempo logado total (HH:MM)</div>
+      <div class="text-2xl font-semibold mt-1">{{ tempo_logado_total_hhmm }}</div>
+      <div class="text-xs text-[color:var(--color-text-muted)] mt-1">
+        {% if tempo_logado_source == "workday" %}Fonte: jornada{% else %}Fonte: estimado por logon/logoff{% endif %}
       </div>
+    </article>
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+      <div class="text-xs text-[color:var(--color-text-muted)]">Tempo produtivo estimado (HH:MM)</div>
+      <div class="text-2xl font-semibold mt-1">{{ tempo_produtivo_total_hhmm }}</div>
+    </article>
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+      <div class="text-xs text-[color:var(--color-text-muted)]">Ultimo sync legado</div>
+      {% if last_sync %}
+        <div class="mt-2 text-sm font-semibold">{{ last_sync.started_at|date:"d/m/Y H:i:s" }}</div>
+        <div class="mt-1 text-xs text-[color:var(--color-text-muted)]">Status: {{ last_sync.status }}</div>
+      {% else %}
+        <div class="mt-2 text-sm text-[color:var(--color-text-muted)]">Sem sync registrado.</div>
+      {% endif %}
+    </article>
+  </section>
 
-      {% if top_page.paginator.num_pages > 1 %}
-        <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
-          {% if top_page.has_previous %}
-            <a href="?page={{ top_page.previous_page_number }}{{ page_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>
+  {% if stats_warning %}
+    <section class="rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-sm">
+      Stats nao gerados para esta data; exibindo agregacao direta por eventos/jornada.
+      Rode o sync ou execute <code>python manage.py rebuild_agent_day_stats --date {{ selected_date|date:'Y-m-d' }}</code>.
+    </section>
+  {% endif %}
+
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+        <h2 class="text-sm font-semibold">Top 10 por tempo em pausa</h2>
+      </div>
+      {% if top_pause_time %}
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+                <th class="px-4 py-3 font-medium">Operador</th>
+                <th class="px-4 py-3 font-medium">Nome</th>
+                <th class="px-4 py-3 font-medium">Qtd pausas</th>
+                <th class="px-4 py-3 font-medium">Tempo pausas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in top_pause_time %}
+                <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                  <td class="px-4 py-3">{{ item.cd_operador }}</td>
+                  <td class="px-4 py-3">{{ item.agent_name|default:"-" }}</td>
+                  <td class="px-4 py-3">{{ item.qtd_pausas }}</td>
+                  <td class="px-4 py-3">{{ item.tempo_pausas_hhmm }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Sem dados para o periodo. Rode o sync ou gere os stats.</div>
+      {% endif %}
+    </article>
+
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+        <h2 class="text-sm font-semibold">Top 10 por quantidade de pausas</h2>
+      </div>
+      {% if top_pause_count %}
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+                <th class="px-4 py-3 font-medium">Operador</th>
+                <th class="px-4 py-3 font-medium">Nome</th>
+                <th class="px-4 py-3 font-medium">Qtd pausas</th>
+                <th class="px-4 py-3 font-medium">Tempo pausas</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in top_pause_count %}
+                <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                  <td class="px-4 py-3">{{ item.cd_operador }}</td>
+                  <td class="px-4 py-3">{{ item.agent_name|default:"-" }}</td>
+                  <td class="px-4 py-3">{{ item.qtd_pausas }}</td>
+                  <td class="px-4 py-3">{{ item.tempo_pausas_hhmm }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Sem dados para o periodo. Rode o sync ou gere os stats.</div>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+        <h2 class="text-sm font-semibold">Distribuicao de pausas por tipo</h2>
+      </div>
+      {% if pause_distribution %}
+        <ul class="divide-y divide-[color:var(--color-border)] text-sm">
+          {% for item in pause_distribution %}
+            <li class="px-4 py-3 flex items-center justify-between gap-3">
+              <span class="font-medium">{{ item.pause_type }}</span>
+              <span class="text-[color:var(--color-text-muted)]">Qtd: {{ item.qtd }} | Tempo: {{ item.tempo_hhmm }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Sem pausas registradas no periodo.</div>
+      {% endif %}
+    </article>
+
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+        <h2 class="text-sm font-semibold">Saude do sistema (jobs)</h2>
+      </div>
+      <div class="p-4 space-y-3">
+        {% if last_job_run %}
+          <div class="text-sm">
+            <div class="font-semibold">Ultimo job: {{ last_job_run.job_name }}</div>
+            <div class="text-[color:var(--color-text-muted)]">
+              {{ last_job_run.started_at|date:"d/m/Y H:i:s" }} | status {{ last_job_run.status }} | duracao {{ last_job_duration }}
+            </div>
+          </div>
+        {% else %}
+          <div class="text-sm text-[color:var(--color-text-muted)]">Nenhuma execucao encontrada.</div>
+        {% endif %}
+
+        <div>
+          <h3 class="text-xs uppercase tracking-wide text-[color:var(--color-text-muted)] mb-2">Ultimas 5 execucoes</h3>
+          {% if recent_job_runs %}
+            <ul class="space-y-2">
+              {% for run in recent_job_runs %}
+                <li class="text-sm rounded-lg border border-[color:var(--color-border)] px-3 py-2 {% if run.status == 'ERROR' %}bg-red-500/10{% endif %}">
+                  <div class="font-medium">{{ run.job_name }}</div>
+                  <div class="text-[color:var(--color-text-muted)]">{{ run.started_at|date:"d/m/Y H:i:s" }} | {{ run.status }} | {{ run.duration_hhmm }}</div>
+                </li>
+              {% endfor %}
+            </ul>
           {% else %}
-            <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>
-          {% endif %}
-          <span class="text-[color:var(--color-text-muted)]">Pagina {{ top_page.number }} de {{ top_page.paginator.num_pages }}</span>
-          {% if top_page.has_next %}
-            <a href="?page={{ top_page.next_page_number }}{{ page_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>
-          {% else %}
-            <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>
+            <div class="text-sm text-[color:var(--color-text-muted)]">Sem execucoes recentes.</div>
           {% endif %}
         </div>
-      {% endif %}
-    {% else %}
-      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Sem dados para o periodo. Rode o sync.</div>
-    {% endif %}
+      </div>
+    </article>
   </section>
+
 </div>
 {% endblock %}
