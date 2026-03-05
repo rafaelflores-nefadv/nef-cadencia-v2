@@ -5,6 +5,7 @@ from django.utils import timezone
 from tqdm import tqdm
 
 from apps.monitoring.models import AgentWorkday
+from apps.monitoring.services.day_stats_service import rebuild_agent_day_stats
 from apps.monitoring.services.lh_import_utils import (
     SOURCE_NAME,
     add_date_filter_arguments,
@@ -41,9 +42,22 @@ class Command(BaseCommand):
 
         connection = connect_legacy()
         try:
-            stats = self._import_workdays(connection, schema, start_date, end_date)
+            stats, affected_dates = self._import_workdays(connection, schema, start_date, end_date)
         finally:
             connection.close()
+
+        if affected_dates:
+            rebuild_result = rebuild_agent_day_stats(
+                date_from=min(affected_dates),
+                date_to=max(affected_dates),
+                source=SOURCE_NAME,
+            )
+            self.stdout.write(
+                "stats: "
+                f"pairs_total={rebuild_result['pairs_total']}, "
+                f"created={rebuild_result['created']}, "
+                f"updated={rebuild_result['updated']}"
+            )
 
         self.stdout.write(
             "jornadas: "
@@ -59,7 +73,7 @@ class Command(BaseCommand):
         schema: str,
         start_date: date | None,
         end_date: date | None,
-    ) -> dict[str, int]:
+    ) -> tuple[dict[str, int], set[date]]:
         if start_date is None and end_date is None:
             query = f"""
                 SELECT *
@@ -89,6 +103,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Capturados {total_rows} registros (VW_LH_AGENT_WORKDAY).")
 
         stats = {"created": 0, "updated": 0, "skipped": 0, "errors": 0}
+        affected_dates: set[date] = set()
         capture_time = timezone.now()
 
         with tqdm(rows, total=total_rows, desc="Importando jornadas (VW_LH_AGENT_WORKDAY)") as bar:
@@ -131,6 +146,7 @@ class Command(BaseCommand):
                         stats["created"] += 1
                     else:
                         stats["updated"] += 1
+                    affected_dates.add(work_date)
                 except Exception as exc:
                     stats["errors"] += 1
                     self.stderr.write(
@@ -142,4 +158,4 @@ class Command(BaseCommand):
                 finally:
                     bar.set_postfix(stats, refresh=False)
 
-        return stats
+        return stats, affected_dates
