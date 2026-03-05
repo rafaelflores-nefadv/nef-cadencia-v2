@@ -1,0 +1,7 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | NEF Cadencia{% endblock %}
+
+{% block page_title %}Console Operacional{% endblock %}
+{% block page_subtitle %}{% if title %}{{ title }}{% else %}{% translate "Administracao do sistema" %}{% endif %}{% endblock %}

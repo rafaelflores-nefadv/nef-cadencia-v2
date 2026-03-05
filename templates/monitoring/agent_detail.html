@@ -1,0 +1,140 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Agente {{ agent.cd_operador }} | NEF Cadencia{% endblock %}
+{% block page_title %}Agente {{ agent.cd_operador }}{% endblock %}
+{% block page_subtitle %}{{ agent.nm_agente|default:"Sem nome" }}{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+  <div class="flex justify-end">
+    <a href="{% url 'agents-list' %}" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Voltar para lista</a>
+  </div>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
+      <div>
+        <div class="text-[color:var(--color-text-muted)]">Codigo interno</div>
+        <div>{{ agent.nm_agente_code|default:"-" }}</div>
+      </div>
+      <div>
+        <div class="text-[color:var(--color-text-muted)]">Ramal</div>
+        <div>{{ agent.nr_ramal|default:"-" }}</div>
+      </div>
+      <div>
+        <div class="text-[color:var(--color-text-muted)]">E-mail</div>
+        <div>{{ agent.email|default:"-" }}</div>
+      </div>
+      <div>
+        <div class="text-[color:var(--color-text-muted)]">Ativo</div>
+        {% if agent.ativo %}
+          <span class="inline-flex rounded-full px-2 py-1 text-xs bg-emerald-500/20 text-emerald-300">Sim</span>
+        {% else %}
+          <span class="inline-flex rounded-full px-2 py-1 text-xs bg-slate-500/20 text-slate-300">Nao</span>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+    <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+      <h2 class="text-sm font-semibold">Estatisticas dos ultimos 7 dias</h2>
+    </div>
+
+    {% if stats_page.object_list %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+              <th class="px-4 py-3 font-medium">Data</th>
+              <th class="px-4 py-3 font-medium">Qtd pausas</th>
+              <th class="px-4 py-3 font-medium">Tempo pausas</th>
+              <th class="px-4 py-3 font-medium">Ultima pausa inicio</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for stat in stats_page.object_list %}
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">{{ stat.data_ref|date:"d/m/Y" }}</td>
+                <td class="px-4 py-3">{{ stat.qtd_pausas }}</td>
+                <td class="px-4 py-3">{{ stat.tempo_pausas_hhmm }}</td>
+                <td class="px-4 py-3">{% if stat.ultima_pausa_inicio %}{{ stat.ultima_pausa_inicio|date:"d/m/Y H:i" }}{% else %}-{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Sem estatisticas para os ultimos 7 dias.</div>
+    {% endif %}
+
+    {% if stats_page.paginator.num_pages > 1 %}
+      <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
+        {% if stats_page.has_previous %}
+          <a href="?stats_page={{ stats_page.previous_page_number }}{{ stats_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>
+        {% else %}
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>
+        {% endif %}
+        <span class="text-[color:var(--color-text-muted)]">Pagina {{ stats_page.number }} de {{ stats_page.paginator.num_pages }}</span>
+        {% if stats_page.has_next %}
+          <a href="?stats_page={{ stats_page.next_page_number }}{{ stats_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>
+        {% else %}
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+    <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+      <h2 class="text-sm font-semibold">Eventos recentes (ultimos 2 dias ou 200 eventos)</h2>
+    </div>
+
+    {% if events_page.object_list %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+              <th class="px-4 py-3 font-medium">Inicio</th>
+              <th class="px-4 py-3 font-medium">Tipo</th>
+              <th class="px-4 py-3 font-medium">Pausa</th>
+              <th class="px-4 py-3 font-medium">Fim</th>
+              <th class="px-4 py-3 font-medium">Duracao (seg)</th>
+              <th class="px-4 py-3 font-medium">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in events_page.object_list %}
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">{{ event.dt_inicio|date:"d/m/Y H:i:s" }}</td>
+                <td class="px-4 py-3">{{ event.tp_evento }}</td>
+                <td class="px-4 py-3">{{ event.nm_pausa|default:"-" }}</td>
+                <td class="px-4 py-3">{% if event.dt_fim %}{{ event.dt_fim|date:"d/m/Y H:i:s" }}{% else %}-{% endif %}</td>
+                <td class="px-4 py-3">{% if event.duracao_seg is not None %}{{ event.duracao_seg }}{% else %}-{% endif %}</td>
+                <td class="px-4 py-3">{{ event.source }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Sem eventos recentes para este agente.</div>
+    {% endif %}
+
+    {% if events_page.paginator.num_pages > 1 %}
+      <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
+        {% if events_page.has_previous %}
+          <a href="?events_page={{ events_page.previous_page_number }}{{ events_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>
+        {% else %}
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>
+        {% endif %}
+        <span class="text-[color:var(--color-text-muted)]">Pagina {{ events_page.number }} de {{ events_page.paginator.num_pages }}</span>
+        {% if events_page.has_next %}
+          <a href="?events_page={{ events_page.next_page_number }}{{ events_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>
+        {% else %}
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

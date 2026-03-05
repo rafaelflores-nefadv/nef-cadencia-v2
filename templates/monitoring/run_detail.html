@@ -1,0 +1,57 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Execucao {{ run.id }} | NEF Cadencia{% endblock %}
+{% block page_title %}Execucao #{{ run.id }}{% endblock %}
+{% block page_subtitle %}Detalhes da execucao do job.{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+  <div class="flex justify-end">
+    <a href="{% url 'runs-list' %}" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Voltar para execucoes</a>
+  </div>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
+      <div>
+        <div class="text-[color:var(--color-text-muted)]">Job</div>
+        <div>{{ run.job_name }}</div>
+      </div>
+      <div>
+        <div class="text-[color:var(--color-text-muted)]">Status</div>
+        <div>
+          <span class="inline-flex rounded-full px-2 py-1 text-xs {% if run.status == 'SUCCESS' %}bg-emerald-500/20 text-emerald-300{% elif run.status == 'ERROR' %}bg-red-500/20 text-red-300{% else %}bg-amber-500/20 text-amber-300{% endif %}">{{ run.status }}</span>
+        </div>
+      </div>
+      <div>
+        <div class="text-[color:var(--color-text-muted)]">Duracao</div>
+        <div>{{ duration_hhmm }}</div>
+      </div>
+      <div>
+        <div class="text-[color:var(--color-text-muted)]">Inicio</div>
+        <div>{{ run.started_at|date:"d/m/Y H:i:s" }}</div>
+      </div>
+      <div>
+        <div class="text-[color:var(--color-text-muted)]">Fim</div>
+        <div>{% if run.finished_at %}{{ run.finished_at|date:"d/m/Y H:i:s" }}{% else %}-{% endif %}</div>
+      </div>
+      <div class="md:col-span-2 xl:col-span-3">
+        <div class="text-[color:var(--color-text-muted)]">Resumo</div>
+        <div>{{ run.summary|default:"-" }}</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+    <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+      <h2 class="text-sm font-semibold">Detalhes de erro</h2>
+    </div>
+    <div class="p-4">
+      {% if run.error_detail %}
+        <pre class="rounded-lg border border-[color:var(--color-border)] bg-slate-950/40 p-3 text-xs overflow-x-auto">{{ run.error_detail }}</pre>
+      {% else %}
+        <div class="text-sm text-[color:var(--color-text-muted)]">Sem detalhes de erro para esta execucao.</div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

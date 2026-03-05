@@ -1,0 +1,45 @@
+﻿{% extends "layouts/auth.html" %}
+
+{% block title %}Login | NEF Cadencia{% endblock %}
+{% block card_title %}Entrar{% endblock %}
+{% block card_subtitle %}Use seu usuario e senha para acessar o sistema.{% endblock %}
+
+{% block content %}
+<form method="post" class="space-y-4" novalidate>
+  {% csrf_token %}
+  {% if next %}
+    <input type="hidden" name="next" value="{{ next }}">
+  {% endif %}
+
+  {% if form.errors %}
+    <div class="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">Usuario ou senha invalidos.</div>
+  {% endif %}
+
+  <div class="space-y-1">
+    <label for="{{ form.username.id_for_label }}" class="text-sm font-medium text-slate-700">Usuario</label>
+    <input
+      type="text"
+      name="{{ form.username.name }}"
+      id="{{ form.username.id_for_label }}"
+      class="w-full h-10 px-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/15 bg-white text-slate-900"
+      required
+      autofocus
+    >
+  </div>
+
+  <div class="space-y-1">
+    <label for="{{ form.password.id_for_label }}" class="text-sm font-medium text-slate-700">Senha</label>
+    <input
+      type="password"
+      name="{{ form.password.name }}"
+      id="{{ form.password.id_for_label }}"
+      class="w-full h-10 px-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/15 bg-white text-slate-900"
+      required
+    >
+  </div>
+
+  <button type="submit" class="w-full h-10 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700">
+    Entrar
+  </button>
+</form>
+{% endblock %}

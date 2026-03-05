@@ -1,0 +1,82 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Agentes | NEF Cadencia{% endblock %}
+{% block page_title %}Agentes{% endblock %}
+{% block page_subtitle %}Cadastro canonico dos agentes sincronizados.{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+    <form method="get" class="flex flex-col sm:flex-row gap-2">
+      <input
+        type="text"
+        name="q"
+        class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent"
+        placeholder="Buscar por codigo, nome ou code"
+        value="{{ search }}"
+      >
+      <button type="submit" class="h-10 px-4 rounded-lg bg-[color:var(--color-primary)] text-white text-sm font-semibold">Buscar</button>
+      <a href="{% url 'agents-list' %}" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Limpar</a>
+    </form>
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+    {% if agents %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+              <th class="px-4 py-3 font-medium">Codigo</th>
+              <th class="px-4 py-3 font-medium">Nome</th>
+              <th class="px-4 py-3 font-medium">Code</th>
+              <th class="px-4 py-3 font-medium">Ramal</th>
+              <th class="px-4 py-3 font-medium">Ativo</th>
+              <th class="px-4 py-3 font-medium"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for agent in agents %}
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">{{ agent.cd_operador }}</td>
+                <td class="px-4 py-3">{{ agent.nm_agente|default:"-" }}</td>
+                <td class="px-4 py-3">{{ agent.nm_agente_code|default:"-" }}</td>
+                <td class="px-4 py-3">{{ agent.nr_ramal|default:"-" }}</td>
+                <td class="px-4 py-3">
+                  {% if agent.ativo %}
+                    <span class="inline-flex rounded-full px-2 py-1 text-xs bg-emerald-500/20 text-emerald-300">Sim</span>
+                  {% else %}
+                    <span class="inline-flex rounded-full px-2 py-1 text-xs bg-slate-500/20 text-slate-300">Nao</span>
+                  {% endif %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <a class="inline-flex h-9 items-center rounded-lg px-3 border border-[color:var(--color-border)]" href="{% url 'agent-detail' pk=agent.pk %}">Detalhes</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Nenhum agente encontrado.</div>
+    {% endif %}
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{{ page_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>
+        {% else %}
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>
+        {% endif %}
+
+        <span class="text-[color:var(--color-text-muted)]">Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{{ page_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>
+        {% else %}
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

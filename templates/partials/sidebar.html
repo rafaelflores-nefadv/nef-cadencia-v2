@@ -1,0 +1,48 @@
+<nav class="h-full px-3 py-4 overflow-y-auto">
+  {% with current_name=request.resolver_match.url_name current_namespace=request.resolver_match.namespace %}
+  <div class="pt-1 pb-3 px-2">
+    <div class="text-xs text-slate-400">NEF Cadencia</div>
+    <div class="text-sm font-semibold text-slate-100 sidebar-label">Console Operacional</div>
+  </div>
+
+  <div class="mb-4">
+    <div class="menu-section-title sidebar-label">OPERACIONAL</div>
+    <div class="menu-items">
+      <a
+        class="menu-item{% if current_name == 'dashboard' %} menu-item--active{% endif %}"
+        href="{% url 'dashboard' %}"
+      >
+        <i data-lucide="layout-dashboard" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Dashboard</span>
+      </a>
+      <a
+        class="menu-item{% if current_name == 'agents-list' or current_name == 'agent-detail' %} menu-item--active{% endif %}"
+        href="{% url 'agents-list' %}"
+      >
+        <i data-lucide="bot" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Agentes</span>
+      </a>
+      <a
+        class="menu-item{% if current_name == 'runs-list' or current_name == 'run-detail' %} menu-item--active{% endif %}"
+        href="{% url 'runs-list' %}"
+      >
+        <i data-lucide="activity" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Execucoes</span>
+      </a>
+    </div>
+
+    <div class="menu-divider"></div>
+
+    <div class="menu-section-title sidebar-label">SISTEMA</div>
+    <div class="menu-items">
+      <a
+        class="menu-item{% if current_namespace == 'admin' %} menu-item--active{% endif %}"
+        href="{% url 'admin:index' %}"
+      >
+        <i data-lucide="shield" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Admin</span>
+      </a>
+    </div>
+  </div>
+  {% endwith %}
+</nav>

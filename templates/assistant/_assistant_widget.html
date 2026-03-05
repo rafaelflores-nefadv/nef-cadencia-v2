@@ -1,0 +1,68 @@
+<section
+  id="assistant-widget-root"
+  data-user-id="{{ request.user.id }}"
+  data-chat-url="{% url 'assistant-chat' %}"
+  data-conversation-url-template="{% url 'assistant-conversation' conversation_id=0 %}"
+  class="assistant-widget"
+  aria-label="Widget do assistente"
+>
+  <button
+    id="assistant-fab"
+    class="assistant-widget__fab"
+    type="button"
+    aria-controls="assistant-drawer"
+    aria-expanded="false"
+    aria-label="Abrir assistente"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="5" y="7" width="14" height="11" rx="3" fill="none"></rect>
+      <circle cx="10" cy="12" r="1.2" fill="none"></circle>
+      <circle cx="14" cy="12" r="1.2" fill="none"></circle>
+      <path d="M9 15.5h6"></path>
+      <path d="M12 4v3"></path>
+    </svg>
+  </button>
+
+  <aside id="assistant-drawer" class="assistant-widget__drawer" aria-hidden="true" aria-label="Assistente Operacional">
+    <div class="assistant-widget__header">
+      <span class="assistant-widget__title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="7" width="14" height="11" rx="3" fill="none"></rect>
+          <circle cx="10" cy="12" r="1.2" fill="none"></circle>
+          <circle cx="14" cy="12" r="1.2" fill="none"></circle>
+          <path d="M9 15.5h6"></path>
+          <path d="M12 4v3"></path>
+        </svg>
+        <span class="assistant-widget__title-text">Assistente Operacional</span>
+      </span>
+      <button id="assistant-close" class="assistant-widget__close" type="button" aria-label="Fechar assistente">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 6l12 12"></path>
+          <path d="M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div id="assistant-messages" class="assistant-widget__messages" aria-live="polite">
+      <p class="assistant-empty">Fa&ccedil;a uma pergunta...</p>
+    </div>
+
+    <div id="assistant-typing" class="assistant-widget__typing" hidden>Digitando...</div>
+
+    <div class="assistant-widget__composer">
+      <textarea
+        id="assistant-input"
+        class="assistant-widget__input"
+        rows="2"
+        placeholder="Digite sua mensagem"
+        aria-label="Mensagem para o assistente"
+      ></textarea>
+      <button id="assistant-send" class="assistant-widget__send" type="button" aria-label="Enviar mensagem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 12h14"></path>
+          <path d="M12 5l7 7-7 7"></path>
+        </svg>
+      </button>
+    </div>
+  </aside>
+</section>

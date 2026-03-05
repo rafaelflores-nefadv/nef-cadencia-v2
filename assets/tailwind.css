@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+
+  --color-bg: #0b1220;
+  --color-card: #0f172a;
+  --color-text: #e5e7eb;
+  --color-text-muted: rgba(226, 232, 240, 0.7);
+  --color-border: rgba(148, 163, 184, 0.16);
+  --color-primary: #2563eb;
+  --color-secondary: #7c3aed;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-primary-glow: rgba(37, 99, 235, 0.16);
+  --color-secondary-glow: rgba(124, 58, 237, 0.14);
+
+  --nef-bg: var(--color-bg);
+  --nef-card: var(--color-card);
+  --nef-border: var(--color-border);
+  --nef-primary: var(--color-primary);
+  --nef-gradient-from: var(--color-secondary);
+  --nef-gradient-to: var(--color-primary);
+  --nef-success: var(--color-success);
+  --nef-warning: var(--color-warning);
+  --nef-danger: var(--color-danger);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: radial-gradient(900px 650px at 12% -10%, var(--color-primary-glow) 0%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(900px 650px at 90% 0%, var(--color-secondary-glow) 0%, rgba(0, 0, 0, 0) 55%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--color-bg) 60%),
+    var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

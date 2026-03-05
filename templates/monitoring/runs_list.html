@@ -1,0 +1,101 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Execucoes | NEF Cadencia{% endblock %}
+{% block page_title %}Execucoes{% endblock %}
+{% block page_subtitle %}Historico de execucoes dos jobs.{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 items-end">
+      <div class="space-y-1">
+        <label for="job_name" class="text-xs text-[color:var(--color-text-muted)]">Job</label>
+        <select id="job_name" name="job_name" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent">
+          <option value="">Todos</option>
+          {% for value, label in job_name_choices %}
+            <option value="{{ value }}" {% if selected_job_name == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="space-y-1">
+        <label for="status" class="text-xs text-[color:var(--color-text-muted)]">Status</label>
+        <select id="status" name="status" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent">
+          <option value="">Todos</option>
+          {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="space-y-1">
+        <label for="date_from" class="text-xs text-[color:var(--color-text-muted)]">De</label>
+        <input id="date_from" name="date_from" type="date" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" value="{{ selected_date_from|date:'Y-m-d' }}">
+      </div>
+
+      <div class="space-y-1">
+        <label for="date_to" class="text-xs text-[color:var(--color-text-muted)]">Ate</label>
+        <input id="date_to" name="date_to" type="date" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" value="{{ selected_date_to|date:'Y-m-d' }}">
+      </div>
+
+      <div class="flex gap-2">
+        <button type="submit" class="h-10 px-4 rounded-lg bg-[color:var(--color-primary)] text-white text-sm font-semibold">Filtrar</button>
+        <a href="{% url 'runs-list' %}" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Limpar</a>
+      </div>
+    </form>
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+    {% if runs %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+              <th class="px-4 py-3 font-medium">Job</th>
+              <th class="px-4 py-3 font-medium">Status</th>
+              <th class="px-4 py-3 font-medium">Inicio</th>
+              <th class="px-4 py-3 font-medium">Fim</th>
+              <th class="px-4 py-3 font-medium">Duracao</th>
+              <th class="px-4 py-3 font-medium">Resumo</th>
+              <th class="px-4 py-3 font-medium"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for run in runs %}
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">{{ run.job_name }}</td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex rounded-full px-2 py-1 text-xs {% if run.status == 'SUCCESS' %}bg-emerald-500/20 text-emerald-300{% elif run.status == 'ERROR' %}bg-red-500/20 text-red-300{% else %}bg-amber-500/20 text-amber-300{% endif %}">{{ run.status }}</span>
+                </td>
+                <td class="px-4 py-3">{{ run.started_at|date:"d/m/Y H:i:s" }}</td>
+                <td class="px-4 py-3">{% if run.finished_at %}{{ run.finished_at|date:"d/m/Y H:i:s" }}{% else %}-{% endif %}</td>
+                <td class="px-4 py-3">{{ run.duration_hhmm }}</td>
+                <td class="px-4 py-3">{{ run.summary|default:"-"|truncatechars:120 }}</td>
+                <td class="px-4 py-3 text-right"><a class="inline-flex h-9 items-center rounded-lg px-3 border border-[color:var(--color-border)]" href="{% url 'run-detail' pk=run.pk %}">Detalhes</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Nenhuma execucao encontrada para os filtros informados.</div>
+    {% endif %}
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{{ page_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>
+        {% else %}
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>
+        {% endif %}
+        <span class="text-[color:var(--color-text-muted)]">Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{{ page_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>
+        {% else %}
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>
+        {% endif %}
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

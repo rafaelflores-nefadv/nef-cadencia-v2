@@ -1,0 +1,9 @@
+﻿asgiref==3.11.1
+Django==4.2.16
+django-environ==0.13.0
+psycopg==3.3.3
+psycopg-binary==3.3.3
+openai
+sqlparse==0.5.5
+tzdata==2025.3
+tqdm==4.67.1

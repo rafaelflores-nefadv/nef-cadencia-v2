@@ -1,0 +1,46 @@
+{% extends "admin/base_site.html" %}
+{% load i18n log %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div class="admin-grid">
+  <section class="admin-card admin-card--padded" id="content-main">
+    <div class="admin-card-header">
+      <h2>{% translate "Aplicacoes" %}</h2>
+      <p>{% translate "Gerencie dados e configuracoes do sistema." %}</p>
+    </div>
+    {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  </section>
+
+  <aside class="admin-card admin-card--padded" id="content-related">
+    <div class="admin-card-header">
+      <h2>{% translate "Acoes recentes" %}</h2>
+      <p>{% translate "Ultimas mudancas realizadas por voce." %}</p>
+    </div>
+    {% get_admin_log 10 as admin_log for_user user %}
+    {% if not admin_log %}
+      <p class="admin-muted">{% translate "Nenhuma acao disponivel." %}</p>
+    {% else %}
+      <ul class="actionlist">
+        {% for entry in admin_log %}
+          <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %} changelink{% endif %}{% if entry.is_deletion %} deletelink{% endif %}">
+            {% if entry.is_deletion or not entry.get_admin_url %}
+              {{ entry.object_repr }}
+            {% else %}
+              <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+            {% endif %}
+            <div class="admin-meta">
+              {% if entry.content_type %}
+                {% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}
+              {% else %}
+                {% translate 'Conteudo desconhecido' %}
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}
