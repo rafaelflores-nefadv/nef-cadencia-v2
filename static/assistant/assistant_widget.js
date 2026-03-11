@@ -11,63 +11,64 @@
     return;
   }
 
-  var chatUrl = root.dataset.chatUrl || "/assistant/chat";
-  var conversationUrlTemplate = root.dataset.conversationUrlTemplate || "/assistant/conversation/0";
+  var widgetChatUrl = root.dataset.widgetChatUrl || "/assistant/widget/chat";
+  var widgetSaveUrl = root.dataset.widgetSaveUrl || "/assistant/widget/session/save";
+  var assistantName = root.dataset.assistantName || "Eustacio";
+  var emptyStateMessage = root.dataset.emptyState || (
+    "Pergunte ao " + assistantName + " sobre monitoramento, produtividade, pausas, relatorios e regras operacionais."
+  );
+  var saveLabel = root.dataset.saveLabel || "Salvar conversa";
+  var savedLabel = root.dataset.savedLabel || "Conversa salva";
 
   var fab = document.getElementById("assistant-fab");
   var drawer = document.getElementById("assistant-drawer");
   var closeBtn = document.getElementById("assistant-close");
+  var saveButton = document.getElementById("assistant-save");
   var messagesEl = document.getElementById("assistant-messages");
   var inputEl = document.getElementById("assistant-input");
   var sendButton = document.getElementById("assistant-send");
   var typingEl = document.getElementById("assistant-typing");
+  var processingConfigEl = document.getElementById("assistant-widget-processing-config");
 
-  if (!fab || !drawer || !closeBtn || !messagesEl || !inputEl || !sendButton || !typingEl) {
+  if (!fab || !drawer || !closeBtn || !saveButton || !messagesEl || !inputEl || !sendButton || !typingEl) {
     return;
   }
 
-  var storageKey = "assistant:conversation:" + userId;
-  var conversationId = readConversationId();
-  var loadedConversationId = null;
+  var processingConfig = {};
+  try {
+    processingConfig = processingConfigEl ? JSON.parse(processingConfigEl.textContent || "{}") : {};
+  } catch (error) {
+    processingConfig = {};
+  }
+  var processingController = window.AssistantProcessingUI
+    ? window.AssistantProcessingUI.createController(typingEl, processingConfig)
+    : null;
+  var processingState = window.AssistantProcessingUI
+    ? window.AssistantProcessingUI.createRequestState(processingController)
+    : null;
+
   var sending = false;
+  var saving = false;
+  var widgetSessionId = null;
+  var savedConversationId = null;
+  var sessionMessages = [];
 
   function isAssistantOpen() {
     return drawer.classList.contains("open");
   }
 
-  function readConversationId() {
-    var saved = null;
-    try {
-      saved = window.localStorage.getItem(storageKey);
-    } catch (error) {
-      return null;
+  function createWidgetSessionId() {
+    if (window.crypto && typeof window.crypto.randomUUID === "function") {
+      return "widget_" + window.crypto.randomUUID().replace(/-/g, "");
     }
-    if (!saved || !/^\d+$/.test(saved)) {
-      return null;
-    }
-    return Number(saved);
+    return "widget_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
   }
 
-  function saveConversationId(id) {
-    if (!id) {
-      return;
+  function ensureWidgetSessionId() {
+    if (!widgetSessionId) {
+      widgetSessionId = createWidgetSessionId();
     }
-    conversationId = Number(id);
-    try {
-      window.localStorage.setItem(storageKey, String(conversationId));
-    } catch (error) {
-      // Ignora erros de storage (ex: modo privado com bloqueio).
-    }
-  }
-
-  function clearConversationId() {
-    conversationId = null;
-    loadedConversationId = null;
-    try {
-      window.localStorage.removeItem(storageKey);
-    } catch (error) {
-      // Ignora erros de storage para manter o fluxo do widget.
-    }
+    return widgetSessionId;
   }
 
   function getCsrfToken() {
@@ -83,10 +84,6 @@
     return "";
   }
 
-  function buildConversationUrl(id) {
-    return conversationUrlTemplate.replace(/0$/, String(id));
-  }
-
   function scrollMessagesToBottom() {
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
@@ -95,7 +92,7 @@
     messagesEl.innerHTML = "";
     var empty = document.createElement("p");
     empty.className = "assistant-empty";
-    empty.textContent = "Fa\u00e7a uma pergunta...";
+    empty.textContent = emptyStateMessage;
     messagesEl.appendChild(empty);
   }
 
@@ -106,28 +103,110 @@
     }
   }
 
-  function appendMessage(role, content) {
+  function appendMessage(role, content, payload) {
     removeEmptyStateIfPresent();
     var wrapper = document.createElement("div");
     wrapper.className = "assistant-message assistant-message--" + role;
     var bubble = document.createElement("div");
     bubble.className = "assistant-message__bubble";
-    bubble.textContent = content;
+    if (window.AssistantMessageRendering) {
+      window.AssistantMessageRendering.renderMessageContent(document, bubble, {
+        role: role,
+        content: content,
+        payload: payload || {}
+      });
+    } else {
+      bubble.textContent = content;
+    }
     wrapper.appendChild(bubble);
     messagesEl.appendChild(wrapper);
     scrollMessagesToBottom();
   }
 
-  function setTyping(visible) {
-    typingEl.hidden = !visible;
-    if (visible) {
-      scrollMessagesToBottom();
+  function normalizeSessionMessages(messages) {
+    if (!Array.isArray(messages)) {
+      return [];
+    }
+    return messages
+      .filter(function (item) {
+        return item && (item.role === "user" || item.role === "assistant" || item.role === "system") && item.content;
+      })
+      .map(function (item) {
+        return {
+          role: item.role,
+          content: String(item.content),
+          payload: item && typeof item.payload === "object" ? item.payload : {}
+        };
+      });
+  }
+
+  function renderSessionMessages() {
+    if (!sessionMessages.length) {
+      renderEmptyState();
+      return;
+    }
+
+    messagesEl.innerHTML = "";
+    for (var i = 0; i < sessionMessages.length; i += 1) {
+      appendMessage(sessionMessages[i].role, sessionMessages[i].content, sessionMessages[i].payload);
     }
   }
 
-  function setSendingState(isSending) {
-    sending = isSending;
-    sendButton.disabled = isSending;
+  function startProcessing(text) {
+    if (processingState) {
+      var token = processingState.begin(text);
+      scrollMessagesToBottom();
+      return token;
+    }
+    if (processingController) {
+      processingController.start(text);
+    } else {
+      typingEl.hidden = false;
+    }
+    scrollMessagesToBottom();
+    return 1;
+  }
+
+  function failProcessing(token) {
+    if (processingState) {
+      return processingState.fail(token);
+    }
+    if (processingController) {
+      processingController.fail();
+    } else {
+      typingEl.hidden = false;
+    }
+    return true;
+  }
+
+  function stopProcessing(token) {
+    if (processingState) {
+      return processingState.complete(token);
+    }
+    if (processingController) {
+      processingController.stop();
+    } else {
+      typingEl.hidden = true;
+    }
+    return true;
+  }
+
+  function resetProcessing() {
+    if (processingState) {
+      processingState.reset();
+      return;
+    }
+    if (processingController) {
+      processingController.reset();
+      return;
+    }
+    typingEl.hidden = true;
+  }
+
+  function updateControls() {
+    sendButton.disabled = sending || saving;
+    saveButton.disabled = sending || saving || !sessionMessages.length || Boolean(savedConversationId);
+    saveButton.textContent = savedConversationId ? savedLabel : saveLabel;
   }
 
   function setAssistantOpen(open) {
@@ -140,22 +219,12 @@
     if (isAssistantOpen()) {
       return;
     }
+    ensureWidgetSessionId();
+    resetProcessing();
     setAssistantOpen(true);
-
-    if (conversationId) {
-      loadConversationHistory(conversationId);
-    } else if (!messagesEl.children.length) {
-      renderEmptyState();
-    }
-
+    renderSessionMessages();
+    updateControls();
     inputEl.focus();
-  }
-
-  function closeAssistant() {
-    if (!isAssistantOpen()) {
-      return;
-    }
-    setAssistantOpen(false);
   }
 
   function resizeInput() {
@@ -164,50 +233,17 @@
     inputEl.style.height = String(newHeight) + "px";
   }
 
-  async function loadConversationHistory(targetConversationId) {
-    if (loadedConversationId === targetConversationId) {
+  function closeAssistant() {
+    if (!isAssistantOpen()) {
       return;
     }
 
-    try {
-      var response = await fetch(buildConversationUrl(targetConversationId), {
-        method: "GET",
-        headers: {
-          "Accept": "application/json"
-        },
-        credentials: "same-origin"
-      });
-
-      if (response.status === 404) {
-        clearConversationId();
-        renderEmptyState();
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Falha ao carregar o historico.");
-      }
-
-      var payload = await response.json();
-      var messages = Array.isArray(payload.messages) ? payload.messages : [];
-
-      messagesEl.innerHTML = "";
-      if (!messages.length) {
-        renderEmptyState();
-      } else {
-        for (var i = 0; i < messages.length; i += 1) {
-          appendMessage(messages[i].role, messages[i].content);
-        }
-      }
-
-      loadedConversationId = targetConversationId;
-    } catch (error) {
-      appendMessage("assistant", "Nao foi possivel carregar o historico agora.");
-    }
+    setAssistantOpen(false);
+    resetProcessing();
   }
 
   async function sendMessage() {
-    if (sending) {
+    if (sending || saving) {
       return;
     }
 
@@ -216,19 +252,16 @@
       return;
     }
 
+    var currentSessionId = ensureWidgetSessionId();
+    var requestToken = startProcessing(text);
     appendMessage("user", text);
     inputEl.value = "";
     resizeInput();
-    setTyping(true);
-    setSendingState(true);
-
-    var payload = { text: text };
-    if (conversationId) {
-      payload.conversation_id = conversationId;
-    }
+    sending = true;
+    updateControls();
 
     try {
-      var response = await fetch(chatUrl, {
+      var response = await fetch(widgetChatUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -236,25 +269,94 @@
           "X-Requested-With": "XMLHttpRequest"
         },
         credentials: "same-origin",
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          text: text,
+          widget_session_id: currentSessionId
+        })
       });
 
+      var data = await response.json();
       if (!response.ok) {
-        throw new Error("Falha ao enviar mensagem.");
+        throw new Error(data.detail || "Falha ao enviar mensagem.");
       }
+
+      if (currentSessionId !== widgetSessionId) {
+        return;
+      }
+
+      widgetSessionId = data.widget_session_id || currentSessionId;
+      if (Array.isArray(data.messages)) {
+        sessionMessages = normalizeSessionMessages(data.messages);
+      } else {
+        sessionMessages.push({ role: "user", content: text, payload: {} });
+        sessionMessages.push({
+          role: "assistant",
+          content: data.answer || "",
+          payload: data && typeof data.answer_payload === "object" ? data.answer_payload : {}
+        });
+      }
+      if (data.saved_conversation_id) {
+        savedConversationId = Number(data.saved_conversation_id);
+      }
+      if (data && data.debug_trace && window.console && typeof window.console.debug === "function") {
+        window.console.debug("[Eustacio][widget][trace]", data.debug_trace);
+      }
+
+      renderSessionMessages();
+      stopProcessing(requestToken);
+    } catch (error) {
+      if (currentSessionId === widgetSessionId) {
+        failProcessing(requestToken);
+        appendMessage("assistant", error.message || "Erro ao enviar a mensagem. Tente novamente.");
+      }
+    } finally {
+      sending = false;
+      updateControls();
+      if (isAssistantOpen()) {
+        inputEl.focus();
+      }
+    }
+  }
+
+  async function saveConversation() {
+    if (saving || sending || !sessionMessages.length || savedConversationId) {
+      return;
+    }
+
+    var currentSessionId = ensureWidgetSessionId();
+    saving = true;
+    updateControls();
+
+    try {
+      var response = await fetch(widgetSaveUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({ widget_session_id: currentSessionId })
+      });
 
       var data = await response.json();
-      if (data.conversation_id) {
-        saveConversationId(data.conversation_id);
-        loadedConversationId = conversationId;
+      if (!response.ok) {
+        throw new Error(data.detail || "Nao foi possivel salvar a conversa.");
       }
 
-      appendMessage("assistant", data.answer || "");
+      if (currentSessionId !== widgetSessionId) {
+        return;
+      }
+
+      savedConversationId = Number(data.conversation_id || 0) || null;
+      updateControls();
     } catch (error) {
-      appendMessage("assistant", "Erro ao enviar a mensagem. Tente novamente.");
+      if (currentSessionId === widgetSessionId) {
+        appendMessage("assistant", error.message || "Nao foi possivel salvar a conversa.");
+      }
     } finally {
-      setTyping(false);
-      setSendingState(false);
+      saving = false;
+      updateControls();
       inputEl.focus();
     }
   }
@@ -268,6 +370,10 @@
   });
 
   closeBtn.addEventListener("click", closeAssistant);
+
+  saveButton.addEventListener("click", function () {
+    saveConversation();
+  });
 
   sendButton.addEventListener("click", function () {
     sendMessage();
@@ -289,7 +395,6 @@
     }
   });
 
-  // Fecha ao clicar fora do widget.
   document.addEventListener("click", function (event) {
     if (!isAssistantOpen()) {
       return;
@@ -301,5 +406,7 @@
   });
 
   resizeInput();
+  resetProcessing();
   renderEmptyState();
+  updateControls();
 })();

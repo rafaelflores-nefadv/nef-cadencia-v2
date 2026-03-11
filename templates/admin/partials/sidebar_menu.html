@@ -60,6 +60,19 @@
           <div class="admin-menu-group__items">
             {% for model in app.models %}
               {% with model_name=model.object_name|lower %}
+                {% if app.app_label == "monitoring" and model_name == "pauseclassification" %}
+                  {% url 'pause-classification-config' as pause_classification_url %}
+                  {% path_startswith request.path pause_classification_url as pause_classification_active %}
+                  <a
+                    href="{{ pause_classification_url }}"
+                    class="menu-item admin-menu-item admin-menu-item--child{% if pause_classification_active %} menu-item--active{% endif %}"
+                    data-admin-menu-link
+                    data-search-text="monitoring classificacao de pausas"
+                  >
+                    <i data-lucide="tags" class="menu-item__icon" aria-hidden="true"></i>
+                    <span class="menu-item__text sidebar-label">Classificacao de pausas</span>
+                  </a>
+                {% else %}
                 {% admin_model_icon app.app_label model_name as model_icon %}
                 {% admin_model_active opts app.app_label model_name request.path model.admin_url as model_active %}
                 {% if model.admin_url %}
@@ -77,6 +90,7 @@
                     <i data-lucide="{{ model_icon }}" class="menu-item__icon" aria-hidden="true"></i>
                     <span class="menu-item__text sidebar-label">{{ model.name }}</span>
                   </span>
+                {% endif %}
                 {% endif %}
               {% endwith %}
             {% endfor %}

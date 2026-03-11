@@ -1,49 +1,15 @@
-# Modulo Monitoring
+# Modulo Monitoring (indice rapido)
 
-## Escopo
-Dominio operacional do sistema: agentes, eventos, estatisticas, notificacoes e execucoes de jobs.
+Este arquivo e um indice resumido.
+Documentacao detalhada e atualizada do modulo esta em:
+- [modules/monitoring/README.md](./monitoring/README.md)
+- [modules/monitoring/models.md](./monitoring/models.md)
+- [modules/monitoring/services.md](./monitoring/services.md)
+- [modules/monitoring/commands.md](./monitoring/commands.md)
+- [modules/monitoring/flows.md](./monitoring/flows.md)
 
-## Models (`apps/monitoring/models.py`)
-- `Agent`
-- `AgentEvent`
-- `AgentDayStats`
-- `NotificationHistory`
-- `NotificationThrottle`
-- `JobRun`
-
-## Views e paginas
-- `DashboardView` -> `/dashboard`
-- `AgentListView` -> `/agents`
-- `AgentDetailView` -> `/agents/<id>`
-- `JobRunListView` -> `/runs`
-- `JobRunDetailView` -> `/runs/<id>`
-
-Todas as views usam `LoginRequiredMixin`.
-
-## Servicos
-- `apps/monitoring/services/legacy_sync_service.py`
-  - consulta fonte legada (ODBC)
-  - normaliza e deduplica eventos por hash
-  - upsert de agente/evento
-  - recalculo de estatisticas diarias afetadas
-
-## Management command
-- `python manage.py sync_legacy_events`
-  - arquivo: `apps/monitoring/management/commands/sync_legacy_events.py`
-  - registra `JobRun` com status `RUNNING/SUCCESS/ERROR`
-
-## Integracao com assistente
-- Tools de leitura usam:
-  - `AgentDayStats` (ranking/resumo)
-  - `AgentEvent` (pausas atuais)
-  - `Agent` (dados do agente)
-- Tools de acao registram envio em `NotificationHistory`.
-
-## Admin
-Registrados:
-- `Agent`
-- `AgentEvent`
-- `AgentDayStats`
-- `NotificationHistory`
-- `NotificationThrottle`
-- `JobRun`
+## Resumo do estado atual
+- pipeline LH -> bruto (`AgentEvent`/`AgentWorkday`) -> `AgentDayStats` -> dashboard
+- classificacao de pausas integrada em metricas, rankings, risco e alertas
+- UI administrativa de classificacao em `/admin/monitoring/pause-classification`
+- tabelas brutas com blindagem de escrita no ORM

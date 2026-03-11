@@ -1,10 +1,17 @@
+{% load assistant_ui %}
+{% assistant_processing_config_json as assistant_processing_config %}
 <section
   id="assistant-widget-root"
   data-user-id="{{ request.user.id }}"
-  data-chat-url="{% url 'assistant-chat' %}"
-  data-conversation-url-template="{% url 'assistant-conversation' conversation_id=0 %}"
+  data-widget-chat-url="{% url 'assistant-widget-chat' %}"
+  data-widget-end-url="{% url 'assistant-widget-end-session' %}"
+  data-widget-save-url="{% url 'assistant-widget-save-session' %}"
+  data-assistant-name="{% assistant_name %}"
+  data-empty-state="{% assistant_empty_message %}"
+  data-save-label="{% assistant_save_conversation_label %}"
+  data-saved-label="{% assistant_saved_conversation_label %}"
   class="assistant-widget"
-  aria-label="Widget do assistente"
+  aria-label="Widget do assistente {% assistant_name %}"
 >
   <button
     id="assistant-fab"
@@ -12,7 +19,7 @@
     type="button"
     aria-controls="assistant-drawer"
     aria-expanded="false"
-    aria-label="Abrir assistente"
+    aria-label="Abrir assistente {% assistant_name %}"
   >
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <rect x="5" y="7" width="14" height="11" rx="3" fill="none"></rect>
@@ -23,7 +30,7 @@
     </svg>
   </button>
 
-  <aside id="assistant-drawer" class="assistant-widget__drawer" aria-hidden="true" aria-label="Assistente Operacional">
+  <aside id="assistant-drawer" class="assistant-widget__drawer" aria-hidden="true" aria-label="{% assistant_name %}, assistente da plataforma">
     <div class="assistant-widget__header">
       <span class="assistant-widget__title">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -33,31 +40,44 @@
           <path d="M9 15.5h6"></path>
           <path d="M12 4v3"></path>
         </svg>
-        <span class="assistant-widget__title-text">Assistente Operacional</span>
+        <span class="assistant-widget__title-text">{% assistant_name %}</span>
       </span>
-      <button id="assistant-close" class="assistant-widget__close" type="button" aria-label="Fechar assistente">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M6 6l12 12"></path>
-          <path d="M18 6l-12 12"></path>
-        </svg>
-      </button>
+      <div class="assistant-widget__header-actions">
+        <button
+          id="assistant-save"
+          class="assistant-widget__save"
+          type="button"
+          aria-label="Salvar conversa do assistente {% assistant_name %}"
+        >
+          {% assistant_save_conversation_label %}
+        </button>
+        <button id="assistant-close" class="assistant-widget__close" type="button" aria-label="Fechar assistente {% assistant_name %}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 6l12 12"></path>
+            <path d="M18 6l-12 12"></path>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div id="assistant-messages" class="assistant-widget__messages" aria-live="polite">
-      <p class="assistant-empty">Fa&ccedil;a uma pergunta...</p>
+      <p class="assistant-empty">{% assistant_empty_message %}</p>
     </div>
 
-    <div id="assistant-typing" class="assistant-widget__typing" hidden>Digitando...</div>
+    <div id="assistant-typing" class="assistant-widget__typing" hidden aria-live="polite">
+      <span class="assistant-processing__dot" aria-hidden="true"></span>
+      <span class="assistant-processing__text">Pensando...</span>
+    </div>
 
     <div class="assistant-widget__composer">
       <textarea
         id="assistant-input"
         class="assistant-widget__input"
         rows="2"
-        placeholder="Digite sua mensagem"
-        aria-label="Mensagem para o assistente"
+        placeholder="{% assistant_input_placeholder %}"
+        aria-label="Mensagem para {% assistant_name %}"
       ></textarea>
-      <button id="assistant-send" class="assistant-widget__send" type="button" aria-label="Enviar mensagem">
+      <button id="assistant-send" class="assistant-widget__send" type="button" aria-label="Enviar mensagem para {% assistant_name %}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M4 12h14"></path>
           <path d="M12 5l7 7-7 7"></path>
@@ -65,4 +85,5 @@
       </button>
     </div>
   </aside>
+  <script id="assistant-widget-processing-config" type="application/json">{{ assistant_processing_config|safe }}</script>
 </section>

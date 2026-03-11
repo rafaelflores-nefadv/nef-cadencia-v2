@@ -36,6 +36,13 @@
     <div class="menu-section-title sidebar-label">SISTEMA</div>
     <div class="menu-items">
       <a
+        class="menu-item{% if current_name == 'assistant-page' %} menu-item--active{% endif %}"
+        href="{% url 'assistant-page' %}"
+      >
+        <i data-lucide="sparkles" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Eust&aacute;cio</span>
+      </a>
+      <a
         class="menu-item{% if current_namespace == 'admin' %} menu-item--active{% endif %}"
         href="{% url 'admin:index' %}"
       >

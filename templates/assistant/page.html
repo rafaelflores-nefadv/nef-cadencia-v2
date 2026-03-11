@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ assistant_name }} | NEF Cadencia{% endblock %}
+{% block page_title %}{{ assistant_name }}{% endblock %}
+{% block page_subtitle %}Historico persistido por usuario com guardrails, capacidades e auditoria do assistente.{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'assistant/assistant_page.css' %}">
+{% endblock %}
+
+{% block assistant_widget %}{% endblock %}
+
+{% block content %}
+<section
+  id="assistant-page-root"
+  class="assistant-page"
+  data-page-url="{% url 'assistant-page' %}"
+  data-chat-url="{% url 'assistant-chat' %}"
+  data-conversations-url="{% url 'assistant-page-conversations-api' %}"
+  data-conversation-url-template="{% url 'assistant-page-conversation-api' conversation_id=0 %}"
+  data-delete-url-template="{% url 'assistant-page-delete-conversation' conversation_id=0 %}"
+>
+  <aside class="assistant-page__sidebar">
+    <div class="assistant-page__sidebar-top">
+      <div>
+        <div class="assistant-page__eyebrow">Assistente operacional</div>
+        <h1 class="assistant-page__brand">{{ assistant_name }}</h1>
+        <p class="assistant-page__meta">
+          <span id="assistant-page-count">{{ conversation_count }}</span>/<span id="assistant-page-limit">{{ conversation_limit }}</span>
+          conversas salvas
+        </p>
+      </div>
+      <button
+        id="assistant-page-new"
+        class="assistant-page__new-button"
+        type="button"
+        {% if conversation_limit_reached %}disabled{% endif %}
+      >
+        Nova conversa
+      </button>
+    </div>
+
+    <div id="assistant-page-limit-notice" class="assistant-page__notice{% if not conversation_limit_reached %} hidden{% endif %}">
+      Limite de conversas atingido. Exclua uma conversa antiga para criar outra.
+    </div>
+
+    <div id="assistant-page-sidebar-flash" class="assistant-page__flash hidden" role="status" aria-live="polite"></div>
+
+    <div id="assistant-page-list" class="assistant-page__list" role="list" aria-label="Historico de conversas">
+      {% if conversations %}
+        {% for conversation in conversations %}
+          <a
+            href="{% url 'assistant-page' %}?conversation_id={{ conversation.id }}"
+            class="assistant-page__thread{% if selected_conversation and selected_conversation.id == conversation.id %} is-active{% endif %}"
+            data-conversation-link
+            data-conversation-id="{{ conversation.id }}"
+            role="listitem"
+          >
+            <span class="assistant-page__thread-title">{{ conversation.title }}</span>
+            <span class="assistant-page__thread-meta">
+              {{ conversation.message_count }} {% if conversation.message_count == 1 %}mensagem{% else %}mensagens{% endif %} - {{ conversation.updated_at|slice:":16"|cut:"T" }}
+            </span>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div id="assistant-page-list-empty" class="assistant-page__list-empty">
+          Nenhuma conversa persistida ainda. Inicie uma nova conversa para salvar seu historico.
+        </div>
+      {% endif %}
+    </div>
+  </aside>
+
+  <section class="assistant-page__main">
+    <header class="assistant-page__header">
+      {% if selected_conversation %}
+        <div class="assistant-page__header-copy">
+          <div class="assistant-page__header-label">Conversa ativa</div>
+          <h2 id="assistant-page-title" class="assistant-page__header-title">{{ selected_conversation.title }}</h2>
+          <p id="assistant-page-subtitle" class="assistant-page__header-subtitle">
+            Atualizada em {{ selected_conversation.updated_at|slice:":16"|cut:"T" }} - {{ selected_conversation.message_count }} {% if selected_conversation.message_count == 1 %}mensagem{% else %}mensagens{% endif %}
+          </p>
+        </div>
+        <button id="assistant-page-delete" class="assistant-page__delete-button" type="button">
+          Excluir conversa
+        </button>
+      {% else %}
+        <div class="assistant-page__header-copy">
+          <div class="assistant-page__header-label">Area dedicada</div>
+          <h2 id="assistant-page-title" class="assistant-page__header-title">{{ assistant_name }}</h2>
+          <p id="assistant-page-subtitle" class="assistant-page__header-subtitle">
+            Selecione uma conversa salva ou crie uma nova para iniciar um chat persistido.
+          </p>
+        </div>
+        <button id="assistant-page-delete" class="assistant-page__delete-button hidden" type="button">
+          Excluir conversa
+        </button>
+      {% endif %}
+    </header>
+
+    <div id="assistant-page-main-flash" class="assistant-page__flash hidden" role="status" aria-live="polite"></div>
+
+    <div id="assistant-page-messages" class="assistant-page__messages" aria-live="polite">
+      {% if selected_conversation and selected_conversation.messages %}
+        {% for message in selected_conversation.messages %}
+          <div class="assistant-page__message assistant-page__message--{{ message.role }}">
+            <div class="assistant-page__bubble">{{ message.content }}</div>
+          </div>
+        {% endfor %}
+      {% elif selected_conversation %}
+        <div class="assistant-page__empty-state">
+          <div class="assistant-page__empty-title">Conversa iniciada</div>
+          <p class="assistant-page__empty-copy">Envie a primeira pergunta para registrar esta conversa no historico do Eust&aacute;cio.</p>
+        </div>
+      {% else %}
+        <div class="assistant-page__empty-state">
+          <div class="assistant-page__empty-title">Historico persistido do {{ assistant_name }}</div>
+          <p class="assistant-page__empty-copy">Aqui ficam apenas conversas salvas da pagina dedicada. O widget continua temporario e separado.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div id="assistant-page-typing" class="assistant-page__typing" hidden aria-live="polite">
+      <span class="assistant-processing__dot" aria-hidden="true"></span>
+      <span class="assistant-processing__text">Pensando...</span>
+    </div>
+
+    <form id="assistant-page-form" class="assistant-page__composer">
+      <label class="sr-only" for="assistant-page-input">Mensagem para {{ assistant_name }}</label>
+      <textarea
+        id="assistant-page-input"
+        class="assistant-page__input"
+        rows="2"
+        placeholder="Pergunte ao {{ assistant_name }} sobre monitoramento, produtividade, pausas, relatorios e regras operacionais"
+      ></textarea>
+      <button id="assistant-page-send" class="assistant-page__send" type="submit">
+        Enviar
+      </button>
+    </form>
+  </section>
+</section>
+
+{{ assistant_page_initial_data|json_script:"assistant-page-initial-data" }}
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script src="{% static 'assistant/assistant_processing_ui.js' %}"></script>
+  <script src="{% static 'assistant/assistant_message_rendering.js' %}"></script>
+  <script src="{% static 'assistant/assistant_page.js' %}"></script>
+{% endblock %}

@@ -277,6 +277,8 @@
     {% block assistant_widget %}
       {% if request.user.is_authenticated %}
       {% include "assistant/_assistant_widget.html" %}
+      <script src="{% static 'assistant/assistant_processing_ui.js' %}"></script>
+      <script src="{% static 'assistant/assistant_message_rendering.js' %}"></script>
       <script src="{% static 'assistant/assistant_widget.js' %}"></script>
       {% endif %}
     {% endblock %}

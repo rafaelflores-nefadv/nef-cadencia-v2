@@ -4,9 +4,11 @@ from .models import (
     Agent,
     AgentDayStats,
     AgentEvent,
+    AgentWorkday,
     JobRun,
     NotificationHistory,
     NotificationThrottle,
+    PauseClassification,
 )
 
 
@@ -23,12 +25,50 @@ class AgentEventAdmin(admin.ModelAdmin):
     list_filter = ("tp_evento", "nm_pausa", "source", "dt_inicio")
     search_fields = ("=cd_operador", "tp_evento", "nm_pausa", "source_event_hash")
 
+    def get_readonly_fields(self, request, obj=None):
+        return [field.name for field in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(AgentDayStats)
 class AgentDayStatsAdmin(admin.ModelAdmin):
     list_display = ("data_ref", "cd_operador", "qtd_pausas", "tempo_pausas_seg")
     list_filter = ("data_ref",)
     search_fields = ("=cd_operador",)
+
+
+@admin.register(AgentWorkday)
+class AgentWorkdayAdmin(admin.ModelAdmin):
+    list_display = ("work_date", "cd_operador", "nm_operador", "duracao_seg", "source")
+    list_filter = ("work_date", "source")
+    search_fields = ("=cd_operador", "nm_operador")
+
+    def get_readonly_fields(self, request, obj=None):
+        return [field.name for field in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(PauseClassification)
+class PauseClassificationAdmin(admin.ModelAdmin):
+    list_display = ("pause_name", "source", "category", "is_active", "updated_at")
+    list_filter = ("category", "is_active", "source")
+    search_fields = ("pause_name", "pause_name_normalized", "source")
 
 
 @admin.register(NotificationHistory)

@@ -9,6 +9,23 @@ body.nef-admin {
   --admin-link-hover: #bfdbfe;
   --admin-primary-bg: rgba(37, 99, 235, 0.22);
   --admin-primary-border: rgba(37, 99, 235, 0.45);
+
+  /* Keep Django admin defaults aligned with the dark palette. */
+  --body-fg: var(--admin-text);
+  --body-bg: var(--admin-surface);
+  --body-quiet-color: var(--admin-text-muted);
+  --body-loud-color: #f8fafc;
+  --darkened-bg: rgba(255, 255, 255, 0.03);
+  --hairline-color: var(--admin-border);
+  --border-color: var(--admin-border);
+  --link-fg: var(--admin-link);
+  --link-hover-color: var(--admin-link-hover);
+  --link-selected-fg: #bfdbfe;
+  --selected-bg: rgba(148, 163, 184, 0.16);
+  --selected-row: rgba(30, 41, 59, 0.95);
+  --message-success-bg: rgba(15, 23, 42, 0.88);
+  --message-warning-bg: rgba(120, 53, 15, 0.38);
+  --message-error-bg: rgba(127, 29, 29, 0.36);
 }
 
 body.nef-admin,
@@ -199,6 +216,11 @@ body.nef-admin .admin-card {
 
 body.nef-admin #content {
   padding: 1rem;
+  display: flow-root;
+}
+
+body.nef-admin #content > #content-main {
+  margin-top: 0.75rem;
 }
 
 body.nef-admin .admin-card--padded {
@@ -208,7 +230,7 @@ body.nef-admin .admin-card--padded {
 body.nef-admin .admin-title {
   font-size: 1.125rem;
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.6rem;
 }
 
 body.nef-admin .admin-subtitle,
@@ -372,10 +394,27 @@ body.nef-admin #result_list a:hover {
 }
 
 body.nef-admin .object-tools {
+  float: none;
+  position: static;
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
   margin: 0 0 0.75rem;
+  padding-left: 0;
+}
+
+body.nef-admin .object-tools li {
+  float: none;
+  margin-left: 0;
+  margin-right: 0;
+  height: auto;
+  list-style: none;
+}
+
+body.nef-admin .object-tools a,
+body.nef-admin .object-tools a:link,
+body.nef-admin .object-tools a:visited {
+  float: none;
 }
 
 body.nef-admin .button,
@@ -459,6 +498,15 @@ body.nef-admin #changelist {
   border: 1px solid var(--admin-border);
   border-radius: 0.75rem;
   overflow: hidden;
+  background: var(--admin-card) !important;
+}
+
+body.nef-admin #changelist .changelist-form-container,
+body.nef-admin #changelist .results,
+body.nef-admin #changelist-form .results,
+body.nef-admin #result_list,
+body.nef-admin #changelist .paginator,
+body.nef-admin #change-history .paginator {
   background: var(--admin-card) !important;
 }
 

@@ -1,0 +1,1477 @@
+﻿﻿
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Dashboard | NEF Cadencia</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    
+      
+      <link rel="stylesheet" href="/static/assistant/assistant_widget.css">
+      
+    
+    <style>
+      /* Pequenos helpers para a conversao (mantem simples e sem build do Tailwind) */
+      html.sidebar-collapsed [data-sidebar] .sidebar-label { display:none; }
+      html.sidebar-collapsed [data-sidebar] { width: 72px; }
+      html.sidebar-drawer-open [data-sidebar-drawer] { transform: translateX(0); }
+      html.sidebar-drawer-open [data-sidebar-backdrop] { display:block; }
+      .menu-section-title {
+        margin-bottom: 0.5rem;
+        padding: 0 0.75rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: rgba(148, 163, 184, 0.9);
+      }
+      .menu-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .menu-divider {
+        margin: 1rem 0.5rem;
+        border-top: 1px solid var(--color-border);
+        opacity: 0.55;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        border-radius: 0.75rem;
+        padding: 0.55rem 0.75rem;
+        color: rgba(226, 232, 240, 0.86);
+        font-size: 0.875rem;
+        transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+      }
+      .menu-item:hover {
+        background-color: rgba(148, 163, 184, 0.12);
+        color: #f1f5f9;
+      }
+      .menu-item:focus-visible {
+        outline: 2px solid rgba(37, 99, 235, 0.42);
+        outline-offset: 2px;
+      }
+      .menu-item--active {
+        background-color: rgba(37, 99, 235, 0.18);
+        color: #bfdbfe;
+        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.4);
+      }
+      .menu-item__icon {
+        width: 1rem;
+        height: 1rem;
+        flex: 0 0 auto;
+      }
+      .menu-item__text {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      html.sidebar-collapsed [data-sidebar] .menu-item {
+        justify-content: center;
+        padding-left: 0.625rem;
+        padding-right: 0.625rem;
+      }
+      .profile-menu {
+        position: relative;
+      }
+      .profile-menu__button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        padding: 0.4rem 0.65rem;
+        background: transparent;
+        color: var(--color-text);
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+      }
+      .profile-menu__button:hover {
+        background-color: rgba(148, 163, 184, 0.12);
+      }
+      .profile-menu__button:focus-visible {
+        outline: 2px solid rgba(37, 99, 235, 0.42);
+        outline-offset: 2px;
+      }
+      .profile-menu__avatar {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #bfdbfe;
+        background-color: rgba(37, 99, 235, 0.22);
+      }
+      .profile-menu__name {
+        max-width: 11rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.875rem;
+      }
+      .profile-menu__chevron {
+        width: 1rem;
+        height: 1rem;
+        opacity: 0.85;
+        transition: transform 0.2s ease;
+      }
+      .profile-menu__button[aria-expanded="true"] .profile-menu__chevron {
+        transform: rotate(180deg);
+      }
+      .profile-menu__panel {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        z-index: 70;
+        min-width: 13.5rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        background-color: #0b1324;
+        box-shadow: 0 14px 34px rgba(2, 6, 23, 0.45);
+        padding: 0.35rem;
+      }
+      .profile-menu__item {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        border-radius: 0.6rem;
+        padding: 0.55rem 0.65rem;
+        color: rgba(226, 232, 240, 0.92);
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        text-align: left;
+      }
+      .profile-menu__item:hover,
+      .profile-menu__item:focus-visible {
+        background-color: rgba(148, 163, 184, 0.16);
+        color: #f8fafc;
+        outline: none;
+      }
+      .profile-menu__item-icon {
+        width: 0.95rem;
+        height: 0.95rem;
+        flex: 0 0 auto;
+      }
+      @media (max-width: 640px) {
+        .profile-menu__name {
+          display: none;
+        }
+      }
+    </style>
+    
+  </head>
+  <body class="min-h-screen bg-[color:var(--color-bg)] text-[color:var(--color-text)] " >
+    <!-- Mobile backdrop -->
+    <div data-sidebar-backdrop class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+    <div class="flex min-h-screen">
+      <!-- Sidebar (desktop) -->
+      <aside data-sidebar class="hidden lg:block w-[280px] border-r border-[color:var(--color-border)] bg-[color:var(--color-card)]">
+        
+          
+            <nav class="h-full px-3 py-4 overflow-y-auto">
+  
+  <div class="pt-1 pb-3 px-2">
+    <div class="text-xs text-slate-400">NEF Cadencia</div>
+    <div class="text-sm font-semibold text-slate-100 sidebar-label">Console Operacional</div>
+  </div>
+
+  <div class="mb-4">
+    <div class="menu-section-title sidebar-label">OPERACIONAL</div>
+    <div class="menu-items">
+      <a
+        class="menu-item"
+        href="/dashboard"
+      >
+        <i data-lucide="layout-dashboard" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Dashboard</span>
+      </a>
+      <a
+        class="menu-item"
+        href="/agents"
+      >
+        <i data-lucide="bot" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Agentes</span>
+      </a>
+      <a
+        class="menu-item"
+        href="/runs"
+      >
+        <i data-lucide="activity" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Execucoes</span>
+      </a>
+    </div>
+
+    <div class="menu-divider"></div>
+
+    <div class="menu-section-title sidebar-label">SISTEMA</div>
+    <div class="menu-items">
+      <a
+        class="menu-item"
+        href="/admin/"
+      >
+        <i data-lucide="shield" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Admin</span>
+      </a>
+    </div>
+  </div>
+  
+</nav>
+
+          
+        
+      </aside>
+
+      <!-- Sidebar drawer (mobile) -->
+      <aside data-sidebar-drawer class="fixed inset-y-0 left-0 z-50 w-[280px] border-r border-[color:var(--color-border)] bg-[color:var(--color-card)] transform -translate-x-full transition lg:hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-[color:var(--color-border)]">
+          <div>
+            <div class="text-xs text-slate-400">NEF Cadencia</div>
+            <div class="text-sm font-semibold text-slate-100">Console Operacional</div>
+          </div>
+          <button type="button" data-sidebar-close class="rounded-lg px-3 py-2 border border-[color:var(--color-border)]">Fechar</button>
+        </div>
+        
+          
+            <nav class="h-full px-3 py-4 overflow-y-auto">
+  
+  <div class="pt-1 pb-3 px-2">
+    <div class="text-xs text-slate-400">NEF Cadencia</div>
+    <div class="text-sm font-semibold text-slate-100 sidebar-label">Console Operacional</div>
+  </div>
+
+  <div class="mb-4">
+    <div class="menu-section-title sidebar-label">OPERACIONAL</div>
+    <div class="menu-items">
+      <a
+        class="menu-item"
+        href="/dashboard"
+      >
+        <i data-lucide="layout-dashboard" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Dashboard</span>
+      </a>
+      <a
+        class="menu-item"
+        href="/agents"
+      >
+        <i data-lucide="bot" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Agentes</span>
+      </a>
+      <a
+        class="menu-item"
+        href="/runs"
+      >
+        <i data-lucide="activity" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Execucoes</span>
+      </a>
+    </div>
+
+    <div class="menu-divider"></div>
+
+    <div class="menu-section-title sidebar-label">SISTEMA</div>
+    <div class="menu-items">
+      <a
+        class="menu-item"
+        href="/admin/"
+      >
+        <i data-lucide="shield" class="menu-item__icon" aria-hidden="true"></i>
+        <span class="menu-item__text sidebar-label">Admin</span>
+      </a>
+    </div>
+  </div>
+  
+</nav>
+
+          
+        
+      </aside>
+
+      <main class="flex-1 min-w-0">
+        <!-- Topbar -->
+        <header class="sticky top-0 z-30 border-b border-[color:var(--color-border)] bg-[color:var(--color-card)]">
+          <div class="px-4 py-3 flex items-center gap-3">
+            <button type="button" data-sidebar-open class="lg:hidden rounded-lg px-3 py-2 border border-[color:var(--color-border)]">Menu</button>
+            <button type="button" data-sidebar-collapse class="hidden lg:inline-flex rounded-lg px-3 py-2 border border-[color:var(--color-border)]">☰</button>
+
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-semibold truncate">Dashboard Operacional</div>
+              <div class="text-xs text-[color:var(--color-text-muted)] truncate">Painel BI operacional diario (monitoring).</div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              
+              
+              
+              
+              
+              
+              <div class="profile-menu" data-profile-menu>
+                <button
+                  type="button"
+                  class="profile-menu__button"
+                  data-profile-menu-button
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  aria-controls="profile-menu-panel"
+                >
+                  <span class="profile-menu__avatar" aria-hidden="true">T</span>
+                  <span class="profile-menu__name">tmpdash</span>
+                  <i data-lucide="chevron-down" class="profile-menu__chevron" aria-hidden="true"></i>
+                </button>
+
+                <div id="profile-menu-panel" data-profile-menu-panel class="profile-menu__panel hidden" role="menu" aria-label="Menu do perfil">
+                  <a class="profile-menu__item" href="/dashboard" role="menuitem" tabindex="-1">
+                    <i data-lucide="user" class="profile-menu__item-icon" aria-hidden="true"></i>
+                    <span>Perfil</span>
+                  </a>
+                  <a class="profile-menu__item" href="/dashboard" role="menuitem" tabindex="-1">
+                    <i data-lucide="settings" class="profile-menu__item-icon" aria-hidden="true"></i>
+                    <span>Configuracoes</span>
+                  </a>
+                  <form method="post" action="/logout">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="Caz28Upe6UvxYOUTzYwH8eDQVZ4MHD7rkBgSFch7PEvQMc2HhJPbtKhSxZ5phR9N">
+                    <button type="submit" class="profile-menu__item" role="menuitem" tabindex="-1">
+                      <i data-lucide="log-out" class="profile-menu__item-icon" aria-hidden="true"></i>
+                      <span>Logout</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+              
+              
+            </div>
+          </div>
+        </header>
+
+        <div class="p-4 lg:p-6">
+          
+          
+<div class="space-y-4">
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+      <div class="space-y-1">
+        <label for="data_ref" class="text-xs text-[color:var(--color-text-muted)]">Data</label>
+        <input id="data_ref" name="data_ref" type="date" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" value="2026-01-29">
+      </div>
+      <div class="space-y-1">
+        <label for="q" class="text-xs text-[color:var(--color-text-muted)]">Busca</label>
+        <input id="q" name="q" type="text" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" placeholder="Codigo, nome ou pausa" value="">
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="h-10 px-4 rounded-lg bg-[color:var(--color-primary)] text-white text-sm font-semibold">Filtrar</button>
+        <a href="/dashboard" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Limpar</a>
+      </div>
+    </form>
+  </section>
+
+  
+
+  
+    <section class="rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-sm">
+      Stats nao gerados para esta data; exibindo agregacao direta por eventos/jornada.
+      Rode o sync ou execute <code>python manage.py rebuild_agent_day_stats --date 2026-01-29</code>.
+    </section>
+  
+
+  
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold">Data Completeness Panel</h2>
+      <span class="text-xs text-[color:var(--color-text-muted)]">Periodo: 29/01/2026</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+      
+        <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-[color:var(--color-text-muted)]">Eventos (AgentEvent)</div>
+            <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-300">OK</span>
+          </div>
+          <div class="mt-1 text-xl font-semibold">4648</div>
+          <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Cobertura: 08:01 - 18:59</div>
+          
+          
+        </article>
+      
+        <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-[color:var(--color-text-muted)]">Pausas</div>
+            <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-300">OK</span>
+          </div>
+          <div class="mt-1 text-xl font-semibold">4648</div>
+          <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Cobertura: 08:01 - 18:59</div>
+          
+          
+        </article>
+      
+        <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-[color:var(--color-text-muted)]">Jornada (AgentWorkday)</div>
+            <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-300">OK</span>
+          </div>
+          <div class="mt-1 text-xl font-semibold">33</div>
+          <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Cobertura: 07:57 - 19:00</div>
+          
+          
+        </article>
+      
+        <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-[color:var(--color-text-muted)]">Stats (AgentDayStats)</div>
+            <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300">EMPTY</span>
+          </div>
+          <div class="mt-1 text-xl font-semibold">0</div>
+          <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Cobertura: -</div>
+          
+          
+            <div class="mt-2 text-xs text-amber-200">Gere stats: python manage.py rebuild_agent_day_stats --date 2026-01-29</div>
+          
+        </article>
+      
+        <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-[color:var(--color-text-muted)]">Jobs/Sync</div>
+            <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300">EMPTY</span>
+          </div>
+          <div class="mt-1 text-xl font-semibold">0</div>
+          <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Cobertura: -</div>
+          
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Ultimo: 06/03/2026 09:40</div>
+          
+          
+            <div class="mt-2 text-xs text-amber-200">Sem jobs em 2026-01-29. Rode sync/import e verifique /runs.</div>
+          
+        </article>
+      
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold">Resumo executivo do dia</h2>
+      <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Agentes ativos</div>
+        <div class="text-2xl font-semibold">44</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">Com atividade: 33</div>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </article>
+      <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Eventos no dia</div>
+        <div class="text-2xl font-semibold">4648</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">Jornadas: 33</div>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </article>
+      <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Tempo produtivo total</div>
+        <div class="text-2xl font-semibold">00:00</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">Tempo logado: 162:13</div>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </article>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 mt-3">
+      <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Total de pausas</div>
+        <div class="text-2xl font-semibold">4648</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">
+          Tempo: 654:42
+        </div>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </article>
+      <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Tempo medio de pausa</div>
+        <div class="text-2xl font-semibold">00:08</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">P90: 22:42</div>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </article>
+      <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Taxa de ocupacao</div>
+        <div class="text-2xl font-semibold">0,0%</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">
+          Fonte: jornada
+        </div>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </article>
+      <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Media de pausas por agente</div>
+        <div class="text-2xl font-semibold">140,85</div>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </article>
+      <article class="rounded-lg border border-[color:var(--color-border)] p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Stats gerados no dia</div>
+        <div class="text-2xl font-semibold">0</div>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+    <div class="px-4 py-3 border-b border-[color:var(--color-border)] flex items-center justify-between">
+      <h2 class="text-sm font-semibold">Agentes ativos sem atividade no dia</h2>
+      <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+    </div>
+    
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+              <th class="px-4 py-3 font-medium">Codigo</th>
+              <th class="px-4 py-3 font-medium">Nome</th>
+            </tr>
+          </thead>
+          <tbody>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20231</td>
+                <td class="px-4 py-3">EDUARDA BARBOSA</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20292</td>
+                <td class="px-4 py-3">BEATRIZ.MAYUMI</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20316</td>
+                <td class="px-4 py-3">VICTORIA.MORALES</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20327</td>
+                <td class="px-4 py-3">RAYANE.ALMEIDA</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20351</td>
+                <td class="px-4 py-3">GABRIELLY.ALVES</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20359</td>
+                <td class="px-4 py-3">THIELLY.AJALA</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20365</td>
+                <td class="px-4 py-3">REVOLUTION.OPERADORMANUAL</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20447</td>
+                <td class="px-4 py-3">KAMILLI.NASCIMENTO</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20460</td>
+                <td class="px-4 py-3">GUILHERME.FERREIRA</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20468</td>
+                <td class="px-4 py-3">KAMILLI.NASCIMENTO</td>
+              </tr>
+            
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">20498</td>
+                <td class="px-4 py-3">RAVINY.VITORIA</td>
+              </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-3 gap-3 items-start">
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)] flex items-center justify-between">
+        <h2 class="text-sm font-semibold">Top 10 por tempo em pausa (10)</h2>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </div>
+      
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm" data-ranking-table="pause-time">
+            <thead>
+              <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+                <th class="px-4 py-3 font-medium">Operador</th>
+                <th class="px-4 py-3 font-medium text-right">Tempo pausa</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20401</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">JOAO.NETO</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>25:25</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 35</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20440</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">SIBELLY.CARDOSO</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>23:12</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 19</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20459</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">EDUARDO.VILELA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>22:54</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 104</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20297</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">STEFANY SILVA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>22:47</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 139</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20298</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">YAGO.SOUZA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>22:23</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 125</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20301</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">JAMYLLE.DAMASCENO</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>22:12</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 106</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20325</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">ADRIELY.SANTOS</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>22:12</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 146</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20299</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">CARLOS.HENRIQUE</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>22:10</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 157</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20326</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">GRACYELLI.DAMASCENO</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>22:07</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 133</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-time">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20300</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">VINICIUS.MELO</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>22:07</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Qtd: 150</div>
+                  </td>
+                </tr>
+              
+            </tbody>
+          </table>
+        </div>
+      
+    </article>
+
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)] flex items-center justify-between">
+        <h2 class="text-sm font-semibold">Top 10 por quantidade de pausas (10)</h2>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </div>
+      
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm" data-ranking-table="pause-count">
+            <thead>
+              <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+                <th class="px-4 py-3 font-medium">Operador</th>
+                <th class="px-4 py-3 font-medium text-right">Qtd pausas</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20478</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">ANA.JULIA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>280</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">20:50</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20376</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">JOAO.FREITAS</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>280</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">20:15</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20310</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">DANIEL.CHAMANI</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>250</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">21:04</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20307</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">LORRAINY.SANTOS</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>248</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">18:56</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20352</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">ITALO.KAUE</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>228</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">02:16</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20306</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">ANNA.OLIVEIRA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>210</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">02:07</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20341</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">KARYNE.FRANCA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>208</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">21:15</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20332</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">PAMELA.BRITO</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>188</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">21:32</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20343</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">ADRIAN.GOMES</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>180</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">21:26</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="pause-count">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20302</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">CLEITON.VERGILIO</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>166</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">20:59</div>
+                  </td>
+                </tr>
+              
+            </tbody>
+          </table>
+        </div>
+      
+    </article>
+
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)] flex items-center justify-between">
+        <h2 class="text-sm font-semibold">Top 10 agentes mais produtivos (10)</h2>
+        <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="/dashboard/day-detail?data_ref=2026-01-29">Ver detalhes</a>
+      </div>
+      
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm" data-ranking-table="productivity">
+            <thead>
+              <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+                <th class="px-4 py-3 font-medium">Operador</th>
+                <th class="px-4 py-3 font-medium text-right">Produtivo</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20352</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">ITALO.KAUE</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>02:53</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 05:10</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20306</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">ANNA.OLIVEIRA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>02:37</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 04:44</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20356</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">SABRYNA.OLIVEIRA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>02:18</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 05:19</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20289</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">AMANDA.LIRA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>00:00</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 05:23</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20293</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">CARLOS.OLIVEIRA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>00:00</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 05:24</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20297</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">STEFANY SILVA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>00:00</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 04:54</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20298</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">YAGO.SOUZA</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>00:00</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 05:22</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20299</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">CARLOS.HENRIQUE</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>00:00</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 04:56</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20300</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">VINICIUS.MELO</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>00:00</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 04:49</div>
+                  </td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-ranking-row="productivity">
+                  <td class="px-4 py-3">
+                    <div class="font-medium">20301</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">JAMYLLE.DAMASCENO</div>
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <div>00:00</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">Logado: 05:23</div>
+                  </td>
+                </tr>
+              
+            </tbody>
+          </table>
+        </div>
+      
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-3 items-start">
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+        <h2 class="text-sm font-semibold">Agentes com maior risco (10)</h2>
+      </div>
+      
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm" data-risk-table="agents">
+            <thead>
+              <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+                <th class="px-4 py-3 font-medium">Operador</th>
+                <th class="px-4 py-3 font-medium">Nome</th>
+                <th class="px-4 py-3 font-medium text-right">Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20478</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">ANA.JULIA</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 20:50 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1572</td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20310</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">DANIEL.CHAMANI</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 21:04 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1547</td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20376</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">JOAO.FREITAS</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 20:15 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1544</td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20341</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">KARYNE.FRANCA</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 21:15 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1505</td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20401</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">JOAO.NETO</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 25:25 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1497</td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20297</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">STEFANY SILVA</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 22:47 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1496</td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20332</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">PAMELA.BRITO</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 21:32 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1494</td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20299</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">CARLOS.HENRIQUE</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 22:10 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1487</td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20343</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">ADRIAN.GOMES</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 21:26 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1481</td>
+                </tr>
+              
+                <tr class="border-b border-[color:var(--color-border)] last:border-0" data-risk-row="agent">
+                  <td class="px-4 py-3">20300</td>
+                  <td class="px-4 py-3">
+                    <div class="font-medium">VINICIUS.MELO</div>
+                    <div class="text-xs text-[color:var(--color-text-muted)]">
+                      Pausas: 22:07 | Ocupacao: 0,0% | tempo de pausa elevado, ocupacao abaixo do alvo
+                    </div>
+                  </td>
+                  <td class="px-4 py-3 text-right">1477</td>
+                </tr>
+              
+            </tbody>
+          </table>
+        </div>
+      
+    </article>
+
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+        <h2 class="text-sm font-semibold">Alertas operacionais (top 10)</h2>
+      </div>
+      <ul class="divide-y divide-[color:var(--color-border)] text-sm">
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20289 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">AMANDA.LIRA acumulou 21:01 (limite 90 min).</div>
+          </li>
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20293 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">CARLOS.OLIVEIRA acumulou 22:07 (limite 90 min).</div>
+          </li>
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20297 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">STEFANY SILVA acumulou 22:47 (limite 90 min).</div>
+          </li>
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20298 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">YAGO.SOUZA acumulou 22:23 (limite 90 min).</div>
+          </li>
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20299 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">CARLOS.HENRIQUE acumulou 22:10 (limite 90 min).</div>
+          </li>
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20300 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">VINICIUS.MELO acumulou 22:07 (limite 90 min).</div>
+          </li>
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20301 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">JAMYLLE.DAMASCENO acumulou 22:12 (limite 90 min).</div>
+          </li>
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20302 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">CLEITON.VERGILIO acumulou 20:59 (limite 90 min).</div>
+          </li>
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20303 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">PEDRO.BENHOSSI acumulou 22:04 (limite 90 min).</div>
+          </li>
+        
+          <li class="px-4 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">Operador 20307 com pausa acima do limite</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-xs bg-red-500/20 text-red-300">CRIT</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">LORRAINY.SANTOS acumulou 18:56 (limite 90 min).</div>
+          </li>
+        
+      </ul>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+        <h2 class="text-sm font-semibold">Eventos por hora x Pausas por hora</h2>
+      </div>
+      <div class="p-4 h-[280px]">
+        <canvas id="hourlyChart"></canvas>
+      </div>
+      
+    </article>
+
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+        <h2 class="text-sm font-semibold">Distribuicao de pausas por tipo</h2>
+      </div>
+      
+        <div class="p-4 h-[280px]">
+          <canvas id="pauseTypeChart"></canvas>
+        </div>
+      
+    </article>
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+    <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
+      <h2 class="text-sm font-semibold">Saude do sistema (jobs)</h2>
+    </div>
+    <div class="p-4 space-y-3">
+      
+        <div class="text-sm">
+          <div class="font-semibold">Ultimo job: relatorios</div>
+          <div class="text-[color:var(--color-text-muted)] mt-1">
+            06/03/2026 09:40:39 | status SUCCESS | duracao 00:00
+            | processados: 30
+          </div>
+        </div>
+      
+
+      <div>
+        <h3 class="text-xs uppercase tracking-wide text-[color:var(--color-text-muted)] mb-2">Ultimas 5 execucoes</h3>
+        
+          <ul class="space-y-2">
+            
+              <li class="text-sm rounded-lg border border-[color:var(--color-border)] px-3 py-2 ">
+                <div class="font-medium">relatorios</div>
+                <div class="text-[color:var(--color-text-muted)]">
+                  06/03/2026 09:40:39 | SUCCESS | 00:00
+                  | processados: 30
+                </div>
+              </li>
+            
+              <li class="text-sm rounded-lg border border-[color:var(--color-border)] px-3 py-2 ">
+                <div class="font-medium">relatorios</div>
+                <div class="text-[color:var(--color-text-muted)]">
+                  06/03/2026 09:37:09 | SUCCESS | 00:00
+                  | processados: 0
+                </div>
+              </li>
+            
+              <li class="text-sm rounded-lg border border-[color:var(--color-border)] px-3 py-2 ">
+                <div class="font-medium">relatorios</div>
+                <div class="text-[color:var(--color-text-muted)]">
+                  06/03/2026 09:37:03 | SUCCESS | 00:00
+                  | processados: 0
+                </div>
+              </li>
+            
+          </ul>
+        
+      </div>
+    </div>
+  </section>
+</div>
+
+<script id="events-hour-labels" type="application/json">["00h", "01h", "02h", "03h", "04h", "05h", "06h", "07h", "08h", "09h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h", "21h", "22h", "23h"]</script>
+<script id="events-hour-counts" type="application/json">[0, 0, 0, 0, 0, 0, 0, 0, 220, 377, 420, 395, 346, 313, 535, 491, 517, 640, 394, 0, 0, 0, 0, 0]</script>
+<script id="pauses-hour-counts" type="application/json">[0, 0, 0, 0, 0, 0, 0, 0, 220, 377, 420, 395, 346, 313, 535, 491, 517, 640, 394, 0, 0, 0, 0, 0]</script>
+<script id="pause-distribution-data" type="application/json">[{"pause_type": "Tabula\u00e7\u00e3o", "qtd": 3915, "tempo_hhmm": "377:23"}, {"pause_type": "Atendimento", "qtd": 627, "tempo_hhmm": "241:15"}, {"pause_type": "Banheiro", "qtd": 64, "tempo_hhmm": "25:25"}, {"pause_type": "15 Minutos", "qtd": 30, "tempo_hhmm": "08:58"}, {"pause_type": "Treinamento", "qtd": 5, "tempo_hhmm": "00:18"}, {"pause_type": "Reuni\u00e3o", "qtd": 4, "tempo_hhmm": "01:02"}, {"pause_type": "Outros", "qtd": 3, "tempo_hhmm": "00:17"}]</script>
+
+          
+        </div>
+      </main>
+    </div>
+
+    
+      
+      <section
+  id="assistant-widget-root"
+  data-user-id="10"
+  data-chat-url="/assistant/chat"
+  data-conversation-url-template="/assistant/conversation/0"
+  class="assistant-widget"
+  aria-label="Widget do assistente"
+>
+  <button
+    id="assistant-fab"
+    class="assistant-widget__fab"
+    type="button"
+    aria-controls="assistant-drawer"
+    aria-expanded="false"
+    aria-label="Abrir assistente"
+  >
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="5" y="7" width="14" height="11" rx="3" fill="none"></rect>
+      <circle cx="10" cy="12" r="1.2" fill="none"></circle>
+      <circle cx="14" cy="12" r="1.2" fill="none"></circle>
+      <path d="M9 15.5h6"></path>
+      <path d="M12 4v3"></path>
+    </svg>
+  </button>
+
+  <aside id="assistant-drawer" class="assistant-widget__drawer" aria-hidden="true" aria-label="Assistente Operacional">
+    <div class="assistant-widget__header">
+      <span class="assistant-widget__title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="7" width="14" height="11" rx="3" fill="none"></rect>
+          <circle cx="10" cy="12" r="1.2" fill="none"></circle>
+          <circle cx="14" cy="12" r="1.2" fill="none"></circle>
+          <path d="M9 15.5h6"></path>
+          <path d="M12 4v3"></path>
+        </svg>
+        <span class="assistant-widget__title-text">Assistente Operacional</span>
+      </span>
+      <button id="assistant-close" class="assistant-widget__close" type="button" aria-label="Fechar assistente">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 6l12 12"></path>
+          <path d="M18 6l-12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div id="assistant-messages" class="assistant-widget__messages" aria-live="polite">
+      <p class="assistant-empty">Fa&ccedil;a uma pergunta...</p>
+    </div>
+
+    <div id="assistant-typing" class="assistant-widget__typing" hidden>Digitando...</div>
+
+    <div class="assistant-widget__composer">
+      <textarea
+        id="assistant-input"
+        class="assistant-widget__input"
+        rows="2"
+        placeholder="Digite sua mensagem"
+        aria-label="Mensagem para o assistente"
+      ></textarea>
+      <button id="assistant-send" class="assistant-widget__send" type="button" aria-label="Enviar mensagem">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 12h14"></path>
+          <path d="M12 5l7 7-7 7"></path>
+        </svg>
+      </button>
+    </div>
+  </aside>
+</section>
+
+      <script src="/static/assistant/assistant_widget.js"></script>
+      
+    
+
+    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+    <script src="/static/js/app.js"></script>
+    
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script>
+    (function () {
+      const copyButtons = document.querySelectorAll("[data-copy-command]");
+      copyButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          const command = button.getAttribute("data-copy-command");
+          if (!command) return;
+          try {
+            await navigator.clipboard.writeText(command);
+            button.textContent = "Comando copiado";
+            setTimeout(() => {
+              button.textContent = button.getAttribute("data-copy-command").includes("pause") ? "Copiar import de pausas" : "Copiar import de jornada";
+            }, 1400);
+          } catch (err) {
+            console.error("Falha ao copiar comando", err);
+          }
+        });
+      });
+
+      if (!window.Chart) return;
+      const labels = JSON.parse(document.getElementById("events-hour-labels").textContent || "[]");
+      const eventsSeries = JSON.parse(document.getElementById("events-hour-counts").textContent || "[]");
+      const pausesSeries = JSON.parse(document.getElementById("pauses-hour-counts").textContent || "[]");
+      const pauseDist = JSON.parse(document.getElementById("pause-distribution-data").textContent || "[]");
+
+      const hourlyCanvas = document.getElementById("hourlyChart");
+      if (hourlyCanvas) {
+        new Chart(hourlyCanvas, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Eventos",
+                data: eventsSeries,
+                borderColor: "#38bdf8",
+                backgroundColor: "rgba(56,189,248,0.18)",
+                fill: true,
+                tension: 0.3,
+              },
+              {
+                label: "Pausas",
+                data: pausesSeries,
+                borderColor: "#f59e0b",
+                backgroundColor: "rgba(245,158,11,0.2)",
+                fill: true,
+                tension: 0.3,
+              },
+            ],
+          },
+          options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            scales: {
+              y: { beginAtZero: true, ticks: { precision: 0 } },
+            },
+            plugins: {
+              legend: { labels: { color: "#cbd5e1" } },
+            },
+          },
+        });
+      }
+
+      const pauseTypeCanvas = document.getElementById("pauseTypeChart");
+      if (pauseTypeCanvas && Array.isArray(pauseDist) && pauseDist.length > 0) {
+        new Chart(pauseTypeCanvas, {
+          type: "bar",
+          data: {
+            labels: pauseDist.map((item) => item.pause_type || "PAUSA"),
+            datasets: [
+              {
+                label: "Qtd de pausas",
+                data: pauseDist.map((item) => item.qtd || 0),
+                backgroundColor: "#f97316",
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            maintainAspectRatio: false,
+            responsive: true,
+            indexAxis: "y",
+            scales: {
+              x: { beginAtZero: true, ticks: { precision: 0 } },
+            },
+            plugins: {
+              legend: { labels: { color: "#cbd5e1" } },
+            },
+          },
+        });
+      }
+    })();
+  </script>
+
+  </body>
+</html>

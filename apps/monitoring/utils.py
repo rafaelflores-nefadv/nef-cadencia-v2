@@ -36,16 +36,22 @@ def hms_to_seconds(value) -> int | None:
     return None
 
 
-def format_seconds_hhmm(total_seconds: int | None) -> str:
+def format_seconds_hhmmss(total_seconds: int | None) -> str:
     if total_seconds is None:
-        return "00:00"
+        return "00:00:00"
     total_seconds = max(int(total_seconds), 0)
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
-    return f"{hours:02d}:{minutes:02d}"
+    seconds = total_seconds % 60
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
-def format_run_duration_hhmm(run) -> str:
+def format_seconds_hhmm(total_seconds: int | None) -> str:
+    # Backward-compatible alias for existing call sites.
+    return format_seconds_hhmmss(total_seconds)
+
+
+def format_run_duration_hhmmss(run) -> str:
     if not run or not run.started_at:
         return "-"
 
@@ -56,4 +62,9 @@ def format_run_duration_hhmm(run) -> str:
         return "-"
 
     total_seconds = int((end_time - run.started_at).total_seconds())
-    return format_seconds_hhmm(total_seconds)
+    return format_seconds_hhmmss(total_seconds)
+
+
+def format_run_duration_hhmm(run) -> str:
+    # Backward-compatible alias for existing call sites.
+    return format_run_duration_hhmmss(run)

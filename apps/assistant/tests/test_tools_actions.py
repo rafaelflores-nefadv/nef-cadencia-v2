@@ -77,7 +77,7 @@ class AssistantToolsActionsTests(TestCase):
     def _response_with_text(self, text: str, response_id: str):
         return SimpleNamespace(id=response_id, output_text=text, output=[])
 
-    def _post_with_mocked_model(self, user, model_responses, text="execute"):
+    def _post_with_mocked_model(self, user, model_responses, text="Mostre o resumo operacional"):
         mock_client = Mock()
         mock_client.responses.create.side_effect = model_responses
         self.client.login(username=user.username, password=self.password)
@@ -107,7 +107,10 @@ class AssistantToolsActionsTests(TestCase):
                     },
                     response_id="1",
                 ),
-                self._response_with_text("Acao negada por permissao.", response_id="2"),
+                self._response_with_text(
+                    "Acao operacional negada por permissao.",
+                    response_id="2",
+                ),
             ],
             text="Envie mensagem para o agente A",
         )
@@ -133,7 +136,10 @@ class AssistantToolsActionsTests(TestCase):
                     },
                     response_id="1",
                 ),
-                self._response_with_text("Mensagem enviada com sucesso.", response_id="2"),
+                self._response_with_text(
+                    "Mensagem operacional enviada com sucesso.",
+                    response_id="2",
+                ),
             ],
             text="Envie mensagem para o agente A",
         )
@@ -158,17 +164,23 @@ class AssistantToolsActionsTests(TestCase):
             user=self.staff_user,
             model_responses=[
                 self._response_with_tool_call("send_message_to_agent", payload, response_id="1"),
-                self._response_with_text("Primeiro envio.", response_id="2"),
+                self._response_with_text(
+                    "Primeiro envio operacional concluido.",
+                    response_id="2",
+                ),
             ],
-            text="Primeiro envio",
+            text="Envie mensagem operacional para o agente A",
         )
         self._post_with_mocked_model(
             user=self.staff_user,
             model_responses=[
                 self._response_with_tool_call("send_message_to_agent", payload, response_id="3"),
-                self._response_with_text("Segundo envio throttled.", response_id="4"),
+                self._response_with_text(
+                    "Segundo envio operacional bloqueado por throttle.",
+                    response_id="4",
+                ),
             ],
-            text="Segundo envio",
+            text="Envie novamente a mensagem operacional para o agente A",
         )
 
         self.assertEqual(NotificationHistory.objects.count(), 2)
@@ -196,13 +208,16 @@ class AssistantToolsActionsTests(TestCase):
                         "agent_id": self.agent.id,
                         "template_key": "pause_overflow",
                         "channel": "chatseguro",
-                        "variables": {"agent_name": "Agente A", "overflow_minutes": 7},
+                    "variables": {"agent_name": "Agente A", "overflow_minutes": 7},
                     },
                     response_id="1",
                 ),
-                self._response_with_text("Template bloqueado.", response_id="2"),
+                self._response_with_text(
+                    "Template operacional bloqueado.",
+                    response_id="2",
+                ),
             ],
-            text="Envie alerta",
+            text="Envie mensagem operacional para o agente A",
         )
 
         self.assertEqual(response.status_code, 200)
@@ -238,7 +253,10 @@ class AssistantToolsActionsTests(TestCase):
                     },
                     response_id="2",
                 ),
-                self._response_with_text("Ranking consultado e mensagem enviada.", response_id="3"),
+                self._response_with_text(
+                    "Ranking operacional consultado e mensagem enviada.",
+                    response_id="3",
+                ),
             ],
             text="envie mensagem pro agente que mais estourou pausa hoje",
         )

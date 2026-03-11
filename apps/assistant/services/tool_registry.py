@@ -3,11 +3,13 @@ from apps.assistant.services.tools_read import (
     get_current_pauses,
     get_day_summary,
     get_pause_ranking,
+    get_productivity_analytics,
 )
 
 TOOL_GET_PAUSE_RANKING = "get_pause_ranking"
 TOOL_GET_CURRENT_PAUSES = "get_current_pauses"
 TOOL_GET_DAY_SUMMARY = "get_day_summary"
+TOOL_GET_PRODUCTIVITY_ANALYTICS = "get_productivity_analytics"
 TOOL_SEND_MESSAGE_TO_AGENT = "send_message_to_agent"
 TOOL_NOTIFY_SUPERVISORS = "notify_supervisors"
 
@@ -75,6 +77,66 @@ def get_tools_schema() -> list[dict]:
         },
         {
             "type": "function",
+            "name": TOOL_GET_PRODUCTIVITY_ANALYTICS,
+            "description": (
+                "Retorna ranking e resumo analitico de produtividade, improdutividade "
+                "ou desempenho operacional por periodo. "
+                "Use group_by=agent quando a pergunta for sobre agentes ou operadores. "
+                "Use group_by=team apenas se o usuario pedir equipes; se o sistema nao tiver "
+                "essa dimensao, a tool retornara sem dados suficientes."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "date_from": {
+                        "type": "string",
+                        "description": "Data inicial no formato YYYY-MM-DD.",
+                    },
+                    "date_to": {
+                        "type": "string",
+                        "description": "Data final no formato YYYY-MM-DD.",
+                    },
+                    "year": {
+                        "type": "integer",
+                        "description": "Ano do periodo. Exemplo: 2026.",
+                    },
+                    "month": {
+                        "type": "integer",
+                        "description": "Mes do periodo entre 1 e 12.",
+                    },
+                    "period_key": {
+                        "type": "string",
+                        "description": (
+                            "Atalho opcional de periodo: today, yesterday, this_month, "
+                            "last_month ou last_7_days."
+                        ),
+                    },
+                    "metric": {
+                        "type": "string",
+                        "description": (
+                            "Metrica principal: productivity, improductivity ou performance."
+                        ),
+                    },
+                    "group_by": {
+                        "type": "string",
+                        "description": "Agrupamento: agent ou team.",
+                    },
+                    "ranking_order": {
+                        "type": "string",
+                        "description": "Ordenacao: best ou worst.",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Quantidade maxima de itens no ranking.",
+                        "default": 10,
+                    },
+                },
+                "required": [],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "type": "function",
             "name": TOOL_SEND_MESSAGE_TO_AGENT,
             "description": (
                 "Envia mensagem para um agente com template permitido e canal especificado."
@@ -133,6 +195,18 @@ def execute_tool(name: str, args: dict, user) -> dict:
     if name == TOOL_GET_DAY_SUMMARY:
         return get_day_summary(
             date=args.get("date"),
+        )
+    if name == TOOL_GET_PRODUCTIVITY_ANALYTICS:
+        return get_productivity_analytics(
+            date_from=args.get("date_from"),
+            date_to=args.get("date_to"),
+            year=args.get("year"),
+            month=args.get("month"),
+            period_key=args.get("period_key"),
+            metric=args.get("metric"),
+            group_by=args.get("group_by"),
+            ranking_order=args.get("ranking_order"),
+            limit=args.get("limit", 10),
         )
     if name == TOOL_SEND_MESSAGE_TO_AGENT:
         return send_message_to_agent(

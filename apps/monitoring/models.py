@@ -1,7 +1,9 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
 from apps.messaging.choices import ChannelChoices, TemplateTypeChoices
+from apps.monitoring.guards import assert_raw_table_mutation_allowed
 
 
 class NotificationStatusChoices(models.TextChoices):
@@ -22,6 +24,55 @@ class JobRunStatusChoices(models.TextChoices):
     RUNNING = "RUNNING", "Em execucao"
     SUCCESS = "SUCCESS", "Sucesso"
     ERROR = "ERROR", "Erro"
+
+
+def _normalize_pause_text(value: str | None) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    return " ".join(text.split()).upper()
+
+
+def _normalize_source_text(value: str | None) -> str:
+    return str(value or "").strip().upper()
+
+
+class PauseCategoryChoices(models.TextChoices):
+    LEGAL = "LEGAL", "Legal"
+    NEUTRAL = "NEUTRAL", "Neutral"
+    HARMFUL = "HARMFUL", "Harmful"
+
+
+class ProtectedRawQuerySet(models.QuerySet):
+    def delete(self, *args, **kwargs):
+        assert_raw_table_mutation_allowed(self.model._meta.label, "delete")
+        return super().delete(*args, **kwargs)
+
+    def update(self, **kwargs):
+        assert_raw_table_mutation_allowed(self.model._meta.label, "update")
+        return super().update(**kwargs)
+
+
+class ProtectedRawManager(models.Manager.from_queryset(ProtectedRawQuerySet)):
+    def create(self, **kwargs):
+        assert_raw_table_mutation_allowed(self.model._meta.label, "create")
+        return super().create(**kwargs)
+
+    def get_or_create(self, defaults=None, **kwargs):
+        assert_raw_table_mutation_allowed(self.model._meta.label, "get_or_create")
+        return super().get_or_create(defaults=defaults, **kwargs)
+
+    def update_or_create(self, defaults=None, **kwargs):
+        assert_raw_table_mutation_allowed(self.model._meta.label, "update_or_create")
+        return super().update_or_create(defaults=defaults, **kwargs)
+
+    def bulk_create(self, objs, **kwargs):
+        assert_raw_table_mutation_allowed(self.model._meta.label, "bulk_create")
+        return super().bulk_create(objs, **kwargs)
+
+    def bulk_update(self, objs, fields, **kwargs):
+        assert_raw_table_mutation_allowed(self.model._meta.label, "bulk_update")
+        return super().bulk_update(objs, fields, **kwargs)
 
 
 class Agent(models.Model):
@@ -49,6 +100,8 @@ class Agent(models.Model):
 
 
 class AgentEvent(models.Model):
+    objects = ProtectedRawManager()
+
     source = models.CharField(
         max_length=30,
         default="legacy",
@@ -99,6 +152,8 @@ class AgentEvent(models.Model):
     class Meta:
         verbose_name = "Evento de agente"
         verbose_name_plural = "Eventos de agentes"
+        base_manager_name = "objects"
+        default_manager_name = "objects"
         constraints = [
             models.UniqueConstraint(
                 fields=["source", "source_event_hash"],
@@ -121,8 +176,81 @@ class AgentEvent(models.Model):
     def __str__(self):
         return f"{self.cd_operador} - {self.tp_evento} ({self.dt_inicio})"
 
+    def save(self, *args, **kwargs):
+        assert_raw_table_mutation_allowed(self._meta.label, "save")
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        assert_raw_table_mutation_allowed(self._meta.label, "delete")
+        return super().delete(*args, **kwargs)
+
+
+class PauseClassification(models.Model):
+    source = models.CharField(
+        max_length=30,
+        default="",
+        blank=True,
+        db_index=True,
+        verbose_name="Fonte",
+        help_text="Opcional. Vazio significa classificacao global (qualquer fonte).",
+    )
+    pause_name = models.CharField(
+        max_length=50,
+        verbose_name="Nome da pausa",
+        help_text="Nome da pausa conforme legado (ex.: nm_pausa).",
+    )
+    pause_name_normalized = models.CharField(
+        max_length=50,
+        editable=False,
+        db_index=True,
+        verbose_name="Nome da pausa normalizado",
+    )
+    category = models.CharField(
+        max_length=10,
+        choices=PauseCategoryChoices.choices,
+        verbose_name="Categoria",
+    )
+    is_active = models.BooleanField(default=True, db_index=True, verbose_name="Ativo")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
+
+    class Meta:
+        verbose_name = "Classificacao de pausa"
+        verbose_name_plural = "Classificacoes de pausa"
+        ordering = ["source", "pause_name_normalized"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source", "pause_name_normalized"],
+                condition=models.Q(is_active=True),
+                name="uq_pauseclass_source_name_active",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["source", "is_active", "pause_name_normalized"],
+                name="idx_pauseclass_src_active_name",
+            ),
+        ]
+
+    def clean(self):
+        self.pause_name = str(self.pause_name or "").strip()
+        self.source = _normalize_source_text(self.source)
+        self.pause_name_normalized = _normalize_pause_text(self.pause_name)
+        if not self.pause_name_normalized:
+            raise ValidationError({"pause_name": "Informe um nome de pausa valido."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        source_label = self.source or "GLOBAL"
+        return f"{source_label} - {self.pause_name_normalized} [{self.category}]"
+
 
 class AgentWorkday(models.Model):
+    objects = ProtectedRawManager()
+
     source = models.CharField(max_length=50, verbose_name="Fonte")
     ext_event = models.BigIntegerField(verbose_name="Evento externo")
     cd_operador = models.PositiveIntegerField(verbose_name="Codigo do operador")
@@ -144,6 +272,8 @@ class AgentWorkday(models.Model):
         db_table = "monitoring_agent_workday"
         verbose_name = "Jornada diaria do agente"
         verbose_name_plural = "Jornadas diarias dos agentes"
+        base_manager_name = "objects"
+        default_manager_name = "objects"
         constraints = [
             models.UniqueConstraint(
                 fields=["source", "cd_operador", "work_date"],
@@ -161,6 +291,14 @@ class AgentWorkday(models.Model):
 
     def __str__(self):
         return f"{self.cd_operador} - {self.work_date}"
+
+    def save(self, *args, **kwargs):
+        assert_raw_table_mutation_allowed(self._meta.label, "save")
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        assert_raw_table_mutation_allowed(self._meta.label, "delete")
+        return super().delete(*args, **kwargs)
 
 
 class AgentDayStats(models.Model):

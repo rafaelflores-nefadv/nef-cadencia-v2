@@ -14,8 +14,8 @@ Todos os comandos customizados atuais estao no app `monitoring`.
 | `import_lh_alive` | alias legado para `import_lh_all` |
 | `wipe_lh_import` | remove dados `source="LH_ALIVE"` de `AgentEvent` e `AgentWorkday` |
 
-## Filtros de data (imports e wipe)
-Comandos com filtros compartilham estas flags:
+## Filtros de data (imports, wipe e rebuild)
+Comandos com filtro compartilham:
 - `--all`
 - `--from YYYY-MM-DD --to YYYY-MM-DD`
 - `--date YYYY-MM-DD`
@@ -33,30 +33,16 @@ Regras:
 - `--from` e `--to` devem ser usados juntos.
 - `--from/--to` nao podem ser combinados com `--all`, `--date`, `--days` ou `--today`.
 
-## 1) check_legacy_connection
-Descricao:
-Valida conexao ODBC e acessibilidade de:
-- `TB_EVENTOS_LH_AGENTES`
-- `VW_LH_AGENT_PAUSE_EVENTS`
-- `VW_LH_AGENT_WORKDAY`
+## 1) `check_legacy_connection`
+Valida conexao ODBC e leitura de objetos criticos do LH.
 
 Uso:
 ```bash
 python manage.py check_legacy_connection
 ```
 
-Fluxo:
-```text
-Env LEGACY_* -> pyodbc.connect -> SELECT teste -> output SUCCESS/ERROR
-```
-
-## 2) sync_legacy_events
-Descricao:
-Sincroniza eventos de tabela legado em janela movel, recalculando stats diarios.
-
-Parametros:
-- `--lookback-minutes`
-- `--dry-run`
+## 2) `sync_legacy_events`
+Sync incremental da tabela legado em janela movel.
 
 Uso:
 ```bash
@@ -67,102 +53,123 @@ python manage.py sync_legacy_events --dry-run
 
 Fluxo:
 ```text
-SQL Server tabela legado
+LEGACY_EVENTS_TABLE
   -> normalize row
   -> upsert Agent
-  -> upsert AgentEvent (source_event_hash)
+  -> upsert AgentEvent
   -> rebuild AgentDayStats
-  -> JobRun (SUCCESS/ERROR)
+  -> JobRun
 ```
 
-## 3) import_lh_workday
-Descricao:
-Importa jornadas da view `VW_LH_AGENT_WORKDAY` para `AgentWorkday`.
-
-Dedupe:
-- `update_or_create(source="LH_ALIVE", cd_operador, work_date)`
-
-Exemplos:
-```bash
-python manage.py import_lh_workday --today
-python manage.py import_lh_workday --date 2026-03-05
-python manage.py import_lh_workday --from 2026-01-01 --to 2026-01-31
-python manage.py import_lh_workday --all
-```
-
-Fluxo:
-```text
-SQL Server view -> parsing + hms_to_seconds -> update_or_create -> AgentWorkday
-```
-
-## 4) rebuild_agent_day_stats
-Descricao:
-Recalcula agregacoes diarias (`AgentDayStats`) para um range.
-
-Parametros:
-- mesmos filtros de data (`--all`, `--from/--to`, `--date`, `--days`, `--today`)
-- `--source` (opcional)
-
-Exemplos:
-```bash
-python manage.py rebuild_agent_day_stats --today
-python manage.py rebuild_agent_day_stats --from 2026-03-01 --to 2026-03-31 --source LH_ALIVE
-python manage.py rebuild_agent_day_stats --all
-```
-
-## 5) import_lh_pause_events
-Descricao:
-Importa pausas da view `VW_LH_AGENT_PAUSE_EVENTS` para `AgentEvent`.
-
-Dedupe:
-- `update_or_create(source="LH_ALIVE", ext_event)`
-
-Garantias:
-- cria/atualiza `Agent` por `cd_operador` antes de gravar evento.
-
-Exemplos:
-```bash
-python manage.py import_lh_pause_events --today
-python manage.py import_lh_pause_events --from 2026-01-01 --to 2026-12-31
-python manage.py import_lh_pause_events --all
-```
-
-Fluxo:
-```text
-SQL Server view -> parsing -> ensure Agent -> update_or_create AgentEvent
-```
-
-## 6) import_lh_all / import_lh_alive
-Descricao:
-Executa os dois imports em sequencia com as mesmas flags de filtro.
+## 3) `import_lh_workday`
+Importa jornada da `VW_LH_AGENT_WORKDAY` para `AgentWorkday`.
 
 Uso:
 ```bash
-python manage.py import_lh_all --today
-python manage.py import_lh_all --all
-python manage.py import_lh_alive --from 2026-01-01 --to 2026-01-31
+python manage.py import_lh_workday --today
+python manage.py import_lh_workday --date 2026-03-05
+python manage.py import_lh_workday --from 2026-03-01 --to 2026-03-31
+python manage.py import_lh_workday --all
 ```
 
-## 7) wipe_lh_import
-Descricao:
-Rollback seguro dos dados importados do LH (`source="LH_ALIVE"`).
+## 4) `import_lh_pause_events`
+Importa pausas da `VW_LH_AGENT_PAUSE_EVENTS` para `AgentEvent`.
 
-Escopo:
-- `AgentWorkday` filtrado por `work_date`
-- `AgentEvent` filtrado por `dt_inicio` (ou todos com `--all`)
+Uso:
+```bash
+python manage.py import_lh_pause_events --today
+python manage.py import_lh_pause_events --date 2026-03-05
+python manage.py import_lh_pause_events --from 2026-03-01 --to 2026-03-31
+python manage.py import_lh_pause_events --all
+```
+
+## 5) `import_lh_all` / `import_lh_alive`
+Executa os dois imports em sequencia, com os mesmos filtros.
+
+Uso:
+```bash
+python manage.py import_lh_all --date 2026-03-05
+python manage.py import_lh_all --all
+python manage.py import_lh_alive --from 2026-03-01 --to 2026-03-31
+```
+
+## 6) `rebuild_agent_day_stats`
+Reconstrucao de `AgentDayStats` por janela.
+
+Uso:
+```bash
+python manage.py rebuild_agent_day_stats --date 2026-03-05
+python manage.py rebuild_agent_day_stats --from 2026-03-01 --to 2026-03-31
+python manage.py rebuild_agent_day_stats --date 2026-03-05 --source LH_ALIVE
+python manage.py rebuild_agent_day_stats --all
+```
+
+Quando usar:
+- apos importacao LH para recompor agregados
+- quando houver inconsistencia entre bruto e dashboard
+- em manutencao historica de periodo
+
+## 7) `wipe_lh_import`
+Rollback controlado de bruto LH (`source="LH_ALIVE"`).
 
 Comportamento:
-- mostra contagem antes de apagar
+- conta registros antes de apagar
 - pede confirmacao (`y/N`)
 - `--force` evita prompt
 
-Exemplos:
+Uso:
 ```bash
-python manage.py wipe_lh_import --today
-python manage.py wipe_lh_import --from 2026-01-01 --to 2026-01-31
+python manage.py wipe_lh_import --date 2026-03-05
+python manage.py wipe_lh_import --from 2026-03-01 --to 2026-03-31 --force
 python manage.py wipe_lh_import --all --force
 ```
 
+## Blindagem de tabelas brutas
+`AgentEvent` e `AgentWorkday` possuem guard rail de mutacao.
+
+Fora de ambiente de teste, mutacao ORM nessas tabelas so e permitida nos comandos oficiais:
+- `import_lh_pause_events`
+- `import_lh_workday`
+- `import_lh_all`
+- `import_lh_alive`
+- `sync_legacy_events`
+- `wipe_lh_import`
+
+Fora desses fluxos:
+- `PermissionDenied`
+- shell/admin/script manual nao deve ser usado para dado bruto
+
+## Operacao via Dashboard
+Na dashboard (usuarios `is_staff`):
+- botao **Gerar stats do dia** chama rebuild de stats para a data
+- botoes de copia para importacao do dia:
+  - `python manage.py import_lh_pause_events --date YYYY-MM-DD`
+  - `python manage.py import_lh_workday --date YYYY-MM-DD`
+
+## Recuperacao do monitoring em caso de problema
+Passo a passo recomendado:
+
+1. Reimportar bruto LH do periodo
+```bash
+python manage.py import_lh_workday --date YYYY-MM-DD
+python manage.py import_lh_pause_events --date YYYY-MM-DD
+# ou
+python manage.py import_lh_all --date YYYY-MM-DD
+```
+
+2. Rebuild de agregados diarios
+```bash
+python manage.py rebuild_agent_day_stats --date YYYY-MM-DD --source LH_ALIVE
+```
+
+3. Validar contagens
+- bruto: `AgentEvent` e `AgentWorkday`
+- agregado: `AgentDayStats`
+
+4. Validar dashboard
+- abrir `/dashboard?data_ref=YYYY-MM-DD`
+- conferir cards, rankings, risco e alertas
+
 ## Progresso e observabilidade
-- `import_lh_workday` e `import_lh_pause_events` usam `tqdm` com total explicito.
-- Resumo final por contador: `created`, `updated`, `skipped`, `errors`.
+- imports LH exibem contadores `created`, `updated`, `skipped`, `errors`
+- jobs criticos gravam historico em `JobRun`
