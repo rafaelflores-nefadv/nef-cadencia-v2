@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Detalhe do dia | NEF Cadencia{% endblock %}
+{% block title %}Detalhe do dia | NEF Cadência{% endblock %}
 {% block page_title %}Detalhe do dia{% endblock %}
 {% block page_subtitle %}Drill-down operacional por data.{% endblock %}
 
@@ -18,7 +18,7 @@
       </div>
       <div class="space-y-1">
         <label class="text-xs text-[color:var(--color-text-muted)]" for="q">Operador/nome</label>
-        <input id="q" name="q" type="text" value="{{ search }}" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" placeholder="Codigo ou nome">
+        <input id="q" name="q" type="text" value="{{ search }}" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" placeholder="Código ou nome">
       </div>
       <div class="space-y-1">
         <label class="text-xs text-[color:var(--color-text-muted)]" for="pause_type">Tipo de pausa</label>
@@ -47,12 +47,12 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
-              <th class="px-4 py-3 font-medium">Inicio</th>
+              <th class="px-4 py-3 font-medium">Início</th>
               <th class="px-4 py-3 font-medium">Operador</th>
               <th class="px-4 py-3 font-medium">Nome</th>
               <th class="px-4 py-3 font-medium">Tipo</th>
               <th class="px-4 py-3 font-medium">Pausa</th>
-              <th class="px-4 py-3 font-medium">Duracao</th>
+              <th class="px-4 py-3 font-medium">Duração</th>
             </tr>
           </thead>
           <tbody>
@@ -75,8 +75,8 @@
     {% if events_page.paginator.num_pages > 1 %}
       <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
         {% if events_page.has_previous %}<a href="?events_page={{ events_page.previous_page_number }}{{ events_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>{% endif %}
-        <span class="text-[color:var(--color-text-muted)]">Pagina {{ events_page.number }} de {{ events_page.paginator.num_pages }}</span>
-        {% if events_page.has_next %}<a href="?events_page={{ events_page.next_page_number }}{{ events_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>{% endif %}
+        <span class="text-[color:var(--color-text-muted)]">Página {{ events_page.number }} de {{ events_page.paginator.num_pages }}</span>
+        {% if events_page.has_next %}<a href="?events_page={{ events_page.next_page_number }}{{ events_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>{% endif %}
       </div>
     {% endif %}
   </section>
@@ -89,10 +89,10 @@
           <table class="w-full text-sm">
             <thead>
               <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
-                <th class="px-4 py-3 font-medium">Inicio</th>
+                <th class="px-4 py-3 font-medium">Início</th>
                 <th class="px-4 py-3 font-medium">Operador</th>
                 <th class="px-4 py-3 font-medium">Pausa</th>
-                <th class="px-4 py-3 font-medium">Duracao</th>
+                <th class="px-4 py-3 font-medium">Duração</th>
               </tr>
             </thead>
             <tbody>
@@ -113,8 +113,8 @@
       {% if pauses_page.paginator.num_pages > 1 %}
         <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
           {% if pauses_page.has_previous %}<a href="?pauses_page={{ pauses_page.previous_page_number }}{{ pauses_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>{% endif %}
-          <span class="text-[color:var(--color-text-muted)]">Pagina {{ pauses_page.number }} de {{ pauses_page.paginator.num_pages }}</span>
-          {% if pauses_page.has_next %}<a href="?pauses_page={{ pauses_page.next_page_number }}{{ pauses_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>{% endif %}
+          <span class="text-[color:var(--color-text-muted)]">Página {{ pauses_page.number }} de {{ pauses_page.paginator.num_pages }}</span>
+          {% if pauses_page.has_next %}<a href="?pauses_page={{ pauses_page.next_page_number }}{{ pauses_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>{% endif %}
         </div>
       {% endif %}
     </article>
@@ -128,9 +128,9 @@
               <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
                 <th class="px-4 py-3 font-medium">Operador</th>
                 <th class="px-4 py-3 font-medium">Nome</th>
-                <th class="px-4 py-3 font-medium">Inicio</th>
+                <th class="px-4 py-3 font-medium">Início</th>
                 <th class="px-4 py-3 font-medium">Fim</th>
-                <th class="px-4 py-3 font-medium">Duracao</th>
+                <th class="px-4 py-3 font-medium">Duração</th>
               </tr>
             </thead>
             <tbody>
@@ -152,8 +152,8 @@
       {% if workday_page.paginator.num_pages > 1 %}
         <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
           {% if workday_page.has_previous %}<a href="?workday_page={{ workday_page.previous_page_number }}{{ workday_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>{% endif %}
-          <span class="text-[color:var(--color-text-muted)]">Pagina {{ workday_page.number }} de {{ workday_page.paginator.num_pages }}</span>
-          {% if workday_page.has_next %}<a href="?workday_page={{ workday_page.next_page_number }}{{ workday_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>{% endif %}
+          <span class="text-[color:var(--color-text-muted)]">Página {{ workday_page.number }} de {{ workday_page.paginator.num_pages }}</span>
+          {% if workday_page.has_next %}<a href="?workday_page={{ workday_page.next_page_number }}{{ workday_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>{% endif %}
         </div>
       {% endif %}
     </article>
@@ -170,8 +170,8 @@
               <th class="px-4 py-3 font-medium">Nome</th>
               <th class="px-4 py-3 font-medium">Qtd pausas</th>
               <th class="px-4 py-3 font-medium">Tempo pausas</th>
-              <th class="px-4 py-3 font-medium">Ultimo logon</th>
-              <th class="px-4 py-3 font-medium">Ultimo logoff</th>
+              <th class="px-4 py-3 font-medium">Último logon</th>
+              <th class="px-4 py-3 font-medium">Último logoff</th>
             </tr>
           </thead>
           <tbody>
@@ -194,8 +194,8 @@
     {% if stats_page.paginator.num_pages > 1 %}
       <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
         {% if stats_page.has_previous %}<a href="?stats_page={{ stats_page.previous_page_number }}{{ stats_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>{% endif %}
-        <span class="text-[color:var(--color-text-muted)]">Pagina {{ stats_page.number }} de {{ stats_page.paginator.num_pages }}</span>
-        {% if stats_page.has_next %}<a href="?stats_page={{ stats_page.next_page_number }}{{ stats_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>{% endif %}
+        <span class="text-[color:var(--color-text-muted)]">Página {{ stats_page.number }} de {{ stats_page.paginator.num_pages }}</span>
+        {% if stats_page.has_next %}<a href="?stats_page={{ stats_page.next_page_number }}{{ stats_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>{% endif %}
       </div>
     {% endif %}
   </section>

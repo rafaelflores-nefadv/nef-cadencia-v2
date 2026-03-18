@@ -1,9 +1,23 @@
 ﻿{% load static %}
 <!doctype html>
-<html lang="pt-br">
+<html lang="pt-br" data-theme="blue">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <script>
+      (function () {
+        var key = "nef_theme_preference";
+        var fallback = "blue";
+        try {
+          var saved = window.localStorage ? window.localStorage.getItem(key) : null;
+          var allowed = { blue: true, dark: true, light: true };
+          var theme = allowed[saved] ? saved : fallback;
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (_error) {
+          document.documentElement.setAttribute("data-theme", fallback);
+        }
+      })();
+    </script>
     <title>{% block title %}NEF Cadencia{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/app.css' %}">
     {% block assistant_widget_assets %}
@@ -11,222 +25,59 @@
       <link rel="stylesheet" href="{% static 'assistant/assistant_widget.css' %}">
       {% endif %}
     {% endblock %}
-    <style>
-      /* Pequenos helpers para a conversao (mantem simples e sem build do Tailwind) */
-      html.sidebar-collapsed [data-sidebar] .sidebar-label { display:none; }
-      html.sidebar-collapsed [data-sidebar] { width: 72px; }
-      html.sidebar-drawer-open [data-sidebar-drawer] { transform: translateX(0); }
-      html.sidebar-drawer-open [data-sidebar-backdrop] { display:block; }
-      .menu-section-title {
-        margin-bottom: 0.5rem;
-        padding: 0 0.75rem;
-        font-size: 0.6875rem;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        color: rgba(148, 163, 184, 0.9);
-      }
-      .menu-items {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-      }
-      .menu-divider {
-        margin: 1rem 0.5rem;
-        border-top: 1px solid var(--color-border);
-        opacity: 0.55;
-      }
-      .menu-item {
-        display: flex;
-        align-items: center;
-        gap: 0.625rem;
-        border-radius: 0.75rem;
-        padding: 0.55rem 0.75rem;
-        color: rgba(226, 232, 240, 0.86);
-        font-size: 0.875rem;
-        transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-      }
-      .menu-item:hover {
-        background-color: rgba(148, 163, 184, 0.12);
-        color: #f1f5f9;
-      }
-      .menu-item:focus-visible {
-        outline: 2px solid rgba(37, 99, 235, 0.42);
-        outline-offset: 2px;
-      }
-      .menu-item--active {
-        background-color: rgba(37, 99, 235, 0.18);
-        color: #bfdbfe;
-        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.4);
-      }
-      .menu-item__icon {
-        width: 1rem;
-        height: 1rem;
-        flex: 0 0 auto;
-      }
-      .menu-item__text {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      html.sidebar-collapsed [data-sidebar] .menu-item {
-        justify-content: center;
-        padding-left: 0.625rem;
-        padding-right: 0.625rem;
-      }
-      .profile-menu {
-        position: relative;
-      }
-      .profile-menu__button {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        border: 1px solid var(--color-border);
-        border-radius: 0.75rem;
-        padding: 0.4rem 0.65rem;
-        background: transparent;
-        color: var(--color-text);
-        transition: background-color 0.2s ease, border-color 0.2s ease;
-      }
-      .profile-menu__button:hover {
-        background-color: rgba(148, 163, 184, 0.12);
-      }
-      .profile-menu__button:focus-visible {
-        outline: 2px solid rgba(37, 99, 235, 0.42);
-        outline-offset: 2px;
-      }
-      .profile-menu__avatar {
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: 9999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex: 0 0 auto;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #bfdbfe;
-        background-color: rgba(37, 99, 235, 0.22);
-      }
-      .profile-menu__name {
-        max-width: 11rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        font-size: 0.875rem;
-      }
-      .profile-menu__chevron {
-        width: 1rem;
-        height: 1rem;
-        opacity: 0.85;
-        transition: transform 0.2s ease;
-      }
-      .profile-menu__button[aria-expanded="true"] .profile-menu__chevron {
-        transform: rotate(180deg);
-      }
-      .profile-menu__panel {
-        position: absolute;
-        top: calc(100% + 0.5rem);
-        right: 0;
-        z-index: 70;
-        min-width: 13.5rem;
-        border: 1px solid var(--color-border);
-        border-radius: 0.75rem;
-        background-color: #0b1324;
-        box-shadow: 0 14px 34px rgba(2, 6, 23, 0.45);
-        padding: 0.35rem;
-      }
-      .profile-menu__item {
-        width: 100%;
-        border: 0;
-        background: transparent;
-        border-radius: 0.6rem;
-        padding: 0.55rem 0.65rem;
-        color: rgba(226, 232, 240, 0.92);
-        font-size: 0.875rem;
-        display: flex;
-        align-items: center;
-        gap: 0.55rem;
-        text-align: left;
-      }
-      .profile-menu__item:hover,
-      .profile-menu__item:focus-visible {
-        background-color: rgba(148, 163, 184, 0.16);
-        color: #f8fafc;
-        outline: none;
-      }
-      .profile-menu__item-icon {
-        width: 0.95rem;
-        height: 0.95rem;
-        flex: 0 0 auto;
-      }
-      @media (max-width: 640px) {
-        .profile-menu__name {
-          display: none;
-        }
-      }
-    </style>
     {% block head_extra %}{% endblock %}
   </head>
-  <body class="min-h-screen bg-[color:var(--color-bg)] text-[color:var(--color-text)] {% block bodyclass_extra %}{% endblock %}" {% block body_attrs %}{% endblock %}>
-    <!-- Mobile backdrop -->
-    <div data-sidebar-backdrop class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
-
-    <div class="flex min-h-screen">
+  <body class="app-shell min-h-screen bg-[color:var(--color-bg)] text-[color:var(--color-text)] {% block bodyclass_extra %}{% endblock %}" {% block body_attrs %}{% if request.resolver_match.url_name == 'dashboard-productivity' %}data-module-theme="performance"{% elif request.resolver_match.url_name == 'dashboard-risk' %}data-module-theme="risk"{% elif request.resolver_match.url_name == 'dashboard-pipeline' %}data-module-theme="pipeline"{% elif request.resolver_match.url_name == 'agents-list' or request.resolver_match.url_name == 'agent-detail' %}data-module-theme="agents"{% elif request.path|slice:":6" == "/admin" or request.resolver_match.url_name == 'runs-list' or request.resolver_match.url_name == 'run-detail' or request.resolver_match.url_name == 'assistant-page' or request.resolver_match.url_name == 'assistant-conversation' %}data-module-theme="system"{% else %}data-module-theme="dashboard"{% endif %}{% endblock %}>
+    <div class="app-layout">
       <!-- Sidebar (desktop) -->
-      <aside data-sidebar class="hidden lg:block w-[280px] border-r border-[color:var(--color-border)] bg-[color:var(--color-card)]">
-        {% block sidebar_content %}
-          {% if request.path|slice:":6" == "/admin" %}
-            {% if request.user.is_authenticated and request.user.is_staff %}
-              {% include "admin/partials/sidebar_menu.html" %}
+      <aside data-sidebar class="app-layout__sidebar app-sidebar hidden lg:block" aria-label="Navegacao principal">
+        <div class="app-layout__sidebar-inner">
+          {% block sidebar_content %}
+            {% if request.path|slice:":6" == "/admin" %}
+              {% if request.user.is_authenticated and request.user.is_staff %}
+                {% include "admin/partials/sidebar_menu.html" %}
+              {% endif %}
+            {% else %}
+              {% include "partials/sidebar.html" %}
             {% endif %}
-          {% else %}
-            {% include "partials/sidebar.html" %}
-          {% endif %}
-        {% endblock %}
-      </aside>
-
-      <!-- Sidebar drawer (mobile) -->
-      <aside data-sidebar-drawer class="fixed inset-y-0 left-0 z-50 w-[280px] border-r border-[color:var(--color-border)] bg-[color:var(--color-card)] transform -translate-x-full transition lg:hidden">
-        <div class="flex items-center justify-between px-4 py-3 border-b border-[color:var(--color-border)]">
-          <div>
-            <div class="text-xs text-slate-400">NEF Cadencia</div>
-            <div class="text-sm font-semibold text-slate-100">Console Operacional</div>
-          </div>
-          <button type="button" data-sidebar-close class="rounded-lg px-3 py-2 border border-[color:var(--color-border)]">Fechar</button>
+          {% endblock %}
         </div>
-        {% block sidebar_drawer_content %}
-          {% if request.path|slice:":6" == "/admin" %}
-            {% if request.user.is_authenticated and request.user.is_staff %}
-              {% include "admin/partials/sidebar_menu.html" %}
-            {% endif %}
-          {% else %}
-            {% include "partials/sidebar.html" %}
-          {% endif %}
-        {% endblock %}
       </aside>
 
-      <main class="flex-1 min-w-0">
+      <main class="app-layout__main app-main min-h-screen min-w-0">
         <!-- Topbar -->
-        <header class="sticky top-0 z-30 border-b border-[color:var(--color-border)] bg-[color:var(--color-card)]">
-          <div class="px-4 py-3 flex items-center gap-3">
+        <header class="topbar-shell sticky top-0 z-20 border-b border-[color:var(--color-border)] bg-[color:var(--color-card)]">
+          <div class="px-4 lg:px-6 py-2.5 flex items-center gap-3">
             <button type="button" data-sidebar-open class="lg:hidden rounded-lg px-3 py-2 border border-[color:var(--color-border)]">Menu</button>
-            <button type="button" data-sidebar-collapse class="hidden lg:inline-flex rounded-lg px-3 py-2 border border-[color:var(--color-border)]">☰</button>
 
             <div class="flex-1 min-w-0">
+              {% with current_name=request.resolver_match.url_name %}
+              {% if current_name != 'dashboard' and current_name != 'dashboard-productivity' and current_name != 'dashboard-risk' and current_name != 'dashboard-pipeline' and current_name != 'agents-list' %}
+              <a href="{% url 'dashboard' %}" class="topbar-breadcrumb-link">
+                <i data-lucide="arrow-left" class="topbar-breadcrumb-link__icon" aria-hidden="true"></i>
+                <span>Menu principal</span>
+              </a>
+              {% endif %}
+              {% endwith %}
               <div class="text-sm font-semibold truncate">{% block page_title %}Dashboard{% endblock %}</div>
               <div class="text-xs text-[color:var(--color-text-muted)] truncate">{% block page_subtitle %}{% endblock %}</div>
             </div>
 
             <div class="flex items-center gap-2">
               {% block topbar_right %}
-              {% if request.user.is_staff %}
-              {% url 'admin:password_change' as profile_url %}
-              {% url 'admin:index' as settings_url %}
-              {% else %}
-              {% url 'dashboard' as profile_url %}
-              {% url 'dashboard' as settings_url %}
-              {% endif %}
+              {% url 'dashboard' as dashboard_url %}
+              
+              <a href="{{ dashboard_url }}" class="topbar-mainmenu-button" title="Voltar ao dashboard">
+                <i data-lucide="house" class="topbar-mainmenu-button__icon" aria-hidden="true"></i>
+                <span>Dashboard</span>
+              </a>
+              
+              <div class="topbar-theme-inline" role="group" aria-label="Temas rápidos">
+                <button type="button" class="topbar-theme-inline__button" data-theme-option="blue">Blue</button>
+                <button type="button" class="topbar-theme-inline__button" data-theme-option="dark">Dark</button>
+                <button type="button" class="topbar-theme-inline__button" data-theme-option="light">Light</button>
+              </div>
+              
               {% with username=request.user.username|default:'Usuario' %}
               <div class="profile-menu" data-profile-menu>
                 <button
@@ -243,21 +94,44 @@
                 </button>
 
                 <div id="profile-menu-panel" data-profile-menu-panel class="profile-menu__panel hidden" role="menu" aria-label="Menu do perfil">
-                  <a class="profile-menu__item" href="{{ profile_url }}" role="menuitem" tabindex="-1">
+                  <div class="profile-menu__section-title">Tema</div>
+                  <div class="profile-theme-switch" role="group" aria-label="Alternar tema">
+                    <button type="button" class="profile-theme-switch__button" data-theme-option="blue">Blue</button>
+                    <button type="button" class="profile-theme-switch__button" data-theme-option="dark">Dark</button>
+                    <button type="button" class="profile-theme-switch__button" data-theme-option="light">Light</button>
+                  </div>
+                  <div class="profile-menu__divider" role="separator" aria-hidden="true"></div>
+                  
+                  {% if request.user.is_authenticated %}
+                  <a class="profile-menu__item" href="{% url 'dashboard' %}" role="menuitem" tabindex="-1">
                     <i data-lucide="user" class="profile-menu__item-icon" aria-hidden="true"></i>
-                    <span>Perfil</span>
+                    <span>Meu Perfil</span>
                   </a>
-                  <a class="profile-menu__item" href="{{ settings_url }}" role="menuitem" tabindex="-1">
+                  
+                  {% if can_manage_settings %}
+                  <a class="profile-menu__item" href="{% url 'settings-hub' %}" role="menuitem" tabindex="-1">
                     <i data-lucide="settings" class="profile-menu__item-icon" aria-hidden="true"></i>
-                    <span>Configuracoes</span>
+                    <span>Configurações</span>
                   </a>
+                  {% endif %}
+                  
+                  {% if is_staff %}
+                  <div class="profile-menu__divider" role="separator" aria-hidden="true"></div>
+                  <a class="profile-menu__item" href="{% url 'admin:index' %}" role="menuitem" tabindex="-1">
+                    <i data-lucide="shield" class="profile-menu__item-icon" aria-hidden="true"></i>
+                    <span>Admin Avançado</span>
+                  </a>
+                  {% endif %}
+                  
+                  <div class="profile-menu__divider" role="separator" aria-hidden="true"></div>
                   <form method="post" action="{% url 'logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="profile-menu__item" role="menuitem" tabindex="-1">
                       <i data-lucide="log-out" class="profile-menu__item-icon" aria-hidden="true"></i>
-                      <span>Logout</span>
+                      <span>Sair</span>
                     </button>
                   </form>
+                  {% endif %}
                 </div>
               </div>
               {% endwith %}
@@ -266,12 +140,35 @@
           </div>
         </header>
 
-        <div class="p-4 lg:p-6">
+        <div class="px-4 lg:px-6 py-4">
           {% block page_container %}
           {% block content %}{% endblock %}
           {% endblock %}
         </div>
       </main>
+    </div>
+
+    <!-- Mobile navigation layer -->
+    <div class="app-mobile-nav" aria-hidden="true">
+      <div data-sidebar-backdrop class="app-mobile-nav__backdrop"></div>
+      <aside data-sidebar-drawer class="app-mobile-nav__drawer app-sidebar">
+        <div class="app-mobile-nav__header">
+          <div>
+            <div class="app-mobile-nav__subtitle">NEF Cadencia</div>
+            <div class="app-mobile-nav__title">Console Operacional</div>
+          </div>
+          <button type="button" data-sidebar-close class="app-mobile-nav__close">Fechar</button>
+        </div>
+        {% block sidebar_drawer_content %}
+          {% if request.path|slice:":6" == "/admin" %}
+            {% if request.user.is_authenticated and request.user.is_staff %}
+              {% include "admin/partials/sidebar_menu.html" %}
+            {% endif %}
+          {% else %}
+            {% include "partials/sidebar.html" %}
+          {% endif %}
+        {% endblock %}
+      </aside>
     </div>
 
     {% block assistant_widget %}
@@ -285,6 +182,7 @@
 
     <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     <script src="{% static 'js/app.js' %}"></script>
+    <script type="module" src="{% static 'js/app-init.js' %}"></script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

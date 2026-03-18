@@ -1,55 +1,131 @@
 <nav class="h-full px-3 py-4 overflow-y-auto">
-  {% with current_name=request.resolver_match.url_name current_namespace=request.resolver_match.namespace %}
-  <div class="pt-1 pb-3 px-2">
-    <div class="text-xs text-slate-400">NEF Cadencia</div>
-    <div class="text-sm font-semibold text-slate-100 sidebar-label">Console Operacional</div>
+  {% with current_name=request.resolver_match.url_name current_namespace=request.resolver_match.namespace current_path=request.path %}
+  <div class="pt-1 pb-3 px-2 space-y-3">
+    <div>
+      <div class="text-xs text-slate-400">NEF Cadência</div>
+      <div class="text-sm font-semibold text-slate-100 sidebar-label">Console Operacional</div>
+    </div>
+    <div class="sidebar-overview sidebar-label">
+      <div class="sidebar-overview__row">
+        <span class="sidebar-overview__label">Status</span>
+        <span class="sidebar-overview__value">
+          {% if alert_totals %}
+            {% if alert_totals.crit|default:0 > 0 %}Atenção{% else %}Estável{% endif %}
+          {% else %}
+            Sem dados
+          {% endif %}
+        </span>
+      </div>
+      <div class="sidebar-overview__row mt-2">
+        <span class="sidebar-overview__label">Score</span>
+        <span class="sidebar-overview__value">
+          {% if score_operacional == 0 or score_operacional %}
+            {{ score_operacional|floatformat:0 }}/100
+          {% else %}
+            Sem dados
+          {% endif %}
+        </span>
+      </div>
+    </div>
   </div>
 
-  <div class="mb-4">
-    <div class="menu-section-title sidebar-label">OPERACIONAL</div>
-    <div class="menu-items">
-      <a
-        class="menu-item{% if current_name == 'dashboard' %} menu-item--active{% endif %}"
-        href="{% url 'dashboard' %}"
-      >
-        <i data-lucide="layout-dashboard" class="menu-item__icon" aria-hidden="true"></i>
-        <span class="menu-item__text sidebar-label">Dashboard</span>
-      </a>
-      <a
-        class="menu-item{% if current_name == 'agents-list' or current_name == 'agent-detail' %} menu-item--active{% endif %}"
-        href="{% url 'agents-list' %}"
-      >
-        <i data-lucide="bot" class="menu-item__icon" aria-hidden="true"></i>
-        <span class="menu-item__text sidebar-label">Agentes</span>
-      </a>
-      <a
-        class="menu-item{% if current_name == 'runs-list' or current_name == 'run-detail' %} menu-item--active{% endif %}"
-        href="{% url 'runs-list' %}"
-      >
-        <i data-lucide="activity" class="menu-item__icon" aria-hidden="true"></i>
-        <span class="menu-item__text sidebar-label">Execucoes</span>
-      </a>
+  <div class="mb-4 space-y-4">
+    <div>
+      <div class="menu-section-title sidebar-label">DASHBOARD</div>
+      <div class="menu-items">
+        <a class="menu-item{% if current_name == 'dashboard' %} menu-item--active{% endif %}" href="{% url 'dashboard' %}?{{ request.GET.urlencode }}">
+          <i data-lucide="layout-dashboard" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Centro de comando</span>
+        </a>
+      </div>
     </div>
 
-    <div class="menu-divider"></div>
-
-    <div class="menu-section-title sidebar-label">SISTEMA</div>
-    <div class="menu-items">
-      <a
-        class="menu-item{% if current_name == 'assistant-page' %} menu-item--active{% endif %}"
-        href="{% url 'assistant-page' %}"
-      >
-        <i data-lucide="sparkles" class="menu-item__icon" aria-hidden="true"></i>
-        <span class="menu-item__text sidebar-label">Eust&aacute;cio</span>
-      </a>
-      <a
-        class="menu-item{% if current_namespace == 'admin' %} menu-item--active{% endif %}"
-        href="{% url 'admin:index' %}"
-      >
-        <i data-lucide="shield" class="menu-item__icon" aria-hidden="true"></i>
-        <span class="menu-item__text sidebar-label">Admin</span>
-      </a>
+    <div>
+      <div class="menu-section-title sidebar-label">OPERAÇÃO</div>
+      <div class="menu-items">
+        <a class="menu-item{% if current_name == 'dashboard-productivity' %} menu-item--active{% endif %}" href="{% url 'dashboard-productivity' %}?{{ request.GET.urlencode }}">
+          <i data-lucide="bar-chart-3" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Produtividade</span>
+        </a>
+        <a class="menu-item{% if current_name == 'dashboard-risk' %} menu-item--active{% endif %}" href="{% url 'dashboard-risk' %}?{{ request.GET.urlencode }}">
+          <i data-lucide="triangle-alert" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Risco Operacional</span>
+        </a>
+        <a class="menu-item{% if current_name == 'dashboard-pipeline' %} menu-item--active{% endif %}" href="{% url 'dashboard-pipeline' %}?{{ request.GET.urlencode }}">
+          <i data-lucide="database-zap" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Pipeline de Dados</span>
+        </a>
+        <a class="menu-item{% if current_name == 'agents-list' or current_name == 'agent-detail' %} menu-item--active{% endif %}" href="{% url 'agents-list' %}">
+          <i data-lucide="users" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Agentes</span>
+        </a>
+      </div>
     </div>
+
+    <!-- ASSISTENTE IA -->
+    <div>
+      <div class="menu-section-title sidebar-label">ASSISTENTE</div>
+      <div class="menu-items">
+        <a class="menu-item{% if current_name == 'assistant-page' or current_name == 'assistant-conversation' %} menu-item--active{% endif %}" href="{% url 'assistant-page' %}">
+          <i data-lucide="sparkles" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Eustácio IA</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ADMINISTRAÇÃO (apenas para usuários com permissão) -->
+    {% if can_manage_settings or can_manage_integrations or can_manage_rules or can_manage_users %}
+    <div>
+      <div class="menu-section-title sidebar-label">ADMINISTRAÇÃO</div>
+      <div class="menu-items">
+        {% if can_manage_settings %}
+        <a class="menu-item{% if current_name == 'settings-hub' or current_name == 'settings' or current_name|slice:':9' == 'settings-' %} menu-item--active{% endif %}" href="{% url 'settings-hub' %}">
+          <i data-lucide="settings" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Configurações</span>
+        </a>
+        {% endif %}
+        
+        {% if can_manage_integrations %}
+        <a class="menu-item{% if current_name == 'integration-list' or current_name|slice:':12' == 'integration-' %} menu-item--active{% endif %}" href="{% url 'integration-list' %}">
+          <i data-lucide="plug" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Integrações</span>
+        </a>
+        {% endif %}
+        
+        {% if can_manage_rules %}
+        <a class="menu-item{% if current_name == 'config-list' or current_name == 'config-edit' %} menu-item--active{% endif %}" href="{% url 'config-list' %}">
+          <i data-lucide="sliders-horizontal" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Regras</span>
+        </a>
+        {% endif %}
+        
+        {% if can_manage_users %}
+        <a class="menu-item{% if current_path|slice:':17' == '/admin/auth/user/' %} menu-item--active{% endif %}" href="/admin/auth/user/">
+          <i data-lucide="users-cog" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Usuários</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- SISTEMA (logs e ferramentas) -->
+    {% if is_staff %}
+    <div>
+      <div class="menu-section-title sidebar-label">SISTEMA</div>
+      <div class="menu-items">
+        <a class="menu-item{% if current_name == 'runs-list' or current_name == 'run-detail' %} menu-item--active{% endif %}" href="{% url 'runs-list' %}">
+          <i data-lucide="file-text" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Logs de Execução</span>
+        </a>
+        
+        <a class="menu-item{% if current_namespace == 'admin' and current_name == 'index' %} menu-item--active{% endif %}" href="{% url 'admin:index' %}">
+          <i data-lucide="shield" class="menu-item__icon" aria-hidden="true"></i>
+          <span class="menu-item__text sidebar-label">Admin Avançado</span>
+        </a>
+      </div>
+    </div>
+    {% endif %}
   </div>
   {% endwith %}
 </nav>

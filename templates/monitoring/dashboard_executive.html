@@ -1,0 +1,469 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Dashboard Executivo | NEF Cadencia{% endblock %}
+{% block page_title %}Dashboard Executivo{% endblock %}
+{% block page_subtitle %}Como esta a operacao agora?{% endblock %}
+
+{% block content %}
+<div class="space-y-6 executive-dashboard">
+  {% include "monitoring/_dashboard_filters.html" %}
+
+  <section class="command-center-hero ds-panel p-5">
+    <div class="command-center-hero__header">
+      <div>
+        <p class="command-center-hero__eyebrow">Command Center</p>
+        <h2 class="command-center-hero__title">Saude operacional do turno</h2>
+      </div>
+      <span class="ds-badge {% if alert_totals.crit|default:0 > 0 %}ds-badge--crit{% elif alert_totals.warn|default:0 > 0 %}ds-badge--warn{% else %}ds-badge--ok{% endif %}">
+        {% if alert_totals.crit|default:0 > 0 %}Prioridade critica{% elif alert_totals.warn|default:0 > 0 %}Atencao moderada{% else %}Operacao estavel{% endif %}
+      </span>
+    </div>
+    <div class="command-center-hero__metrics">
+      <article class="command-center-metric">
+        <span class="command-center-metric__label">Score operacional</span>
+        <strong class="command-center-metric__value">{% if score_operacional == 0 or score_operacional %}{{ score_operacional|floatformat:0 }}{% else %}--{% endif %}</strong>
+        <div class="command-center-metric__bar"><span data-progress-value="{{ score_operacional|default:0|floatformat:0 }}"></span></div>
+      </article>
+      <article class="command-center-metric">
+        <span class="command-center-metric__label">Estabilidade</span>
+        <strong class="command-center-metric__value">{{ stability_score|default:"--" }}</strong>
+        <div class="command-center-metric__bar"><span data-progress-value="{{ stability_score|default:0 }}"></span></div>
+      </article>
+      <article class="command-center-metric">
+        <span class="command-center-metric__label">Produtividade do turno</span>
+        <strong class="command-center-metric__value">{% if taxa_ocupacao_pct == 0 or taxa_ocupacao_pct %}{{ taxa_ocupacao_pct|floatformat:1 }}%{% else %}--{% endif %}</strong>
+        <div class="command-center-metric__bar"><span data-progress-value="{{ taxa_ocupacao_pct|default:0|floatformat:0 }}"></span></div>
+      </article>
+      <article class="command-center-metric">
+        <span class="command-center-metric__label">Health score</span>
+        <strong class="command-center-metric__value">{{ health_score|default:0 }}/100</strong>
+        <div class="command-center-metric__bar"><span data-progress-value="{{ health_score|default:0 }}"></span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-[0.95fr_1.05fr] gap-4">
+    <article class="ds-panel p-5 executive-health-card">
+      <div class="executive-health-card__header">
+        <div>
+          <p class="executive-health-card__eyebrow">Health Score</p>
+          <h3 class="executive-health-card__title">Saude geral da operacao</h3>
+        </div>
+        <span class="ds-badge {% if health_status == 'Excelente' %}ds-badge--ok{% elif health_status == 'Estavel' %}ds-badge--info{% elif health_status == 'Atencao' %}ds-badge--warn{% else %}ds-badge--crit{% endif %}">
+          {{ health_status }}
+        </span>
+      </div>
+      <div class="executive-health-card__gauge" id="executiveHealthGaugeChart"></div>
+      <div class="executive-health-card__score">
+        <span>{{ health_score|default:0 }}</span>
+        <small>/100</small>
+      </div>
+    </article>
+    <article class="ds-panel p-5 executive-health-breakdown">
+      <h3 class="text-sm font-semibold">Composicao do Health Score</h3>
+      <div class="executive-health-breakdown__items">
+        <div class="executive-health-breakdown__item">
+          <span>Produtividade</span>
+          <strong>{{ health_score_breakdown.produtividade|default:0|floatformat:0 }}</strong>
+        </div>
+        <div class="executive-health-breakdown__item">
+          <span>Risco</span>
+          <strong>{{ health_score_breakdown.risco|default:0|floatformat:0 }}</strong>
+        </div>
+        <div class="executive-health-breakdown__item">
+          <span>Ocupacao</span>
+          <strong>{{ health_score_breakdown.ocupacao|default:0|floatformat:0 }}</strong>
+        </div>
+        <div class="executive-health-breakdown__item">
+          <span>Pipeline</span>
+          <strong>{{ health_score_breakdown.pipeline|default:0|floatformat:0 }}</strong>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  {% if messages %}
+    <section class="space-y-2">
+      {% for message in messages %}
+        <div class="rounded-lg border p-3 text-sm {% if message.tags == 'error' %}border-red-500/40 bg-red-500/10{% elif message.tags == 'success' %}border-emerald-500/40 bg-emerald-500/10{% else %}border-[color:var(--color-border)] bg-[color:var(--color-card)]{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  {% if filter_warning %}
+    <section class="rounded-xl border border-amber-400/40 bg-amber-500/10 p-4 text-sm">
+      {{ filter_warning }}
+    </section>
+  {% endif %}
+
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+    <article class="ds-panel p-4 border-sky-500/20">
+      <div class="text-[11px] uppercase tracking-[0.12em] text-sky-200/80">Estado do sistema</div>
+      <div class="mt-2 text-3xl font-bold">
+        {% if is_empty_period %}
+          Sem dados
+        {% elif alert_totals.crit|default:0 > 0 %}
+          Critico
+        {% elif taxa_ocupacao_pct|default:0 < 70 %}
+          Atencao
+        {% else %}
+          Operacional
+        {% endif %}
+      </div>
+    </article>
+    <article class="ds-panel p-4 border-emerald-500/20">
+      <div class="text-[11px] uppercase tracking-[0.12em] text-emerald-200/80">Agentes online</div>
+      <div class="mt-2 text-3xl font-bold">{{ active_agents_count|default:0 }}</div>
+    </article>
+    <article class="ds-panel p-4 border-red-500/20">
+      <div class="text-[11px] uppercase tracking-[0.12em] text-red-200/80">Alertas criticos</div>
+      <div class="mt-2 text-3xl font-bold">{{ alert_totals.crit|default:0 }}</div>
+    </article>
+    <article class="ds-panel p-4 border-cyan-500/20">
+      <div class="text-[11px] uppercase tracking-[0.12em] text-cyan-200/80">Ultima atualizacao</div>
+      <div class="mt-2 text-3xl font-bold">
+        {% if last_job_run %}
+          <span data-live-updated>{{ last_job_run.started_at|date:"H:i:s" }}</span>
+        {% else %}
+          --
+        {% endif %}
+      </div>
+    </article>
+    <article class="ds-panel p-4 border-violet-500/20">
+      <div class="text-[11px] uppercase tracking-[0.12em] text-violet-200/80">Score operacional</div>
+      <div class="mt-2 text-3xl font-bold">
+        {% if score_operacional == 0 or score_operacional %}{{ score_operacional|floatformat:0 }}/100{% else %}--{% endif %}
+      </div>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <article class="ds-panel p-4 border-cyan-500/20">
+      <div class="text-[11px] uppercase tracking-[0.12em] text-cyan-200/80">Agentes ativos</div>
+      <div class="mt-2 text-4xl font-bold">{{ agents_with_activity_count|default:0 }}/{{ active_agents_count|default:0 }}</div>
+      <div class="mt-2 text-xs text-[color:var(--color-text-muted)]">Cobertura de agentes com atividade no periodo.</div>
+    </article>
+
+    <article class="ds-panel p-4 border-sky-500/20">
+      <div class="mt-5 text-xs uppercase tracking-[0.12em] text-sky-200">Produtividade media</div>
+      <div class="mt-2 text-4xl font-bold">
+        {% if taxa_ocupacao_pct != None %}{{ taxa_ocupacao_pct|floatformat:1 }}%{% else %}--{% endif %}
+      </div>
+      <div class="mt-2 text-xs text-[color:var(--color-text-muted)]">Percentual produtivo consolidado no intervalo filtrado.</div>
+    </article>
+
+    <article class="ds-panel p-4 border-red-500/20">
+      <div class="mt-5 text-xs uppercase tracking-[0.12em] text-red-200">Alertas criticos</div>
+      <div class="mt-2 text-4xl font-bold">{{ alert_totals.crit|default:0 }}</div>
+      <div class="mt-2 text-xs text-[color:var(--color-text-muted)]">Ocorrencias de criticidade alta detectadas.</div>
+    </article>
+
+    <article class="ds-panel p-4 border-amber-500/20">
+      <div class="mt-5 text-xs uppercase tracking-[0.12em] text-amber-200">Tempo produtivo</div>
+      <div class="mt-2 text-4xl font-bold">{{ tempo_produtivo_total_hhmm|default:"--" }}</div>
+      <div class="mt-2 text-xs text-[color:var(--color-text-muted)]">Volume total de tempo produtivo no recorte.</div>
+    </article>
+  </section>
+
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+    <article class="ds-panel p-5 executive-chart-card">
+      <div class="executive-chart-card__header">
+        <div>
+          <h2 class="text-base font-semibold">Evolucao operacional</h2>
+          <p class="executive-chart-card__subtitle">Eventos, críticos e pausas por hora.</p>
+        </div>
+        <span class="ds-badge ds-badge--warn">Line</span>
+      </div>
+      <div id="executiveTrendChart" class="executive-chart-card__plot"></div>
+    </article>
+    <article class="ds-panel p-5 executive-chart-card">
+      <div class="executive-chart-card__header">
+        <div>
+          <h2 class="text-base font-semibold">Maiores pausas por tipo</h2>
+          <p class="executive-chart-card__subtitle">Comparativo por tempo total acumulado.</p>
+        </div>
+        <span class="ds-badge ds-badge--info">Bar</span>
+      </div>
+      <div id="executivePauseTypeBarChart" class="executive-chart-card__plot"></div>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+    <article class="ds-panel p-5 executive-chart-card">
+      <div class="executive-chart-card__header">
+        <div>
+          <h2 class="text-base font-semibold">Distribuicao de pausas</h2>
+          <p class="executive-chart-card__subtitle">Participacao percentual por frequencia.</p>
+        </div>
+        <span class="ds-badge ds-badge--ok">Donut</span>
+      </div>
+      <div id="executivePauseTypePieChart" class="executive-chart-card__plot"></div>
+    </article>
+    <article class="ds-panel p-5 executive-chart-card">
+      <div class="executive-chart-card__header">
+        <div>
+          <h2 class="text-base font-semibold">Radar de criticidade</h2>
+          <p class="executive-chart-card__subtitle">Pausas, alertas e ociosidade operacional.</p>
+        </div>
+        <span class="ds-badge ds-badge--crit">Radar</span>
+      </div>
+      <div id="executivePauseRadarChart" class="executive-chart-card__plot"></div>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-4 gap-4">
+    <article class="ds-panel overflow-hidden xl:col-span-1">
+      <div class="px-5 py-4 border-b border-[color:var(--color-border)] text-sm font-semibold">Top agentes</div>
+      <ul class="divide-y divide-[color:var(--color-border)]">
+        {% for item in top_productivity|slice:":5" %}
+          <li class="px-5 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">{{ forloop.counter }}º {{ item.agent_name }}</span>
+              <span class="text-xs text-emerald-300">{{ item.tempo_produtivo_hhmm }}</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Melhor entrega operacional do periodo.</div>
+          </li>
+        {% empty %}
+          <li class="px-5 py-4 text-sm text-[color:var(--color-text-muted)]">Nenhum dado disponivel para ranking de top agentes.</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="ds-panel overflow-hidden xl:col-span-1">
+      <div class="px-5 py-4 border-b border-[color:var(--color-border)] text-sm font-semibold">Alertas recentes</div>
+      <ul class="divide-y divide-[color:var(--color-border)]">
+        {% for alert in alerts|slice:":5" %}
+          <li class="px-5 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">{{ alert.title }}</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] {{ alert.severity_class }}">{{ alert.severity_label }}</span>
+            </div>
+            <div class="text-xs text-[color:var(--color-text-muted)] mt-1">{{ alert.detail }}</div>
+          </li>
+        {% empty %}
+          <li class="px-5 py-4 text-sm text-[color:var(--color-text-muted)]">Nenhum alerta recente. Monitoramento em normalidade.</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="ds-panel overflow-hidden xl:col-span-1">
+      <div class="px-5 py-4 border-b border-[color:var(--color-border)] text-sm font-semibold">Agentes sem atividade</div>
+      <ul class="divide-y divide-[color:var(--color-border)]">
+        {% for agent in active_agents_without_activity|slice:":5" %}
+          <li class="px-5 py-3 flex items-center justify-between gap-3">
+            <span class="font-medium">{{ agent.nm_agente|default:"Sem nome" }}</span>
+            <span class="text-xs text-[color:var(--color-text-muted)]">{{ agent.cd_operador }}</span>
+          </li>
+        {% empty %}
+          <li class="px-5 py-4 text-sm text-emerald-300">Todos os agentes ativos tiveram registro de atividade.</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="ds-panel overflow-hidden xl:col-span-1">
+      <div class="px-5 py-4 border-b border-[color:var(--color-border)] text-sm font-semibold">Insights automaticos</div>
+      <ul class="divide-y divide-[color:var(--color-border)] text-sm">
+        <li class="px-5 py-3">
+          {% if taxa_ocupacao_pct|default:0 < 65 %}
+            Ocupacao abaixo de 65%. Reavalie distribuicao de pausas e aderencia de escala.
+          {% else %}
+            Ocupacao em faixa controlada para o periodo analisado.
+          {% endif %}
+        </li>
+        <li class="px-5 py-3">
+          {% if alert_totals.crit|default:0 > 0 %}
+            Existem {{ alert_totals.crit }} alertas criticos ativos. Priorize analise no radar de risco.
+          {% else %}
+            Nao ha alertas criticos ativos neste recorte.
+          {% endif %}
+        </li>
+        <li class="px-5 py-3">
+          {% if active_agents_without_activity|length > 0 %}
+            {{ active_agents_without_activity|length }} agentes sem atividade detectados. Validar login e eventos de jornada.
+          {% else %}
+            Nao ha agentes sem atividade. Cobertura operacional consistente.
+          {% endif %}
+        </li>
+        <li class="px-5 py-3">
+          Tempo produtivo consolidado: <span class="font-semibold">{{ tempo_produtivo_total_hhmm }}</span>.
+        </li>
+      </ul>
+    </article>
+  </section>
+</div>
+
+{{ alerts|json_script:"alerts-data" }}
+{{ events_by_hour|json_script:"events-by-hour-data" }}
+{{ pause_type_by_time|json_script:"pause-type-by-time-data" }}
+{{ pause_type_by_count|json_script:"pause-type-by-count-data" }}
+{{ pause_hourly_distribution|json_script:"pause-hourly-distribution-data" }}
+{{ executive_pause_radar|json_script:"executive-pause-radar-data" }}
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script>
+    (function () {
+      const filterForm = document.querySelector("[data-dashboard-filter-form]");
+      const dateFromInput = document.getElementById("date_from");
+      const dateToInput = document.getElementById("date_to");
+      if (filterForm && dateFromInput && dateToInput) {
+        filterForm.addEventListener("submit", (event) => {
+          if (dateFromInput.value && dateToInput.value && dateFromInput.value > dateToInput.value) {
+            dateToInput.setCustomValidity("Data final deve ser maior ou igual a data inicial.");
+            event.preventDefault();
+            filterForm.reportValidity();
+            return;
+          }
+          dateToInput.setCustomValidity("");
+        });
+      }
+
+      document.querySelectorAll("[data-progress-value]").forEach((node) => {
+        const raw = Number(node.getAttribute("data-progress-value") || 0);
+        const bounded = Math.max(0, Math.min(raw, 100));
+        node.style.width = bounded + "%";
+      });
+
+      if (!window.ApexCharts) return;
+
+      const alertsData = JSON.parse(document.getElementById("alerts-data").textContent || "[]");
+      const eventsByHour = JSON.parse(document.getElementById("events-by-hour-data").textContent || "[]");
+      const pauseTypeByTime = JSON.parse(document.getElementById("pause-type-by-time-data").textContent || "[]");
+      const pauseTypeByCount = JSON.parse(document.getElementById("pause-type-by-count-data").textContent || "[]");
+      const pauseHourlyDistribution = JSON.parse(document.getElementById("pause-hourly-distribution-data").textContent || "[]");
+      const executivePauseRadar = JSON.parse(document.getElementById("executive-pause-radar-data").textContent || "[]");
+      let chartInstances = [];
+
+      function cssVar(name, fallback) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(name);
+        return value ? value.trim() : fallback;
+      }
+
+      function normalizeTimeline() {
+        const byHour = {};
+        eventsByHour.forEach((item, index) => {
+          const label = String(item.hour_label || item.hour || ("T" + (index + 1)));
+          byHour[label] = byHour[label] || { events: 0, critical: 0, pauses: 0 };
+          byHour[label].events = Number(item.event_count || item.total_events || item.count || 0);
+          byHour[label].critical = Number(item.critical_count || item.crit || 0);
+        });
+        pauseHourlyDistribution.forEach((item) => {
+          const label = String(item.hour_label || "");
+          if (!label) return;
+          byHour[label] = byHour[label] || { events: 0, critical: 0, pauses: 0 };
+          byHour[label].pauses = Number(item.count || 0);
+        });
+        const labels = Object.keys(byHour).sort();
+        return labels.map((label) => ({ label, ...byHour[label] }));
+      }
+
+      function mountCharts() {
+        chartInstances.forEach((chart) => chart.destroy());
+        chartInstances = [];
+
+        const mutedColor = cssVar("--color-text-muted", "#94a3b8");
+        const textColor = cssVar("--color-text", "#e2e8f0");
+        const borderColor = cssVar("--color-border", "rgba(148,163,184,0.2)");
+        const primaryColor = cssVar("--color-primary", "#38bdf8");
+        const timelineData = normalizeTimeline();
+
+        const trendRoot = document.getElementById("executiveTrendChart");
+        if (trendRoot) {
+          const trendChart = new ApexCharts(trendRoot, {
+            chart: { type: "line", height: 290, toolbar: { show: false } },
+            stroke: { curve: "smooth", width: [3, 2.6, 2.2] },
+            series: [
+              { name: "Eventos", data: timelineData.map((entry) => entry.events) },
+              { name: "Críticos", data: timelineData.map((entry) => entry.critical) },
+              { name: "Pausas/h", data: timelineData.map((entry) => entry.pauses) },
+            ],
+            xaxis: { categories: timelineData.map((entry) => entry.label), labels: { style: { colors: mutedColor } } },
+            yaxis: { labels: { style: { colors: mutedColor } } },
+            colors: [primaryColor, "#ef4444", "#f59e0b"],
+            legend: { labels: { colors: textColor } },
+            grid: { borderColor: borderColor },
+          });
+          chartInstances.push(trendChart);
+        }
+
+        const pauseTypeBarRoot = document.getElementById("executivePauseTypeBarChart");
+        if (pauseTypeBarRoot) {
+          const pauseBarChart = new ApexCharts(pauseTypeBarRoot, {
+            chart: { type: "bar", height: 290, toolbar: { show: false } },
+            plotOptions: { bar: { columnWidth: "46%", borderRadius: 6 } },
+            series: [{ name: "Tempo (seg)", data: pauseTypeByTime.map((entry) => Number(entry.tempo_seg || 0)) }],
+            xaxis: { categories: pauseTypeByTime.map((entry) => String(entry.label || "")), labels: { style: { colors: mutedColor } } },
+            yaxis: { labels: { style: { colors: mutedColor } } },
+            colors: ["#22c55e"],
+            grid: { borderColor: borderColor },
+            legend: { labels: { colors: textColor } },
+          });
+          chartInstances.push(pauseBarChart);
+        }
+
+        const pauseTypePieRoot = document.getElementById("executivePauseTypePieChart");
+        if (pauseTypePieRoot) {
+          const pausePieChart = new ApexCharts(pauseTypePieRoot, {
+            chart: { type: "donut", height: 290, toolbar: { show: false } },
+            labels: pauseTypeByCount.map((entry) => String(entry.label || "")),
+            series: pauseTypeByCount.map((entry) => Number(entry.count || 0)),
+            colors: ["#38bdf8", "#22c55e", "#f59e0b", "#ef4444", "#a78bfa", "#f97316"],
+            legend: { position: "bottom", labels: { colors: textColor } },
+            stroke: { colors: [cssVar("--color-card", "#0f172a")] },
+          });
+          chartInstances.push(pausePieChart);
+        }
+
+        const pauseRadarRoot = document.getElementById("executivePauseRadarChart");
+        if (pauseRadarRoot) {
+          const pauseRadarChart = new ApexCharts(pauseRadarRoot, {
+            chart: { type: "radar", height: 290, toolbar: { show: false } },
+            series: [{ name: "Criticidade", data: executivePauseRadar.map((entry) => Number(entry.value || 0)) }],
+            labels: executivePauseRadar.map((entry) => String(entry.label || "")),
+            colors: ["#ef4444"],
+            yaxis: { labels: { style: { colors: mutedColor } } },
+            xaxis: { labels: { style: { colors: textColor } } },
+            stroke: { width: 2.4 },
+            fill: { opacity: 0.22 },
+          });
+          chartInstances.push(pauseRadarChart);
+        }
+
+        const healthGaugeRoot = document.getElementById("executiveHealthGaugeChart");
+        if (healthGaugeRoot) {
+          const healthGaugeChart = new ApexCharts(healthGaugeRoot, {
+            chart: { type: "radialBar", height: 240, sparkline: { enabled: true } },
+            series: [Number("{{ health_score|default:0 }}") || 0],
+            labels: ["Health Score"],
+            colors: [primaryColor],
+            plotOptions: {
+              radialBar: {
+                hollow: { size: "68%" },
+                track: { background: borderColor },
+                dataLabels: {
+                  name: { color: mutedColor, fontSize: "12px", offsetY: 22 },
+                  value: { color: textColor, fontSize: "28px", fontWeight: 700, offsetY: -8 },
+                },
+              },
+            },
+          });
+          chartInstances.push(healthGaugeChart);
+        }
+
+        chartInstances.forEach((chart) => chart.render());
+      }
+
+      mountCharts();
+      document.addEventListener("app:theme-change", mountCharts);
+
+    })();
+  </script>
+{% endblock %}
+
+
+
+

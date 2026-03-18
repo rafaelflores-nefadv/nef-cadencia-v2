@@ -1,6 +1,10 @@
 (function () {
   "use strict";
 
+  function qsa(selector, rootElement) {
+    return Array.prototype.slice.call((rootElement || document).querySelectorAll(selector));
+  }
+
   var root = document.getElementById("assistant-page-root");
   var initialDataEl = document.getElementById("assistant-page-initial-data");
   if (!root || !initialDataEl) {
@@ -47,6 +51,7 @@
   var formEl = document.getElementById("assistant-page-form");
   var inputEl = document.getElementById("assistant-page-input");
   var sendButton = document.getElementById("assistant-page-send");
+  var suggestedQuestionButtons = qsa("[data-suggested-question]");
 
   if (!newButton || !countEl || !limitEl || !limitNoticeEl || !sidebarFlashEl || !mainFlashEl ||
       !listEl || !titleEl || !subtitleEl || !deleteButton || !messagesEl || !typingEl ||
@@ -307,8 +312,8 @@
       var emptyState = document.createElement("div");
       emptyState.className = "assistant-page__empty-state";
       emptyState.innerHTML =
-        '<div class="assistant-page__empty-title">Historico persistido do ' + state.assistantName + '</div>' +
-        '<p class="assistant-page__empty-copy">Aqui ficam apenas conversas salvas da pagina dedicada. O widget continua temporario e separado.</p>';
+        '<div class="assistant-page__empty-title">O Eustácio pode ajudar você a entender a operação.</div>' +
+        '<p class="assistant-page__empty-copy">Use as sugestões ao lado ou pergunte livremente para investigar produtividade, risco e alertas críticos.</p>';
       messagesEl.appendChild(emptyState);
       return;
     }
@@ -609,6 +614,15 @@
   });
 
   inputEl.addEventListener("input", resizeInput);
+
+  suggestedQuestionButtons.forEach(function (button) {
+    button.addEventListener("click", function () {
+      var question = button.getAttribute("data-suggested-question") || "";
+      inputEl.value = question;
+      resizeInput();
+      inputEl.focus();
+    });
+  });
 
   sortConversations();
   resizeInput();

@@ -1,0 +1,42 @@
+<section class="ds-panel px-4 py-3 space-y-3">
+  <div class="flex items-center justify-between gap-3 text-[11px] text-[color:var(--color-text-muted)]">
+    <span class="font-medium uppercase tracking-[0.1em]">Filtros</span>
+    <span class="truncate">Período: {{ applied_period_label }}</span>
+  </div>
+
+  <form method="get" class="space-y-3" autocomplete="off" data-dashboard-filter-form>
+    <div class="flex flex-wrap items-center gap-1.5">
+      {% for quick in quick_range_options %}
+        {% if quick.key == 'today' or quick.key == 'yesterday' or quick.key == 'last_7_days' or quick.key == 'this_month' %}
+        <button
+          type="submit"
+          name="quick_range"
+          value="{{ quick.key }}"
+          class="h-8 px-3 rounded-lg text-[11px] border transition {% if selected_quick_range == quick.key %}border-sky-400/55 bg-sky-500/12 text-sky-200{% else %}border-[color:var(--color-border)] text-[color:var(--color-text-muted)] hover:bg-white/5{% endif %}"
+        >
+          {{ quick.label }}
+        </button>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[150px_150px_minmax(0,1fr)_auto] gap-2 items-end">
+      <div class="space-y-1">
+        <label for="date_from" class="text-[11px] text-[color:var(--color-text-muted)]">Data inicial</label>
+        <input id="date_from" name="date_from" type="date" class="w-full h-9 px-2.5 rounded-lg border border-[color:var(--color-border)] bg-slate-950/20 text-sm" value="{% if selected_date_from %}{{ selected_date_from|date:'Y-m-d' }}{% endif %}">
+      </div>
+      <div class="space-y-1">
+        <label for="date_to" class="text-[11px] text-[color:var(--color-text-muted)]">Data final</label>
+        <input id="date_to" name="date_to" type="date" class="w-full h-9 px-2.5 rounded-lg border border-[color:var(--color-border)] bg-slate-950/20 text-sm" value="{% if selected_date_to %}{{ selected_date_to|date:'Y-m-d' }}{% endif %}">
+      </div>
+      <div class="space-y-1">
+        <label for="q" class="text-[11px] text-[color:var(--color-text-muted)]">Busca de agente</label>
+        <input id="q" name="q" type="text" maxlength="80" class="w-full h-9 px-3 rounded-lg border border-[color:var(--color-border)] bg-slate-950/20 text-sm" placeholder="Código, nome ou pausa" value="{{ search }}">
+      </div>
+      <div class="flex flex-wrap gap-2 xl:justify-end">
+        <button type="submit" class="h-9 px-3.5 rounded-lg bg-[color:var(--color-primary)] text-white text-xs font-semibold">Aplicar</button>
+        <a href="{{ request.path }}" class="h-9 px-3.5 rounded-lg border border-[color:var(--color-border)] text-xs inline-flex items-center hover:bg-white/5">Limpar</a>
+      </div>
+    </div>
+  </form>
+</section>

@@ -1,0 +1,28 @@
+<nav class="ds-panel p-3" aria-label="Navegacao principal do comando operacional">
+  <div class="grid gap-3 xl:grid-cols-[0.7fr_1.6fr] xl:items-center">
+    <div class="rounded-2xl border border-white/10 bg-slate-950/30 px-4 py-3">
+      <div class="text-[11px] uppercase tracking-[0.14em] text-[color:var(--color-text-muted)]">Menu global</div>
+      <a href="{% url 'dashboard' %}?{{ request.GET.urlencode }}" class="mt-2 inline-flex rounded-xl border px-3 py-2 text-xs font-semibold transition {% if request.resolver_match.url_name == 'dashboard' %}border-sky-400/60 bg-sky-500/10 text-sky-200 shadow-[0_8px_20px_rgba(2,6,23,0.3)]{% else %}border-[color:var(--color-border)] text-[color:var(--color-text-muted)] hover:bg-white/5{% endif %}">
+        Dashboard executivo
+      </a>
+    </div>
+
+    <div>
+      <div class="text-[11px] uppercase tracking-[0.14em] text-[color:var(--color-text-muted)] mb-2 px-1">Estações da operação</div>
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-2">
+        <a href="{% url 'dashboard-productivity' %}?{{ request.GET.urlencode }}" class="rounded-xl border px-3 py-3 text-xs font-semibold transition {% if request.resolver_match.url_name == 'dashboard-productivity' %}border-violet-400/60 bg-violet-500/10 text-violet-200 shadow-[0_8px_20px_rgba(2,6,23,0.3)]{% else %}border-[color:var(--color-border)] text-[color:var(--color-text-muted)] hover:bg-white/5{% endif %}">
+          Produtividade
+        </a>
+        <a href="{% url 'dashboard-risk' %}?{{ request.GET.urlencode }}" class="rounded-xl border px-3 py-3 text-xs font-semibold transition {% if request.resolver_match.url_name == 'dashboard-risk' %}border-orange-400/60 bg-orange-500/10 text-orange-200 shadow-[0_8px_20px_rgba(2,6,23,0.3)]{% else %}border-[color:var(--color-border)] text-[color:var(--color-text-muted)] hover:bg-white/5{% endif %}">
+          Risco Operacional
+        </a>
+        <a href="{% url 'dashboard-pipeline' %}?{{ request.GET.urlencode }}" class="rounded-xl border px-3 py-3 text-xs font-semibold transition {% if request.resolver_match.url_name == 'dashboard-pipeline' %}border-emerald-400/60 bg-emerald-500/10 text-emerald-200 shadow-[0_8px_20px_rgba(2,6,23,0.3)]{% else %}border-[color:var(--color-border)] text-[color:var(--color-text-muted)] hover:bg-white/5{% endif %}">
+          Pipeline de Dados
+        </a>
+        <a href="{% url 'agents-list' %}" class="rounded-xl border px-3 py-3 text-xs font-semibold transition {% if request.resolver_match.url_name == 'agents-list' or request.resolver_match.url_name == 'agent-detail' %}border-cyan-400/60 bg-cyan-500/10 text-cyan-200 shadow-[0_8px_20px_rgba(2,6,23,0.3)]{% else %}border-[color:var(--color-border)] text-[color:var(--color-text-muted)] hover:bg-white/5{% endif %}">
+          Agentes
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>

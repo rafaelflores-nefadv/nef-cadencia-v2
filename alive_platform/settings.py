@@ -30,7 +30,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Third party
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",
+    # Apps
+    "apps.core.apps.CoreConfig",
     "apps.accounts.apps.AccountsConfig",
+    "apps.workspaces.apps.WorkspacesConfig",  # Multi-tenant
     "apps.monitoring.apps.MonitoringConfig",
     "apps.rules.apps.RulesConfig",
     "apps.messaging.apps.MessagingConfig",
@@ -38,6 +46,9 @@ INSTALLED_APPS = [
     "apps.reports.apps.ReportsConfig",
     "apps.assistant.apps.AssistantConfig",
 ]
+
+# Custom User Model
+AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -80,11 +91,16 @@ WSGI_APPLICATION = "alive_platform.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DB_NAME", default="alive_platform"),
+        "NAME": env("DB_NAME", default="nef_cadencia"),
         "USER": env("DB_USER", default="postgres"),
         "PASSWORD": env("DB_PASSWORD", default="postgres"),
         "HOST": env("DB_HOST", default="127.0.0.1"),
         "PORT": env("DB_PORT", default="5432"),
+        "CONN_MAX_AGE": 600,  # Connection pooling (10 minutos)
+        "OPTIONS": {
+            "connect_timeout": 10,
+            "options": "-c statement_timeout=30000",  # 30 segundos
+        },
     }
 }
 
@@ -135,3 +151,8 @@ LOGOUT_REDIRECT_URL = "login"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ------------------------------------------------------------------
+# JWT and REST Framework Settings
+# ------------------------------------------------------------------
+from .settings_jwt import *

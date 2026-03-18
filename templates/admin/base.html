@@ -43,6 +43,11 @@
 {% block page_container %}
 <a href="#content-start" class="admin-skip-link">{% translate 'Skip to main content' %}</a>
 <div id="content-start" tabindex="-1" class="space-y-4 admin-shell">
+  <section class="admin-page-hero">
+    <div class="admin-page-hero__eyebrow">{% translate "Painel de sistema" %}</div>
+    <h1 class="admin-page-hero__title">{% if title %}{{ title }}{% else %}{{ site_header|default:_("Django administration") }}{% endif %}</h1>
+    <p class="admin-page-hero__subtitle">{% if subtitle %}{{ subtitle }}{% else %}{% translate "Gerencie módulos, integrações e governança com visão centralizada." %}{% endif %}</p>
+  </section>
   {% if not is_popup %}
     {% block nav-breadcrumbs %}
     <nav aria-label="{% translate 'Breadcrumbs' %}" class="admin-breadcrumbs">
@@ -52,6 +57,16 @@
       {% endblock %}
     </nav>
     {% endblock %}
+
+    <nav class="admin-system-nav" aria-label="Navegação de Sistema">
+      <a href="{% url 'admin:index' %}" class="admin-system-nav__item{% if request.resolver_match.namespace == 'admin' and request.resolver_match.url_name == 'index' %} is-active{% endif %}">Configurações</a>
+      <a href="{% url 'runs-list' %}" class="admin-system-nav__item{% if request.resolver_match.url_name == 'runs-list' or request.resolver_match.url_name == 'run-detail' %} is-active{% endif %}">Logs operacionais</a>
+      <a href="/admin/admin/logentry/" class="admin-system-nav__item{% if request.path|slice:':21' == '/admin/admin/logentry/' %} is-active{% endif %}">Logs administrativos</a>
+      <a href="/admin/monitoring/" class="admin-system-nav__item{% if request.path|slice:':18' == '/admin/monitoring/' %} is-active{% endif %}">Monitoramento</a>
+      <a href="/admin/integrations/integration/" class="admin-system-nav__item{% if request.path|slice:':31' == '/admin/integrations/integration/' %} is-active{% endif %}">Integrações</a>
+      <a href="/admin/rules/systemconfig/" class="admin-system-nav__item{% if request.path|slice:':26' == '/admin/rules/systemconfig/' %} is-active{% endif %}">Regras operacionais</a>
+      <a href="/admin/assistant/assistantauditlog/" class="admin-system-nav__item{% if request.path|slice:':33' == '/admin/assistant/assistantauditlog/' %} is-active{% endif %}">Auditoria</a>
+    </nav>
   {% endif %}
 
   {% block messages %}

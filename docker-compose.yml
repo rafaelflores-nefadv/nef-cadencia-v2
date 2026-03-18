@@ -1,0 +1,182 @@
+version: '3.8'
+
+# ==============================================================================
+# NEF Cadência - Docker Compose Stack
+# ==============================================================================
+# Services:
+#   - web: Django application (Gunicorn)
+#   - nginx: Reverse proxy
+#   - db: PostgreSQL database
+#   - redis: Cache and session storage
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ----------------------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: nef-cadencia-db
+    restart: unless-stopped
+    
+    environment:
+      POSTGRES_DB: ${DB_NAME:-alive_platform}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    
+    ports:
+      - "5432:5432"  # Remove in production (only for debugging)
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    
+    networks:
+      - nef-network
+
+  # ----------------------------------------------------------------------------
+  # Redis Cache
+  # ----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: nef-cadencia-redis
+    restart: unless-stopped
+    
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    
+    volumes:
+      - redis_data:/data
+    
+    ports:
+      - "6379:6379"  # Remove in production (only for debugging)
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+    networks:
+      - nef-network
+
+  # ----------------------------------------------------------------------------
+  # Django Application (Gunicorn)
+  # ----------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    container_name: nef-cadencia-web
+    restart: unless-stopped
+    
+    env_file:
+      - .env.production
+    
+    environment:
+      - DJANGO_ENV=production
+      - DB_HOST=db
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-}@redis:6379/1
+    
+    volumes:
+      # Persistent volumes
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - logs_volume:/app/logs
+      
+      # Development override (comment out in production)
+      # - ./alive_platform:/app/alive_platform
+      # - ./apps:/app/apps
+      # - ./templates:/app/templates
+    
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    networks:
+      - nef-network
+
+  # ----------------------------------------------------------------------------
+  # Nginx Reverse Proxy
+  # ----------------------------------------------------------------------------
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: nef-cadencia-nginx
+    restart: unless-stopped
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx-site.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro  # SSL certificates (if using HTTPS)
+      - nginx_logs:/var/log/nginx
+    
+    depends_on:
+      - web
+    
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    
+    networks:
+      - nef-network
+
+# ==============================================================================
+# Volumes
+# ==============================================================================
+volumes:
+  postgres_data:
+    driver: local
+    name: nef-cadencia-postgres-data
+  
+  redis_data:
+    driver: local
+    name: nef-cadencia-redis-data
+  
+  static_volume:
+    driver: local
+    name: nef-cadencia-static
+  
+  media_volume:
+    driver: local
+    name: nef-cadencia-media
+  
+  logs_volume:
+    driver: local
+    name: nef-cadencia-logs
+  
+  nginx_logs:
+    driver: local
+    name: nef-cadencia-nginx-logs
+
+# ==============================================================================
+# Networks
+# ==============================================================================
+networks:
+  nef-network:
+    driver: bridge
+    name: nef-cadencia-network

@@ -1,7 +1,70 @@
-(function () {
+﻿(function () {
+  var THEME_STORAGE_KEY = 'nef_theme_preference';
+  var THEMES = ['blue', 'dark', 'light'];
+
   function qs(sel, root){ return (root||document).querySelector(sel); }
   function qsa(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
   function isVisible(el){ return !!el && !el.classList.contains('hidden'); }
+  function resolveTheme(theme) {
+    return THEMES.indexOf(theme) >= 0 ? theme : 'blue';
+  }
+  function applyTheme(theme) {
+    var nextTheme = resolveTheme(theme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    document.body.setAttribute('data-theme', nextTheme);
+    qsa('[data-theme-option]').forEach(function (button) {
+      var isActive = button.getAttribute('data-theme-option') === nextTheme;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+    document.dispatchEvent(new CustomEvent('app:theme-change', { detail: { theme: nextTheme } }));
+  }
+  function initTheme() {
+    var storedTheme = null;
+    try {
+      storedTheme = window.localStorage ? window.localStorage.getItem(THEME_STORAGE_KEY) : null;
+    } catch (_error) {
+      storedTheme = null;
+    }
+    applyTheme(resolveTheme(storedTheme || document.documentElement.getAttribute('data-theme')));
+    qsa('[data-theme-option]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var selectedTheme = resolveTheme(button.getAttribute('data-theme-option'));
+        applyTheme(selectedTheme);
+        try {
+          if (window.localStorage) window.localStorage.setItem(THEME_STORAGE_KEY, selectedTheme);
+        } catch (_error) {}
+      });
+    });
+  }
+
+  function initMicroInteractions() {
+    qsa('.ds-panel, .ds-kpi, .list-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        card.classList.add('is-active-cue');
+        window.setTimeout(function () {
+          card.classList.remove('is-active-cue');
+        }, 260);
+      });
+    });
+
+    qsa('button, .menu-item, .menu-subitem, .profile-menu__item, .topbar-mainmenu-button').forEach(function (node) {
+      node.addEventListener('pointerdown', function () {
+        node.classList.add('is-pressed');
+      });
+      function clearPressed() { node.classList.remove('is-pressed'); }
+      node.addEventListener('pointerup', clearPressed);
+      node.addEventListener('pointerleave', clearPressed);
+      node.addEventListener('pointercancel', clearPressed);
+    });
+
+    qsa('#executiveTrendChart, #executivePauseTypeBarChart, #executivePauseTypePieChart, #executivePauseRadarChart, #executiveHealthGaugeChart, #riskRadarChart, #alertSeverityChart').forEach(function (chartRoot, index) {
+      chartRoot.classList.add('ux-chart-enter');
+      window.setTimeout(function () {
+        chartRoot.classList.add('is-visible');
+      }, 70 + (index * 35));
+    });
+  }
 
   function initIcons() {
     if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -143,15 +206,83 @@
   var openBtn = qs('[data-sidebar-open]');
   var closeBtn = qs('[data-sidebar-close]');
   var backdrop = qs('[data-sidebar-backdrop]');
+  var mobileDrawer = qs('[data-sidebar-drawer]');
+  var desktopSidebar = qs('[data-sidebar]');
+  var agentDrawer = qs('[data-agent-drawer]');
+  var agentDrawerBackdrop = qs('[data-agent-drawer-backdrop]');
+  var mobileMedia = window.matchMedia ? window.matchMedia('(max-width: 1023px)') : null;
+  function isMobileViewport() {
+    return mobileMedia ? mobileMedia.matches : window.innerWidth < 1024;
+  }
+  function closeAgentDrawer() {
+    if (agentDrawer) agentDrawer.classList.remove('is-open');
+    if (agentDrawerBackdrop) agentDrawerBackdrop.classList.remove('is-visible');
+    document.documentElement.classList.remove('agent-drawer-open');
+  }
   function openDrawer(){
+    if (!isMobileViewport()) {
+      closeDrawer();
+      return;
+    }
+    closeAgentDrawer();
     document.documentElement.classList.add('sidebar-drawer-open');
   }
   function closeDrawer(){
     document.documentElement.classList.remove('sidebar-drawer-open');
   }
+  function syncDrawerByViewport() {
+    if (!isMobileViewport()) closeDrawer();
+  }
+  function closeDrawerOnNavigate(event) {
+    var link = event.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href') || '';
+    if (!href || href === '#' || href.indexOf('javascript:') === 0) return;
+    if (isMobileViewport()) closeDrawer();
+  }
+  closeDrawer();
+  closeAgentDrawer();
+  syncDrawerByViewport();
   if (openBtn) openBtn.addEventListener('click', openDrawer);
   if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
   if (backdrop) backdrop.addEventListener('click', closeDrawer);
+  if (mobileDrawer) mobileDrawer.addEventListener('click', closeDrawerOnNavigate);
+  if (desktopSidebar) desktopSidebar.addEventListener('click', closeDrawerOnNavigate);
+  window.addEventListener('resize', syncDrawerByViewport);
+  if (mobileMedia && typeof mobileMedia.addEventListener === 'function') {
+    mobileMedia.addEventListener('change', syncDrawerByViewport);
+  } else if (mobileMedia && typeof mobileMedia.addListener === 'function') {
+    mobileMedia.addListener(syncDrawerByViewport);
+  }
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Escape') return;
+    closeDrawer();
+    closeAgentDrawer();
+  });
+
+  // Sidebar system dropdown
+  qsa('[data-menu-dropdown]').forEach(function (dropdown) {
+    var trigger = qs('[data-menu-dropdown-toggle]', dropdown);
+    if (!trigger) return;
+    var hasActiveRoute = !!qs('.menu-subitem--active, .menu-item--active', dropdown);
+
+    function setOpen(open) {
+      var nextOpen = hasActiveRoute ? true : open;
+      dropdown.setAttribute('data-open', nextOpen ? 'true' : 'false');
+      trigger.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+    }
+
+    setOpen(dropdown.getAttribute('data-open') === 'true' || hasActiveRoute);
+
+    trigger.addEventListener('click', function () {
+      var currentlyOpen = dropdown.getAttribute('data-open') === 'true';
+      if (hasActiveRoute) {
+        setOpen(true);
+        return;
+      }
+      setOpen(!currentlyOpen);
+    });
+  });
 
   // Toggle groups
   qsa('[data-nav-group-toggle]').forEach(function(btn){
@@ -165,5 +296,8 @@
   });
 
   initProfileMenu();
+  initTheme();
+  initMicroInteractions();
   initIcons();
 })();
+

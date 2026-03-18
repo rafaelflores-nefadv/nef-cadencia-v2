@@ -1,19 +1,19 @@
 {% extends "admin/base_site.html" %}
 
-{% block title %}Classificacao de Pausas | {{ site_title|default:'NEF Cadencia' }}{% endblock %}
+{% block title %}Classificação de Pausas | {{ site_title|default:'NEF Cadência' }}{% endblock %}
 
 {% block breadcrumbs %}
 <a href="{% url 'admin:index' %}">Home</a>
 <span>/</span>
 <a href="{% url 'admin:app_list' app_label='monitoring' %}">Monitoring</a>
 <span>/</span>
-<span>Classificacao de pausas</span>
+<span>Classificação de pausas</span>
 {% endblock %}
 
 {% block content %}
 <div class="space-y-4">
   <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
-    <h2 class="text-sm font-semibold">Classificacao de Pausas</h2>
+    <h2 class="text-sm font-semibold">Classificação de Pausas</h2>
     <div class="mt-2 text-xs text-[color:var(--color-text-muted)]">
       Pausas distintas no dataset: {{ total_distinct_pause_names }}
       {% for category_item in dataset_category_summary %}

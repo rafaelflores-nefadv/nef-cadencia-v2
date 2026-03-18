@@ -1,45 +1,164 @@
 ﻿{% extends "layouts/auth.html" %}
 
 {% block title %}Login | NEF Cadencia{% endblock %}
-{% block card_title %}Entrar{% endblock %}
-{% block card_subtitle %}Use seu usuario e senha para acessar o sistema.{% endblock %}
 
 {% block content %}
-<form method="post" class="space-y-4" novalidate>
+<form method="post" class="space-y-6" novalidate id="loginForm">
   {% csrf_token %}
   {% if next %}
     <input type="hidden" name="next" value="{{ next }}">
   {% endif %}
 
+  <!-- Error Message -->
   {% if form.errors %}
-    <div class="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">Usuario ou senha invalidos.</div>
+    <div class="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 animate-slide-up">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-red-900 dark:text-red-200">Credenciais inválidas</p>
+          <p class="text-xs text-red-700 dark:text-red-300 mt-1">Verifique seu usuário e senha e tente novamente.</p>
+        </div>
+      </div>
+    </div>
   {% endif %}
 
-  <div class="space-y-1">
-    <label for="{{ form.username.id_for_label }}" class="text-sm font-medium text-slate-700">Usuario</label>
+  <!-- Username Field -->
+  <div class="space-y-2">
+    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+      Usuário ou E-mail
+    </label>
     <input
       type="text"
       name="{{ form.username.name }}"
       id="{{ form.username.id_for_label }}"
-      class="w-full h-10 px-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/15 bg-white text-slate-900"
+      class="input-focus w-full h-11 px-4 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all focus:outline-none"
+      placeholder="Digite seu usuário ou e-mail"
       required
       autofocus
     >
   </div>
 
-  <div class="space-y-1">
-    <label for="{{ form.password.id_for_label }}" class="text-sm font-medium text-slate-700">Senha</label>
-    <input
-      type="password"
-      name="{{ form.password.name }}"
-      id="{{ form.password.id_for_label }}"
-      class="w-full h-10 px-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/15 bg-white text-slate-900"
-      required
-    >
+  <!-- Password Field -->
+  <div class="space-y-2">
+    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+      Senha
+    </label>
+    <div class="relative">
+      <input
+        type="password"
+        name="{{ form.password.name }}"
+        id="{{ form.password.id_for_label }}"
+        class="input-focus w-full h-11 px-4 pr-11 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 transition-all focus:outline-none"
+        placeholder="Digite sua senha"
+        required
+      >
+      <!-- Toggle Password Visibility -->
+      <button
+        type="button"
+        onclick="togglePassword()"
+        class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+        tabindex="-1"
+      >
+        <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+        </svg>
+        <svg id="eyeOffIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <button type="submit" class="w-full h-10 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700">
-    Entrar
+  <!-- Remember Me & Forgot Password -->
+  <div class="flex items-center justify-between">
+    <label class="flex items-center gap-2 cursor-pointer group">
+      <input
+        type="checkbox"
+        name="remember_me"
+        class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 dark:bg-slate-800 transition-all"
+      >
+      <span class="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">Lembrar de mim</span>
+    </label>
+    <a href="#" class="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors">
+      Esqueci minha senha
+    </a>
+  </div>
+
+  <!-- Submit Button -->
+  <button
+    type="submit"
+    class="w-full h-11 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all transform hover:scale-[1.01] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+    id="submitBtn"
+  >
+    <span id="btnText" class="flex items-center justify-center gap-2">
+      Entrar
+    </span>
+    <span id="btnLoading" class="hidden items-center justify-center gap-2">
+      <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      Entrando...
+    </span>
   </button>
+
+  <!-- Divider -->
+  <div class="relative my-6">
+    <div class="absolute inset-0 flex items-center">
+      <div class="w-full border-t border-slate-200 dark:border-slate-700"></div>
+    </div>
+    <div class="relative flex justify-center text-sm">
+      <span class="px-4 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">Ambiente de desenvolvimento</span>
+    </div>
+  </div>
+
+  <!-- Dev Credentials -->
+  <div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-5">
+    <div class="flex items-start gap-4">
+      <div class="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
+        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="flex-1 space-y-3">
+        <p class="text-sm font-bold text-blue-900 dark:text-blue-200">Credenciais de teste</p>
+        <div class="space-y-2">
+          <div class="flex items-center justify-between bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-blue-100 dark:border-blue-800">
+            <span class="text-sm text-slate-600 dark:text-slate-400">Usuário:</span>
+            <code class="text-base font-mono font-bold text-slate-900 dark:text-white">admin</code>
+          </div>
+          <div class="flex items-center justify-between bg-white dark:bg-slate-800 rounded-lg px-3 py-2 border border-blue-100 dark:border-blue-800">
+            <span class="text-sm text-slate-600 dark:text-slate-400">Senha:</span>
+            <code class="text-base font-mono font-bold text-slate-900 dark:text-white">admin123</code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </form>
+
+<script>
+  // Toggle password visibility
+  function togglePassword() {
+    const passwordInput = document.getElementById('{{ form.password.id_for_label }}');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const eyeOffIcon = document.getElementById('eyeOffIcon');
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      eyeIcon.classList.add('hidden');
+      eyeOffIcon.classList.remove('hidden');
+    } else {
+      passwordInput.type = 'password';
+      eyeIcon.classList.remove('hidden');
+      eyeOffIcon.classList.add('hidden');
+    }
+  }
+</script>
+
+<!-- Integração com serviço de autenticação -->
+<script type="module" src="{% static 'js/pages/login.js' %}"></script>
 {% endblock %}

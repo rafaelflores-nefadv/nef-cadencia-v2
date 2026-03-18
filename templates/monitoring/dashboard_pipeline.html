@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Pipeline de Dados | NEF Cadência{% endblock %}
+{% block page_title %}Pipeline de Dados{% endblock %}
+{% block page_subtitle %}Os dados estão sendo ingeridos corretamente?{% endblock %}
+
+{% block content %}
+<div class="space-y-6 pipeline-dashboard">
+  {% include "monitoring/_dashboard_filters.html" %}
+
+  <section class="pipeline-hero ds-panel p-5">
+    <div class="pipeline-hero__header">
+      <div>
+        <p class="pipeline-hero__eyebrow">Data Ops Center</p>
+        <h2 class="pipeline-hero__title">Saúde da ingestão e processamento</h2>
+      </div>
+      <span class="ds-badge {% if alert_totals.crit|default:0 > 0 %}ds-badge--crit{% else %}ds-badge--ok{% endif %}">
+        {% if alert_totals.crit|default:0 > 0 %}Falhas críticas detectadas{% else %}Pipeline em equilíbrio{% endif %}
+      </span>
+    </div>
+    <div class="pipeline-hero__stats">
+      <div class="pipeline-hero__stat"><span>Eventos</span><strong>{{ total_events_day|default:0 }}</strong></div>
+      <div class="pipeline-hero__stat"><span>Jobs recentes</span><strong>{{ recent_job_runs|length }}</strong></div>
+      <div class="pipeline-hero__stat"><span>Duração último job</span><strong>{{ last_job_duration|default:"--" }}</strong></div>
+      <div class="pipeline-hero__stat"><span>Críticos</span><strong>{{ alert_totals.crit|default:0 }}</strong></div>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <article class="ds-kpi border-sky-500/35 bg-gradient-to-br from-sky-500/20 to-slate-900/85">
+      <div class="text-xs uppercase tracking-wide text-sky-200">Eventos processados</div>
+      <div class="mt-2 text-3xl font-bold">{{ total_events_day|default:0 }}</div>
+      <div class="text-xs text-sky-100/80 mt-1">Volume no período selecionado.</div>
+    </article>
+    <article class="ds-kpi border-emerald-500/35 bg-gradient-to-br from-emerald-500/20 to-slate-900/85">
+      <div class="text-xs uppercase tracking-wide text-emerald-200">Última sincronização</div>
+      <div class="mt-2 text-base font-semibold">{% if last_job_run %}{{ last_job_run.started_at|date:"d/m/Y H:i:s" }}{% else %}-{% endif %}</div>
+      <div class="text-xs text-emerald-100/80 mt-1">Último run de ingestão.</div>
+    </article>
+    <article class="ds-kpi border-red-500/35 bg-gradient-to-br from-red-500/20 to-slate-900/85">
+      <div class="text-xs uppercase tracking-wide text-red-200">Erros de jobs</div>
+      <div class="mt-2 text-3xl font-bold">{{ alert_totals.crit|default:0 }}</div>
+      <div class="text-xs text-red-100/80 mt-1">Falhas críticas monitoradas.</div>
+    </article>
+    <article class="ds-kpi border-amber-500/35 bg-gradient-to-br from-amber-500/20 to-slate-900/85">
+      <div class="text-xs uppercase tracking-wide text-amber-200">Tempo de processamento</div>
+      <div class="mt-2 text-3xl font-bold">{{ last_job_duration|default:"-" }}</div>
+      <div class="text-xs text-amber-100/80 mt-1">Duração do último job.</div>
+    </article>
+  </section>
+
+  <section class="ds-panel p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-semibold">Fluxo de ingestão</h2>
+      <span class="text-xs text-[color:var(--color-text-muted)]">Eventos → Processamento → Stats → Dashboard</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <article class="rounded-xl border border-sky-500/30 bg-sky-500/10 p-4">
+        <div class="text-xs uppercase tracking-wide text-sky-200">1. Eventos</div>
+        <div class="mt-2 text-sm font-semibold">Entrada de dados</div>
+        <div class="mt-1 text-xs text-sky-100/80">Captura de eventos e pausas da operação.</div>
+      </article>
+      <article class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+        <div class="text-xs uppercase tracking-wide text-amber-200">2. Processamento</div>
+        <div class="mt-2 text-sm font-semibold">Jobs e validação</div>
+        <div class="mt-1 text-xs text-amber-100/80">Normalização, consistência e cálculo de cobertura.</div>
+      </article>
+      <article class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+        <div class="text-xs uppercase tracking-wide text-emerald-200">3. Stats</div>
+        <div class="mt-2 text-sm font-semibold">Agregação diária</div>
+        <div class="mt-1 text-xs text-emerald-100/80">Métricas consolidadas para leitura operacional.</div>
+      </article>
+      <article class="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-4">
+        <div class="text-xs uppercase tracking-wide text-indigo-200">4. Dashboard</div>
+        <div class="mt-2 text-sm font-semibold">Exibição confiável</div>
+        <div class="mt-1 text-xs text-indigo-100/80">Indicadores publicados para tomada de decisão.</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+    <article class="ds-panel p-5 border-emerald-500/20">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold">Status das entidades</h2>
+        <span class="text-xs text-[color:var(--color-text-muted)]">{{ applied_period_label }}</span>
+      </div>
+      <div class="space-y-2.5 max-h-[320px] overflow-auto pr-1">
+        {% for item in completeness_panel %}
+          <div class="rounded-xl border border-[color:var(--color-border)] bg-slate-950/25 px-3.5 py-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-xs text-[color:var(--color-text-muted)]">{{ item.label }}</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] {{ item.status_class }}">{{ item.status }}</span>
+            </div>
+            <div class="mt-1.5 text-lg font-semibold">{{ item.count }}</div>
+            <div class="text-xs text-[color:var(--color-text-muted)]">Cobertura: {{ item.coverage }}</div>
+          </div>
+        {% empty %}
+          <div class="rounded-xl border border-dashed border-[color:var(--color-border)] px-4 py-4 text-sm text-[color:var(--color-text-muted)]">Sem dados de entidades para o período.</div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="ds-panel p-5 border-sky-500/20">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold">Jobs recentes</h2>
+        <span class="text-xs text-[color:var(--color-text-muted)]">Execuções</span>
+      </div>
+      <ul class="space-y-2.5 max-h-[320px] overflow-auto pr-1">
+        {% for run in recent_job_runs|slice:":8" %}
+          <li class="rounded-xl border border-[color:var(--color-border)] px-3.5 py-3 text-sm font-mono {% if run.status == 'ERROR' %}bg-red-500/10 border-red-500/35{% else %}bg-slate-950/30{% endif %}">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-medium">{{ run.job_name }}</span>
+              <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] {% if run.status == 'ERROR' %}bg-red-500/20 text-red-300{% elif run.status == 'SUCCESS' %}bg-emerald-500/20 text-emerald-300{% else %}bg-sky-500/20 text-sky-300{% endif %}">{{ run.status }}</span>
+            </div>
+            <div class="text-[color:var(--color-text-muted)] mt-1">{{ run.started_at|date:"d/m H:i:s" }} | {{ run.duration_hhmm }}</div>
+          </li>
+        {% empty %}
+          <li class="rounded-xl border border-dashed border-[color:var(--color-border)] px-4 py-4 text-sm text-[color:var(--color-text-muted)]">Sem jobs recentes para exibir.</li>
+        {% endfor %}
+      </ul>
+    </article>
+
+    <article class="ds-panel p-5 border-amber-500/20">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-semibold">Logs recentes</h2>
+        <span class="text-xs text-[color:var(--color-text-muted)]">Console técnico</span>
+      </div>
+      <div class="space-y-2.5 max-h-[320px] overflow-auto pr-1">
+        {% if last_job_run %}
+          <div class="rounded-xl border border-[color:var(--color-border)] bg-slate-950/35 px-3.5 py-3 text-sm font-mono">
+            <div class="font-semibold text-slate-100">[LATEST] {{ last_job_run.job_name }}</div>
+            <div class="text-[color:var(--color-text-muted)] mt-1">{{ last_job_run.started_at|date:"d/m/Y H:i:s" }} | {{ last_job_run.status }} | {{ last_job_duration }}</div>
+          </div>
+        {% endif %}
+        {% for run in recent_job_runs|slice:":6" %}
+          <div class="rounded-xl border border-[color:var(--color-border)] bg-slate-950/25 px-3.5 py-3 text-xs font-mono">
+            {{ run.started_at|date:"d/m H:i:s" }} | {{ run.job_name }} | {{ run.status }} | processados:
+            {% if run.processed_count is not None %}{{ run.processed_count }}{% else %}-{% endif %}
+          </div>
+        {% empty %}
+          <div class="rounded-xl border border-dashed border-[color:var(--color-border)] px-4 py-4 text-sm text-[color:var(--color-text-muted)]">Sem logs recentes para exibir.</div>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
+</div>
+{% endblock %}

@@ -1,16 +1,26 @@
 ﻿{% extends "base.html" %}
 
-{% block title %}Execucao {{ run.id }} | NEF Cadencia{% endblock %}
-{% block page_title %}Execucao #{{ run.id }}{% endblock %}
-{% block page_subtitle %}Detalhes da execucao do job.{% endblock %}
+{% block title %}Execução {{ run.id }} | NEF Cadência{% endblock %}
+{% block page_title %}Execução #{{ run.id }}{% endblock %}
+{% block page_subtitle %}Detalhes da execução do job.{% endblock %}
 
 {% block content %}
 <div class="space-y-4">
+  <section class="ds-panel ds-ambient-grid p-5">
+    <div class="flex items-center justify-between gap-3">
+      <div>
+        <h2 class="text-lg font-semibold">Detalhe técnico da execução</h2>
+        <p class="text-xs text-[color:var(--color-text-muted)]">Inspecione status, duração e falhas da rotina para auditoria operacional.</p>
+      </div>
+      <span class="ds-badge {% if run.status == 'SUCCESS' %}ds-badge--ok{% elif run.status == 'ERROR' %}ds-badge--crit{% else %}ds-badge--warn{% endif %}">{{ run.status }}</span>
+    </div>
+  </section>
+
   <div class="flex justify-end">
-    <a href="{% url 'runs-list' %}" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Voltar para execucoes</a>
+    <a href="{% url 'runs-list' %}" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Voltar para execuções</a>
   </div>
 
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+  <section class="ds-panel p-4">
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 text-sm">
       <div>
         <div class="text-[color:var(--color-text-muted)]">Job</div>
@@ -23,11 +33,11 @@
         </div>
       </div>
       <div>
-        <div class="text-[color:var(--color-text-muted)]">Duracao</div>
+        <div class="text-[color:var(--color-text-muted)]">Duração</div>
         <div>{{ duration_hhmm }}</div>
       </div>
       <div>
-        <div class="text-[color:var(--color-text-muted)]">Inicio</div>
+        <div class="text-[color:var(--color-text-muted)]">Início</div>
         <div>{{ run.started_at|date:"d/m/Y H:i:s" }}</div>
       </div>
       <div>
@@ -41,7 +51,7 @@
     </div>
   </section>
 
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+  <section class="ds-panel overflow-hidden">
     <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
       <h2 class="text-sm font-semibold">Detalhes de erro</h2>
     </div>
@@ -49,7 +59,7 @@
       {% if run.error_detail %}
         <pre class="rounded-lg border border-[color:var(--color-border)] bg-slate-950/40 p-3 text-xs overflow-x-auto">{{ run.error_detail }}</pre>
       {% else %}
-        <div class="text-sm text-[color:var(--color-text-muted)]">Sem detalhes de erro para esta execucao.</div>
+        <div class="text-sm text-[color:var(--color-text-muted)]">Sem detalhes de erro para esta execução.</div>
       {% endif %}
     </div>
   </section>

@@ -1,0 +1,14 @@
+# Dependências adicionais para autenticação JWT
+
+# Django REST Framework
+djangorestframework==3.14.0
+
+# JWT Authentication
+djangorestframework-simplejwt==5.3.1
+
+# CORS Headers (para frontend separado)
+django-cors-headers==4.3.1
+
+# Bcrypt para hashing de senhas (mais seguro que PBKDF2)
+bcrypt==4.1.2
+django[bcrypt]==5.1.0

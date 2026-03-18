@@ -4,7 +4,10 @@ from .views import (
     AgentDetailView,
     AgentListView,
     DashboardDayDetailView,
+    DashboardPipelineView,
+    DashboardProductivityView,
     DashboardRebuildStatsView,
+    DashboardRiskView,
     DashboardView,
     JobRunDetailView,
     JobRunListView,
@@ -13,6 +16,9 @@ from .views import (
 
 urlpatterns = [
     path("dashboard", DashboardView.as_view(), name="dashboard"),
+    path("dashboard/produtividade", DashboardProductivityView.as_view(), name="dashboard-productivity"),
+    path("dashboard/risco", DashboardRiskView.as_view(), name="dashboard-risk"),
+    path("dashboard/pipeline", DashboardPipelineView.as_view(), name="dashboard-pipeline"),
     path("dashboard/day-detail", DashboardDayDetailView.as_view(), name="dashboard-day-detail"),
     path(
         "admin/monitoring/pause-classification",

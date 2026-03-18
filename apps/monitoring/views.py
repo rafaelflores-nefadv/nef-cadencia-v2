@@ -1,5 +1,6 @@
-import re
+﻿import re
 import logging
+from collections import defaultdict
 from urllib.parse import urlencode
 from datetime import datetime, time, timedelta
 
@@ -56,7 +57,7 @@ logger = logging.getLogger(__name__)
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
-    template_name = "dashboard.html"
+    template_name = "monitoring/dashboard_executive.html"
     RISK_CONFIG = DEFAULT_RISK_CONFIG
     PAUSE_ALERT_THRESHOLD_MIN = int(DEFAULT_RISK_CONFIG.high_harmful_minutes_threshold)
     LOW_OCCUPANCY_THRESHOLD_PCT = int(DEFAULT_RISK_CONFIG.low_occupancy_threshold_pct)
@@ -73,6 +74,172 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         PauseCategoryChoices.HARMFUL: "Tempo Improdutivo",
         UNCLASSIFIED_CATEGORY: "Tempo Nao Classificado",
     }
+    TEMPLATE_CONTEXT_EXCLUDE = {
+        "monitoring/dashboard_executive.html": {
+            "command_snippets",
+            "can_manage_jobs",
+            "summary_kpis",
+            "ranking_counts",
+            "day_detail_url",
+        },
+        "monitoring/dashboard_productivity.html": {
+            "top_pause_time",
+            "top_pause_count",
+            "risk_agents",
+            "alerts",
+            "active_agents_without_activity",
+            "events_by_hour",
+            "pauses_by_hour",
+            "completeness_panel",
+            "last_job_run",
+            "last_job_duration",
+            "last_job_processed_count",
+            "recent_job_runs",
+            "command_snippets",
+            "day_detail_url",
+            "can_manage_jobs",
+            "stats_warning",
+            "pause_block_message",
+            "pause_data_state",
+            "summary_kpis",
+            "ranking_counts",
+        },
+        "monitoring/dashboard_risk.html": {
+            "top_pause_count",
+            "top_productivity",
+            "operator_metrics",
+            "pause_distribution",
+            "pauses_by_hour",
+            "events_by_hour",
+            "completeness_panel",
+            "last_job_run",
+            "last_job_duration",
+            "last_job_processed_count",
+            "recent_job_runs",
+            "command_snippets",
+            "day_detail_url",
+            "can_manage_jobs",
+            "stats_warning",
+            "pause_block_message",
+            "pause_data_state",
+            "summary_kpis",
+            "ranking_counts",
+        },
+        "monitoring/dashboard_pipeline.html": {
+            "top_pause_time",
+            "top_pause_count",
+            "top_productivity",
+            "operator_metrics",
+            "risk_agents",
+            "alerts",
+            "active_agents_without_activity",
+            "pause_distribution",
+            "pauses_by_hour",
+            "events_by_hour",
+            "stats_warning",
+            "pause_block_message",
+            "pause_data_state",
+            "summary_kpis",
+            "ranking_counts",
+        },
+    }
+
+    @staticmethod
+    def _calculate_operational_score(taxa_ocupacao_pct: float, alert_totals: dict[str, int]) -> int:
+        base_score = int(round(max(0.0, min(float(taxa_ocupacao_pct or 0.0), 100.0))))
+        crit_penalty = min(int(alert_totals.get("crit", 0)) * 8, 40)
+        warn_penalty = min(int(alert_totals.get("warn", 0)) * 3, 24)
+        info_penalty = min(int(alert_totals.get("info", 0)), 8)
+        return max(0, base_score - crit_penalty - warn_penalty - info_penalty)
+
+    @staticmethod
+    def _resolve_health_status(score: int) -> str:
+        if score >= 85:
+            return "Excelente"
+        if score >= 70:
+            return "Estavel"
+        if score >= 50:
+            return "Atencao"
+        return "Critico"
+
+    @staticmethod
+    def _pipeline_stability_from_job(last_job_run) -> int:
+        if not last_job_run:
+            return 55
+        status_text = str(getattr(last_job_run, "status", "") or "").lower()
+        if any(token in status_text for token in ("success", "completed", "done", "ok")):
+            return 92
+        if "running" in status_text:
+            return 75
+        if any(token in status_text for token in ("error", "failed", "fail")):
+            return 35
+        return 65
+
+    @staticmethod
+    def _calculate_health_score(
+        produtividade_score: float,
+        risco_score: float,
+        ocupacao_score: float,
+        pipeline_score: float,
+    ) -> int:
+        weighted = (
+            (float(produtividade_score or 0.0) * 0.35)
+            + (float(risco_score or 0.0) * 0.25)
+            + (float(ocupacao_score or 0.0) * 0.20)
+            + (float(pipeline_score or 0.0) * 0.20)
+        )
+        return max(0, min(int(round(weighted)), 100))
+
+    @staticmethod
+    def _build_gamified_leaderboard(leaderboard_agents: list[dict], operation_average: float) -> list[dict]:
+        medals = {
+            1: {"name": "Ouro", "emoji": "ðŸ¥‡"},
+            2: {"name": "Prata", "emoji": "ðŸ¥ˆ"},
+            3: {"name": "Bronze", "emoji": "ðŸ¥‰"},
+        }
+        average = float(operation_average or 0.0)
+        cards: list[dict] = []
+        for position, item in enumerate(leaderboard_agents, start=1):
+            agent_score = float(item.get("taxa_ocupacao_pct") or 0.0)
+            logged_seconds = int(item.get("tempo_logado_seg") or 0)
+            logged_hours = logged_seconds / 3600 if logged_seconds > 0 else 0.0
+            if logged_hours < 2:
+                streak_days = 0
+            elif agent_score >= 85:
+                streak_days = 7
+            elif agent_score >= 75:
+                streak_days = 5
+            elif agent_score >= 65:
+                streak_days = 3
+            elif agent_score >= 55:
+                streak_days = 2
+            else:
+                streak_days = 1
+            badges = []
+            if position == 1:
+                badges.append("Operador do turno")
+            if agent_score >= 85:
+                badges.append("Consistencia alta")
+            if agent_score > average:
+                badges.append("Acima da media")
+            cards.append(
+                {
+                    **item,
+                    "position": position,
+                    "medal": medals.get(position),
+                    "streak_days": streak_days,
+                    "badges": badges[:3],
+                    "progress_vs_average_pct": max(0, min(int(round((agent_score / max(average, 1)) * 100)), 180)),
+                    "score_delta_vs_average": round(agent_score - average, 1),
+                }
+            )
+        return cards
+
+    def _prune_context_for_template(self, context: dict) -> dict:
+        excluded_keys = self.TEMPLATE_CONTEXT_EXCLUDE.get(self.template_name, set())
+        for key in excluded_keys:
+            context.pop(key, None)
+        return context
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -168,6 +335,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             pause_category_totals=pause_category_totals,
             pause_category_counts=pause_category_counts,
         )
+        pause_type_breakdowns = self._build_pause_type_breakdowns(
+            pause_events_qs=pause_events_qs,
+            limit=6,
+        )
+        pause_type_by_time = pause_type_breakdowns["by_time"]
+        pause_type_by_count = pause_type_breakdowns["by_count"]
+        pause_hourly_distribution = self._build_pause_hourly_distribution(pause_events_qs=pause_events_qs)
 
         workday_logged_rows = list(
             workday_day_qs.values("cd_operador")
@@ -295,6 +469,66 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             pause_category_totals=pause_category_totals,
             pause_category_counts=pause_category_counts,
         )
+        alert_totals = {"crit": 0, "warn": 0, "info": 0}
+        for alert in alerts:
+            severity_key = str(alert.get("severity") or "info").lower()
+            if severity_key not in alert_totals:
+                severity_key = "info"
+            alert_totals[severity_key] += 1
+        score_operacional = self._calculate_operational_score(
+            taxa_ocupacao_pct=taxa_ocupacao_pct,
+            alert_totals=alert_totals,
+        )
+        stability_score = max(
+            0,
+            min(
+                100,
+                100 - (alert_totals["crit"] * 12) - (alert_totals["warn"] * 5) - (alert_totals["info"] * 2),
+            ),
+        )
+        top3_productivity = top_productivity[:3]
+        leaderboard_agents = top_productivity[:10]
+        pipeline_stability_score = self._pipeline_stability_from_job(last_job_run)
+        risk_health_score = max(
+            0,
+            min(100, 100 - (alert_totals["crit"] * 18) - (alert_totals["warn"] * 8) - (alert_totals["info"] * 3)),
+        )
+        occupancy_coverage_score = (
+            round((agents_with_activity_count / active_agents_count) * 100, 1) if active_agents_count else 0.0
+        )
+        health_score = self._calculate_health_score(
+            produtividade_score=taxa_ocupacao_pct,
+            risco_score=risk_health_score,
+            ocupacao_score=occupancy_coverage_score,
+            pipeline_score=pipeline_stability_score,
+        )
+        health_status = self._resolve_health_status(health_score)
+        gamified_leaderboard = self._build_gamified_leaderboard(
+            leaderboard_agents=leaderboard_agents,
+            operation_average=taxa_ocupacao_pct,
+        )
+        medalists_top3 = gamified_leaderboard[:3]
+        low_productivity_agents = sorted(
+            [item for item in operator_metrics if item.get("tempo_logado_seg", 0) > 0],
+            key=lambda item: float(item.get("taxa_ocupacao_pct") or 0.0),
+        )[:5]
+        risk_radar_dimensions = [
+            {"label": "Pausas", "value": max(0, min(int(round((total_tempo_pausas / max(total_logged_time, 1)) * 100 * 1.3)), 100))},
+            {"label": "Ociosidade", "value": max(0, min(int(round(100 - float(taxa_ocupacao_pct or 0.0))), 100))},
+            {"label": "Alertas", "value": max(0, min((alert_totals["crit"] * 35) + (alert_totals["warn"] * 15) + (alert_totals["info"] * 5), 100))},
+            {"label": "Prod. baixa", "value": max(0, min(int(round(max(0.0, 70 - float(taxa_ocupacao_pct or 0.0)) * 1.6)), 100))},
+            {"label": "Falhas op.", "value": max(0, min(int(round(100 - stability_score)), 100))},
+        ]
+        executive_pause_radar = self._build_executive_pause_radar(
+            total_pause_events=total_pausas_hoje,
+            total_pause_seconds=total_tempo_pausas,
+            tempo_improdutivo_seg=tempo_improdutivo_seg,
+            tempo_neutro_seg=tempo_neutro_seg,
+            tempo_nao_classificado_seg=tempo_nao_classificado_seg,
+            total_logged_time=total_logged_time,
+            alert_totals=alert_totals,
+            taxa_ocupacao_pct=taxa_ocupacao_pct,
+        )
         ranking_counts = {
             "top_pause_time": len(top_pause_time),
             "top_pause_count": len(top_pause_count),
@@ -314,8 +548,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         day_iso = selected_date.isoformat()
         command_args = format_period_command_args(period_date_from, period_date_to)
         command_snippets = {
+            "import_events": "python manage.py sync_legacy_events --lookback-minutes 1440",
             "import_pause": f"python manage.py import_lh_pause_events {command_args}",
             "import_workday": f"python manage.py import_lh_workday {command_args}",
+            "import_all": f"python manage.py import_lh_all {command_args}",
             "rebuild_stats": f"python manage.py rebuild_agent_day_stats {command_args}",
         }
         completeness_panel = self._build_completeness_panel(
@@ -386,6 +622,17 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "tempo_improdutivo_total_hhmm": format_seconds_hhmm(tempo_improdutivo_seg),
                 "tempo_nao_classificado_total_hhmm": format_seconds_hhmm(tempo_nao_classificado_seg),
                 "taxa_ocupacao_pct": taxa_ocupacao_pct,
+                "score_operacional": score_operacional,
+                "stability_score": stability_score,
+                "pipeline_stability_score": pipeline_stability_score,
+                "health_score": health_score,
+                "health_status": health_status,
+                "health_score_breakdown": {
+                    "produtividade": round(float(taxa_ocupacao_pct or 0.0), 1),
+                    "risco": risk_health_score,
+                    "ocupacao": occupancy_coverage_score,
+                    "pipeline": pipeline_stability_score,
+                },
                 "pause_p90_hhmm": pause_p90_display,
                 "tempo_logado_source": logged_time_source,
                 "pause_classification_totals_seg": pause_category_totals,
@@ -394,10 +641,22 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "top_pause_time": top_pause_time,
                 "top_pause_count": top_pause_count,
                 "top_productivity": top_productivity,
+                "top3_productivity": top3_productivity,
+                "leaderboard_agents": leaderboard_agents,
+                "gamified_leaderboard": gamified_leaderboard,
+                "medalists_top3": medalists_top3,
+                "low_productivity_agents": low_productivity_agents,
+                "operator_metrics": operator_metrics,
                 "risk_agents": risk_agents,
+                "risk_radar_dimensions": risk_radar_dimensions,
                 "alerts": alerts,
+                "alert_totals": alert_totals,
                 "ranking_counts": ranking_counts,
                 "pause_distribution": pause_distribution,
+                "pause_type_by_time": pause_type_by_time,
+                "pause_type_by_count": pause_type_by_count,
+                "pause_hourly_distribution": pause_hourly_distribution,
+                "executive_pause_radar": executive_pause_radar,
                 "pauses_by_hour": pauses_by_hour,
                 "events_by_hour": events_by_hour,
                 "stats_warning": stats_warning,
@@ -424,13 +683,26 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                     "tempo_improdutivo_total_hhmm": format_seconds_hhmm(tempo_improdutivo_seg),
                     "tempo_nao_classificado_total_hhmm": format_seconds_hhmm(tempo_nao_classificado_seg),
                     "taxa_ocupacao_pct": taxa_ocupacao_pct,
+                    "score_operacional": score_operacional,
                     "media_pausas_por_agente": media_pausas_por_agente,
                     "tempo_medio_pausa_hhmm": format_seconds_hhmm(tempo_medio_pausa_seg),
                     "pause_p90_hhmm": pause_p90_display,
                 },
             }
         )
-        return context
+        return self._prune_context_for_template(context)
+
+
+class DashboardProductivityView(DashboardView):
+    template_name = "monitoring/dashboard_productivity.html"
+
+
+class DashboardRiskView(DashboardView):
+    template_name = "monitoring/dashboard_risk.html"
+
+
+class DashboardPipelineView(DashboardView):
+    template_name = "monitoring/dashboard_pipeline.html"
 
     def _selected_date(self):
         date_str = self.request.GET.get("data_ref")
@@ -996,6 +1268,78 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             )
         return items
 
+    def _build_pause_type_breakdowns(self, pause_events_qs, limit: int = 6):
+        by_type = defaultdict(lambda: {"tempo_seg": 0, "count": 0})
+        for event in pause_events_qs.values("nm_pausa", "duracao_seg", "dt_inicio", "dt_fim"):
+            raw_label = str(event.get("nm_pausa") or "").strip()
+            label = raw_label if raw_label else "Sem classificacao"
+            by_type[label]["count"] += 1
+            by_type[label]["tempo_seg"] += self._resolve_event_duration_seconds(event)
+
+        rows = [
+            {"label": label, "tempo_seg": int(values["tempo_seg"]), "count": int(values["count"])}
+            for label, values in by_type.items()
+        ]
+        by_time = sorted(rows, key=lambda row: (-row["tempo_seg"], -row["count"], row["label"]))[:limit]
+        by_count = sorted(rows, key=lambda row: (-row["count"], -row["tempo_seg"], row["label"]))[:limit]
+        for row in by_time:
+            row["tempo_hhmm"] = format_seconds_hhmm(int(row["tempo_seg"]))
+        for row in by_count:
+            row["tempo_hhmm"] = format_seconds_hhmm(int(row["tempo_seg"]))
+        return {"by_time": by_time, "by_count": by_count}
+
+    def _build_pause_hourly_distribution(self, pause_events_qs):
+        tz = timezone.get_current_timezone()
+        hourly = {hour: {"count": 0, "tempo_seg": 0} for hour in range(24)}
+        for event in pause_events_qs.values("dt_inicio", "duracao_seg", "dt_fim"):
+            started_at = event.get("dt_inicio")
+            if started_at is None:
+                continue
+            local_dt = timezone.localtime(started_at, timezone=tz)
+            hour = int(local_dt.hour)
+            hourly[hour]["count"] += 1
+            hourly[hour]["tempo_seg"] += self._resolve_event_duration_seconds(event)
+        return [
+            {
+                "hour_label": f"{hour:02d}h",
+                "count": int(data["count"]),
+                "tempo_seg": int(data["tempo_seg"]),
+            }
+            for hour, data in hourly.items()
+        ]
+
+    @staticmethod
+    def _build_executive_pause_radar(
+        total_pause_events: int,
+        total_pause_seconds: int,
+        tempo_improdutivo_seg: int,
+        tempo_neutro_seg: int,
+        tempo_nao_classificado_seg: int,
+        total_logged_time: int,
+        alert_totals: dict[str, int],
+        taxa_ocupacao_pct: float,
+    ) -> list[dict]:
+        logged = max(int(total_logged_time or 0), 1)
+        pause_ratio_pct = (int(total_pause_seconds or 0) / logged) * 100
+        improdutivo_ratio_pct = (int(tempo_improdutivo_seg or 0) / logged) * 100
+        neutro_ratio_pct = (int(tempo_neutro_seg or 0) / logged) * 100
+        nao_classificado_ratio_pct = (int(tempo_nao_classificado_seg or 0) / logged) * 100
+        alert_pressure = (
+            (int(alert_totals.get("crit", 0)) * 30)
+            + (int(alert_totals.get("warn", 0)) * 14)
+            + (int(alert_totals.get("info", 0)) * 5)
+        )
+        idle_pressure = max(0.0, 100.0 - float(taxa_ocupacao_pct or 0.0))
+        return [
+            {"label": "Pausas totais", "value": max(0, min(int(round(pause_ratio_pct * 1.8)), 100))},
+            {"label": "Pausas improdutivas", "value": max(0, min(int(round(improdutivo_ratio_pct * 3.2)), 100))},
+            {"label": "Pausas neutras", "value": max(0, min(int(round(neutro_ratio_pct * 2.3)), 100))},
+            {"label": "Nao classificadas", "value": max(0, min(int(round(nao_classificado_ratio_pct * 2.6)), 100))},
+            {"label": "Alertas", "value": max(0, min(int(round(alert_pressure)), 100))},
+            {"label": "Ociosidade", "value": max(0, min(int(round(idle_pressure)), 100))},
+            {"label": "Pausas (qtd)", "value": max(0, min(int(round((int(total_pause_events or 0) / 120) * 100)), 100))},
+        ]
+
     @staticmethod
     def _build_hourly_series(events_day_qs):
         tz = timezone.get_current_timezone()
@@ -1329,13 +1673,24 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             return key_values["records_processed"]
         if "pairs_total" in key_values:
             return key_values["pairs_total"]
-        if "events_created" in key_values or "events_updated" in key_values:
-            return key_values.get("events_created", 0) + key_values.get("events_updated", 0)
-
-        match = re.search(r"(\d+)", summary_text)
-        if match:
-            return int(match.group(1))
+        if isinstance(summary, dict):
+            for key in ["processed", "total", "count", "events", "rows"]:
+                value = summary.get(key)
+                if isinstance(value, int):
+                    return value
+                if isinstance(value, str) and value.isdigit():
+                    return int(value)
         return None
+
+
+# Backward compatibility:
+# DashboardView.get_context_data relies on helper methods that currently live in
+# DashboardPipelineView. Copy them to DashboardView so /dashboard and derived
+# views keep working.
+for _helper_name, _helper_attr in DashboardPipelineView.__dict__.items():
+    if _helper_name.startswith("_") and not _helper_name.startswith("__"):
+        if not hasattr(DashboardView, _helper_name):
+            setattr(DashboardView, _helper_name, _helper_attr)
 
 
 class DashboardRebuildStatsView(LoginRequiredMixin, UserPassesTestMixin, View):
@@ -1395,7 +1750,7 @@ class PauseClassificationConfigView(LoginRequiredMixin, UserPassesTestMixin, Tem
         PauseCategoryChoices.LEGAL: "Tempo Produtivo",
         PauseCategoryChoices.NEUTRAL: "Tempo Neutro",
         PauseCategoryChoices.HARMFUL: "Tempo Improdutivo",
-        UNCLASSIFIED_CATEGORY: "Tempo Não Classificado",
+        UNCLASSIFIED_CATEGORY: "Tempo Nao Classificado",
     }
 
     def test_func(self):
@@ -1729,6 +2084,12 @@ class AgentListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = Agent.objects.all().order_by("cd_operador")
         search = (self.request.GET.get("q") or "").strip()
+        status = (self.request.GET.get("status") or "").strip().lower()
+        if status == "ativos":
+            queryset = queryset.filter(ativo=True)
+        elif status == "inativos":
+            queryset = queryset.filter(ativo=False)
+
         if not search:
             return queryset
 
@@ -1744,8 +2105,129 @@ class AgentListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["search"] = (self.request.GET.get("q") or "").strip()
+        context["selected_status"] = (self.request.GET.get("status") or "").strip().lower()
+
+        today = timezone.localdate()
+        selected_date_from = parse_date(self.request.GET.get("date_from") or "") or (today - timedelta(days=6))
+        selected_date_to = parse_date(self.request.GET.get("date_to") or "") or today
+        if selected_date_to < selected_date_from:
+            selected_date_from, selected_date_to = selected_date_to, selected_date_from
+
+        productive_min_raw = (self.request.GET.get("produtivo_min") or "").strip()
+        try:
+            productive_min_minutes = max(0, int(productive_min_raw))
+        except ValueError:
+            productive_min_minutes = 0
+
+        page_obj = context.get("page_obj")
+        metrics_by_operator = self._build_agent_metrics_map(
+            agents=page_obj.object_list if page_obj else [],
+            date_from=selected_date_from,
+            date_to=selected_date_to,
+        )
+
+        filtered_agents = []
+        if page_obj:
+            for agent in page_obj.object_list:
+                metrics = metrics_by_operator.get(agent.cd_operador) or {
+                    "tempo_logado_hhmm": None,
+                    "tempo_logado_display": "Sem dados",
+                    "tempo_produtivo_hhmm": None,
+                    "taxa_ocupacao_pct": None,
+                    "taxa_ocupacao_display": "Sem dados",
+                    "risk_label": "Indisponivel",
+                    "risk_class": "",
+                    "tempo_produtivo_seg": 0,
+                    "has_metrics_data": False,
+                }
+                if metrics["tempo_produtivo_seg"] < (productive_min_minutes * 60):
+                    continue
+                agent.dashboard_metrics = metrics
+                filtered_agents.append(agent)
+            page_obj.object_list = filtered_agents
+            context["agents"] = filtered_agents
+
+        context["selected_date_from"] = selected_date_from
+        context["selected_date_to"] = selected_date_to
+        context["selected_produtivo_min"] = productive_min_minutes if productive_min_minutes > 0 else ""
         context["page_query_suffix"] = self._query_suffix(exclude_keys={"page"})
         return context
+
+    @staticmethod
+    def _build_agent_metrics_map(agents, date_from, date_to):
+        operator_ids = [agent.cd_operador for agent in agents if getattr(agent, "cd_operador", None)]
+        if not operator_ids:
+            return {}
+
+        stats_rows = AgentDayStats.objects.filter(
+            cd_operador__in=operator_ids,
+            data_ref__gte=date_from,
+            data_ref__lte=date_to,
+        ).values(
+            "cd_operador",
+            "tempo_pausas_seg",
+            "ultimo_logon",
+            "ultimo_logoff",
+        )
+
+        pause_by_operator = defaultdict(int)
+        logged_by_operator = defaultdict(int)
+        operators_with_metrics = set()
+        for row in stats_rows:
+            cd_operador = int(row.get("cd_operador") or 0)
+            if cd_operador <= 0:
+                continue
+            operators_with_metrics.add(cd_operador)
+            pause_by_operator[cd_operador] += int(row.get("tempo_pausas_seg") or 0)
+            last_logon = row.get("ultimo_logon")
+            last_logoff = row.get("ultimo_logoff")
+            if last_logon and last_logoff and last_logoff > last_logon:
+                logged_by_operator[cd_operador] += int((last_logoff - last_logon).total_seconds())
+
+        metrics = {}
+        for cd_operador in operator_ids:
+            has_metrics_data = cd_operador in operators_with_metrics
+            if not has_metrics_data:
+                metrics[cd_operador] = {
+                    "tempo_logado_hhmm": None,
+                    "tempo_logado_display": "Sem dados",
+                    "tempo_produtivo_hhmm": None,
+                    "taxa_ocupacao_pct": None,
+                    "taxa_ocupacao_display": "Sem dados",
+                    "risk_label": "Indisponivel",
+                    "risk_class": "",
+                    "tempo_produtivo_seg": 0,
+                    "has_metrics_data": False,
+                }
+                continue
+
+            pause_seconds = int(pause_by_operator.get(cd_operador) or 0)
+            logged_seconds = int(logged_by_operator.get(cd_operador) or 0)
+            productive_seconds = max(0, logged_seconds - pause_seconds)
+            occupancy_pct = round((productive_seconds / logged_seconds) * 100, 2) if logged_seconds > 0 else 0.0
+
+            if occupancy_pct < 45:
+                risk_label = "Alto"
+                risk_class = "bg-red-500/20 text-red-300"
+            elif occupancy_pct < 70:
+                risk_label = "Medio"
+                risk_class = "bg-amber-500/20 text-amber-300"
+            else:
+                risk_label = "Baixo"
+                risk_class = "bg-emerald-500/20 text-emerald-300"
+
+            metrics[cd_operador] = {
+                "tempo_logado_hhmm": format_seconds_hhmm(logged_seconds),
+                "tempo_logado_display": format_seconds_hhmm(logged_seconds),
+                "tempo_produtivo_hhmm": format_seconds_hhmm(productive_seconds),
+                "taxa_ocupacao_pct": occupancy_pct,
+                "taxa_ocupacao_display": f"{occupancy_pct:.0f}%",
+                "risk_label": risk_label,
+                "risk_class": risk_class,
+                "tempo_produtivo_seg": productive_seconds,
+                "has_metrics_data": True,
+            }
+        return metrics
 
     def _query_suffix(self, exclude_keys: set[str]):
         params = self.request.GET.copy()
@@ -1876,3 +2358,10 @@ class JobRunDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["duration_hhmm"] = format_run_duration_hhmm(self.object)
         return context
+
+
+
+
+
+
+

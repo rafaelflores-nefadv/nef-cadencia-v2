@@ -4,14 +4,489 @@
 {% block page_title %}Dashboard Operacional{% endblock %}
 {% block page_subtitle %}Painel BI operacional com filtros por periodo (monitoring).{% endblock %}
 
+{% block head_extra %}
+  <style>
+    .dashboard-shell {
+      background:
+        radial-gradient(1200px 420px at 12% -18%, rgba(59, 130, 246, 0.18), transparent 60%),
+        radial-gradient(980px 360px at 88% -22%, rgba(14, 165, 233, 0.12), transparent 58%);
+    }
+    .dashboard-panel {
+      border: 1px solid color-mix(in srgb, var(--color-border) 84%, #93c5fd 16%);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(10, 16, 32, 0.92));
+      box-shadow: 0 12px 26px rgba(2, 6, 23, 0.24);
+    }
+    .dashboard-kpi {
+      border: 1px solid color-mix(in srgb, var(--color-border) 78%, #60a5fa 22%);
+      background: linear-gradient(160deg, rgba(30, 41, 59, 0.68), rgba(15, 23, 42, 0.75));
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+    .dashboard-kpi:hover {
+      transform: translateY(-1px);
+      border-color: rgba(96, 165, 250, 0.52);
+    }
+    .dashboard-chip {
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      color: #bfdbfe;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .dashboard-input:focus-visible {
+      outline: 2px solid rgba(59, 130, 246, 0.45);
+      outline-offset: 1px;
+    }
+    .dashboard-entrance {
+      animation: dashboard-enter 260ms ease-out;
+    }
+    .dashboard-nav {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+    .dashboard-nav__item {
+      border: 1px solid color-mix(in srgb, var(--color-border) 82%, #60a5fa 18%);
+      background: rgba(15, 23, 42, 0.58);
+      color: var(--color-text);
+      border-radius: 0.8rem;
+      padding: 0.75rem;
+      display: block;
+      transition: border-color 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
+    }
+    .dashboard-nav__item:hover {
+      border-color: rgba(96, 165, 250, 0.64);
+      background: rgba(30, 41, 59, 0.6);
+      transform: translateY(-1px);
+    }
+    .dashboard-nav__title {
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .dashboard-nav__meta {
+      margin-top: 0.25rem;
+      font-size: 0.74rem;
+      color: var(--color-text-muted);
+    }
+    .dashboard-mini {
+      border: 1px solid color-mix(in srgb, var(--color-border) 78%, #22d3ee 22%);
+      background: linear-gradient(160deg, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.58));
+      border-radius: 0.8rem;
+      padding: 0.9rem;
+    }
+    .dashboard-mini canvas {
+      max-height: 200px;
+    }
+    .dashboard-priority {
+      border: 1px solid color-mix(in srgb, var(--color-border) 82%, #38bdf8 18%);
+      background: linear-gradient(155deg, rgba(15, 23, 42, 0.82), rgba(30, 41, 59, 0.55));
+      border-radius: 0.8rem;
+      padding: 0.85rem;
+    }
+    .dashboard-priority__label {
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .dashboard-priority__value {
+      margin-top: 0.2rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .dashboard-priority__meta {
+      margin-top: 0.2rem;
+      font-size: 0.73rem;
+      color: var(--color-text-muted);
+    }
+    .dashboard-command {
+      border: 1px solid color-mix(in srgb, var(--color-border) 78%, #22d3ee 22%);
+      background: linear-gradient(145deg, rgba(2, 132, 199, 0.12), rgba(15, 23, 42, 0.56));
+      border-radius: 0.9rem;
+      padding: 0.9rem;
+    }
+    .dashboard-signal {
+      border-radius: 0.7rem;
+      border: 1px solid var(--color-border);
+      background: rgba(2, 6, 23, 0.36);
+      padding: 0.65rem;
+    }
+    .dashboard-signal__label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text-muted);
+    }
+    .dashboard-signal__value {
+      margin-top: 0.2rem;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .dashboard-signal__meta {
+      margin-top: 0.15rem;
+      font-size: 0.72rem;
+      color: var(--color-text-muted);
+    }
+    .dashboard-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      border-radius: 999px;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .dashboard-pill--good {
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      background: rgba(22, 163, 74, 0.14);
+    }
+    .dashboard-pill--warn {
+      color: #fde68a;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.14);
+    }
+    .dashboard-pill--risk {
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.42);
+      background: rgba(185, 28, 28, 0.14);
+    }
+    .dashboard-hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--color-border) 70%, #22d3ee 30%);
+      border-radius: 0.95rem;
+      background:
+        radial-gradient(620px 240px at 0% 0%, rgba(56, 189, 248, 0.24), transparent 65%),
+        radial-gradient(560px 240px at 100% 0%, rgba(34, 197, 94, 0.2), transparent 62%),
+        linear-gradient(130deg, rgba(15, 23, 42, 0.96), rgba(9, 15, 30, 0.95));
+      padding: 1rem;
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.14), 0 18px 36px rgba(2, 6, 23, 0.42);
+    }
+    .dashboard-hero::after {
+      content: "";
+      position: absolute;
+      inset: -220% -35% auto;
+      height: 300%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(56, 189, 248, 0.09), rgba(255, 255, 255, 0));
+      animation: dashboard-sweep 9s linear infinite;
+      pointer-events: none;
+    }
+    .dashboard-hero__title {
+      font-size: 1.18rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .dashboard-hero__subtitle {
+      margin-top: 0.35rem;
+      color: var(--color-text-muted);
+      font-size: 0.78rem;
+      max-width: 52ch;
+    }
+    .dashboard-hero-metrics {
+      margin-top: 0.9rem;
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 0.55rem;
+      position: relative;
+      z-index: 1;
+    }
+    .dashboard-hero-metric {
+      border: 1px solid color-mix(in srgb, var(--color-border) 82%, #7dd3fc 18%);
+      border-radius: 0.75rem;
+      background: rgba(15, 23, 42, 0.56);
+      padding: 0.7rem;
+    }
+    .dashboard-hero-metric__label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #cbd5e1;
+    }
+    .dashboard-hero-metric__value {
+      margin-top: 0.2rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .dashboard-hero-metric__track {
+      margin-top: 0.45rem;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.22);
+      overflow: hidden;
+    }
+    .dashboard-hero-metric__fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+    .dashboard-hero-metric__fill--capacity { background: linear-gradient(90deg, #22c55e, #14b8a6); }
+    .dashboard-hero-metric__fill--risk { background: linear-gradient(90deg, #f97316, #ef4444); }
+    .dashboard-hero-metric__fill--coverage { background: linear-gradient(90deg, #38bdf8, #60a5fa); }
+    .dashboard-quick {
+      display: grid;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      gap: 0.65rem;
+      margin-bottom: 0.95rem;
+    }
+    .dashboard-quick__cta {
+      border: 1px solid color-mix(in srgb, var(--color-border) 78%, #60a5fa 22%);
+      background: linear-gradient(150deg, rgba(15, 23, 42, 0.74), rgba(30, 41, 59, 0.54));
+      border-radius: 0.82rem;
+      padding: 0.72rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.65rem;
+      transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+    }
+    .dashboard-quick__cta:hover {
+      transform: translateY(-1px);
+      border-color: rgba(56, 189, 248, 0.64);
+      background: linear-gradient(150deg, rgba(8, 47, 73, 0.62), rgba(30, 41, 59, 0.62));
+    }
+    .dashboard-quick__title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+    .dashboard-quick__meta {
+      margin-top: 0.15rem;
+      font-size: 0.72rem;
+      color: var(--color-text-muted);
+    }
+    .dashboard-quick__icon {
+      width: 1rem;
+      height: 1rem;
+      color: #7dd3fc;
+      flex: 0 0 auto;
+    }
+    .dashboard-grade {
+      border: 1px solid color-mix(in srgb, var(--color-border) 72%, #22d3ee 28%);
+      border-radius: 0.82rem;
+      padding: 0.72rem;
+      background: linear-gradient(140deg, rgba(15, 23, 42, 0.84), rgba(8, 47, 73, 0.44));
+    }
+    .dashboard-grade__label {
+      font-size: 0.7rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #bae6fd;
+    }
+    .dashboard-grade__value {
+      margin-top: 0.2rem;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+    .dashboard-grade__meta {
+      margin-top: 0.15rem;
+      font-size: 0.72rem;
+      color: var(--color-text-muted);
+    }
+    .dashboard-view-switch {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin: 0.35rem 0 0.75rem;
+    }
+    .dashboard-view-btn {
+      height: 2rem;
+      padding: 0 0.75rem;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--color-border) 82%, #64748b 18%);
+      background: rgba(15, 23, 42, 0.55);
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+    }
+    .dashboard-view-btn:hover {
+      border-color: rgba(56, 189, 248, 0.55);
+      color: #e2e8f0;
+    }
+    .dashboard-view-btn.is-active {
+      border-color: rgba(56, 189, 248, 0.75);
+      background: linear-gradient(150deg, rgba(8, 47, 73, 0.7), rgba(30, 41, 59, 0.66));
+      color: #f8fafc;
+      box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.24);
+    }
+    [data-dashboard-section][hidden],
+    [data-dashboard-mini][hidden] {
+      display: none !important;
+    }
+    .dashboard-stagger > * {
+      opacity: 0;
+      transform: translateY(8px);
+      animation: dashboard-stagger-in 420ms ease-out forwards;
+    }
+    .dashboard-stagger > *:nth-child(2) { animation-delay: 70ms; }
+    .dashboard-stagger > *:nth-child(3) { animation-delay: 140ms; }
+    .dashboard-stagger > *:nth-child(4) { animation-delay: 210ms; }
+    @media (min-width: 1024px) {
+      .dashboard-nav {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .dashboard-hero-metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .dashboard-quick {
+        grid-template-columns: 1.2fr 1.2fr 1.2fr 1fr;
+      }
+    }
+    @keyframes dashboard-stagger-in {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes dashboard-sweep {
+      from { transform: translateY(-62%) rotate(18deg); }
+      to { transform: translateY(62%) rotate(18deg); }
+    }
+    @keyframes dashboard-enter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+{% endblock %}
+
 {% block content %}
-<div class="space-y-4">
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
-    <form method="get" class="space-y-3">
+<div class="space-y-4 dashboard-shell rounded-2xl p-1">
+  <section class="dashboard-panel dashboard-entrance rounded-xl p-4">
+    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between mb-4">
+      <div>
+        <div class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 dashboard-chip">Centro de Comando</div>
+        <h2 class="text-lg font-semibold mt-2">Situacao operacional consolidada</h2>
+        <p class="text-xs text-[color:var(--color-text-muted)] mt-1">Use este bloco inicial para decidir rapidamente prioridade, risco e confiabilidade do periodo.</p>
+      </div>
+      <div class="rounded-lg border border-[color:var(--color-border)] bg-black/20 px-3 py-2 text-xs text-[color:var(--color-text-muted)] max-w-[360px]">
+        <div class="font-semibold text-[color:var(--color-text)]">Periodo aplicado</div>
+        <div class="mt-1">{{ applied_period_label }}</div>
+      </div>
+    </div>
+
+    <section class="dashboard-hero mb-4">
+      <div class="dashboard-hero__title">Painel estrategico de performance</div>
+      <p class="dashboard-hero__subtitle">Visao premium para reunioes executivas: capacidade operacional, risco em tempo real e confiabilidade da esteira de dados em um unico ponto.</p>
+      <div class="dashboard-hero-metrics dashboard-stagger">
+        <article class="dashboard-hero-metric">
+          <div class="dashboard-hero-metric__label">Capacidade ativa</div>
+          <div class="dashboard-hero-metric__value">{{ agents_with_activity_count }}/{{ active_agents_count }}</div>
+          <div class="dashboard-hero-metric__track">
+            <div
+              class="dashboard-hero-metric__fill dashboard-hero-metric__fill--capacity"
+              data-hero-progress="{{ agents_with_activity_count|default:0|floatformat:0 }}"
+              data-hero-max="{{ active_agents_count|default:0|floatformat:0 }}"
+            ></div>
+          </div>
+        </article>
+        <article class="dashboard-hero-metric">
+          <div class="dashboard-hero-metric__label">Risco priorizado</div>
+          <div class="dashboard-hero-metric__value">{{ risk_agents|length }} agentes</div>
+          <div class="dashboard-hero-metric__track">
+            <div
+              class="dashboard-hero-metric__fill dashboard-hero-metric__fill--risk"
+              data-hero-progress="{{ risk_agents|length|default:0|floatformat:0 }}"
+              data-hero-max="{{ active_agents_count|default:0|floatformat:0 }}"
+            ></div>
+          </div>
+        </article>
+        <article class="dashboard-hero-metric">
+          <div class="dashboard-hero-metric__label">Cobertura de dados</div>
+          <div class="dashboard-hero-metric__value">{{ completeness_panel|length }} fontes monitoradas</div>
+          <div class="dashboard-hero-metric__track">
+            <div class="dashboard-hero-metric__fill dashboard-hero-metric__fill--coverage" style="width:100%"></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="dashboard-quick dashboard-stagger" aria-label="Acoes recomendadas">
+      <a href="#dashboard-executivo" class="dashboard-quick__cta">
+        <div>
+          <div class="dashboard-quick__title">Visao executiva imediata</div>
+          <div class="dashboard-quick__meta">Volume, ocupacao e capacidade em um quadro.</div>
+        </div>
+        <i data-lucide="layout-dashboard" class="dashboard-quick__icon" aria-hidden="true"></i>
+      </a>
+      <a href="#dashboard-produtividade" class="dashboard-quick__cta">
+        <div>
+          <div class="dashboard-quick__title">Produtividade e ranking</div>
+          <div class="dashboard-quick__meta">Top operadores e distribuicao de pausas.</div>
+        </div>
+        <i data-lucide="activity" class="dashboard-quick__icon" aria-hidden="true"></i>
+      </a>
+      <a href="#dashboard-risco" class="dashboard-quick__cta">
+        <div>
+          <div class="dashboard-quick__title">Risco e alertas prioritarios</div>
+          <div class="dashboard-quick__meta">Foco em acao imediata para mitigacao.</div>
+        </div>
+        <i data-lucide="shield-alert" class="dashboard-quick__icon" aria-hidden="true"></i>
+      </a>
+      <article class="dashboard-grade">
+        <div class="dashboard-grade__label">Status executivo</div>
+        {% if is_empty_period %}
+          <div class="dashboard-grade__value">Critico</div>
+          <div class="dashboard-grade__meta">Sem base de dados operacional no periodo.</div>
+        {% elif risk_agents|length > 0 or alerts|length > 0 %}
+          <div class="dashboard-grade__value">Atencao</div>
+          <div class="dashboard-grade__meta">Existem sinais que exigem acompanhamento imediato.</div>
+        {% else %}
+          <div class="dashboard-grade__value">Estavel</div>
+          <div class="dashboard-grade__meta">Operacao sem sinais criticos no recorte aplicado.</div>
+        {% endif %}
+      </article>
+    </section>
+
+    <div class="dashboard-command mb-4">
+      <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div class="text-sm font-semibold">Leitura imediata da operacao</div>
+        <div class="flex flex-wrap items-center gap-2">
+          {% if is_empty_period %}
+            <span class="dashboard-pill dashboard-pill--warn">Base sem dados</span>
+          {% elif stats_warning %}
+            <span class="dashboard-pill dashboard-pill--warn">Stats pendentes</span>
+          {% else %}
+            <span class="dashboard-pill dashboard-pill--good">Dados consistentes</span>
+          {% endif %}
+          {% if risk_agents|length > 0 %}
+            <span class="dashboard-pill dashboard-pill--risk">Risco ativo</span>
+          {% else %}
+            <span class="dashboard-pill dashboard-pill--good">Risco controlado</span>
+          {% endif %}
+          {% if alerts|length > 0 %}
+            <span class="dashboard-pill dashboard-pill--warn">{{ alerts|length }} alertas</span>
+          {% else %}
+            <span class="dashboard-pill dashboard-pill--good">Sem alertas</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
+        <article class="dashboard-signal">
+          <div class="dashboard-signal__label">Status operacional</div>
+          <div class="dashboard-signal__value">{{ total_events_day }} eventos</div>
+          <div class="dashboard-signal__meta">{{ active_agents_count }} ativos | {{ agents_with_activity_count }} com atividade</div>
+        </article>
+        <article class="dashboard-signal">
+          <div class="dashboard-signal__label">Risco imediato</div>
+          <div class="dashboard-signal__value">{{ risk_agents|length }} agentes</div>
+          <div class="dashboard-signal__meta">{{ alerts|length }} alertas operacionais priorizados</div>
+        </article>
+        <article class="dashboard-signal">
+          <div class="dashboard-signal__label">Confiabilidade dos dados</div>
+          <div class="dashboard-signal__value">{{ completeness_panel|length }} fontes</div>
+          <div class="dashboard-signal__meta">Escopo: {{ period_scope_label }} | Ocupacao: {{ taxa_ocupacao_pct }}%</div>
+        </article>
+      </div>
+    </div>
+
+    <form method="get" class="space-y-3" autocomplete="off">
       <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3 items-end">
         <div class="space-y-1">
           <label for="year" class="text-xs text-[color:var(--color-text-muted)]">Ano</label>
-          <select id="year" name="year" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent">
+          <select id="year" name="year" class="dashboard-input w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent">
             <option value="">Todos</option>
             {% for year in available_years %}
               <option value="{{ year }}"{% if selected_year == year %} selected{% endif %}>{{ year }}</option>
@@ -20,7 +495,7 @@
         </div>
         <div class="space-y-1">
           <label for="month" class="text-xs text-[color:var(--color-text-muted)]">Mes</label>
-          <select id="month" name="month" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent">
+          <select id="month" name="month" class="dashboard-input w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent">
             <option value="">Todos</option>
             {% for month in month_options %}
               <option value="{{ month.value }}"{% if selected_month == month.value %} selected{% endif %}>{{ month.label }}</option>
@@ -29,19 +504,19 @@
         </div>
         <div class="space-y-1">
           <label for="data_ref" class="text-xs text-[color:var(--color-text-muted)]">Dia (legado)</label>
-          <input id="data_ref" name="data_ref" type="date" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" value="{% if selected_data_ref %}{{ selected_data_ref|date:'Y-m-d' }}{% endif %}">
+          <input id="data_ref" name="data_ref" type="date" class="dashboard-input w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" value="{% if selected_data_ref %}{{ selected_data_ref|date:'Y-m-d' }}{% endif %}">
         </div>
         <div class="space-y-1">
           <label for="date_from" class="text-xs text-[color:var(--color-text-muted)]">Data inicial</label>
-          <input id="date_from" name="date_from" type="date" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" value="{% if selected_date_from %}{{ selected_date_from|date:'Y-m-d' }}{% endif %}">
+          <input id="date_from" name="date_from" type="date" class="dashboard-input w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" value="{% if selected_date_from %}{{ selected_date_from|date:'Y-m-d' }}{% endif %}">
         </div>
         <div class="space-y-1">
           <label for="date_to" class="text-xs text-[color:var(--color-text-muted)]">Data final</label>
-          <input id="date_to" name="date_to" type="date" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" value="{% if selected_date_to %}{{ selected_date_to|date:'Y-m-d' }}{% endif %}">
+          <input id="date_to" name="date_to" type="date" class="dashboard-input w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" value="{% if selected_date_to %}{{ selected_date_to|date:'Y-m-d' }}{% endif %}">
         </div>
         <div class="space-y-1">
           <label for="q" class="text-xs text-[color:var(--color-text-muted)]">Busca</label>
-          <input id="q" name="q" type="text" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" placeholder="Codigo, nome ou pausa" value="{{ search }}">
+          <input id="q" name="q" type="text" maxlength="80" class="dashboard-input w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" placeholder="Codigo, nome ou pausa" value="{{ search }}">
         </div>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -62,14 +537,51 @@
         {% endfor %}
       </div>
     </form>
-    <div class="mt-3 text-xs text-[color:var(--color-text-muted)]">
-      Periodo aplicado: <span class="font-semibold text-[color:var(--color-text)]">{{ applied_period_label }}</span>
+    <div class="mt-3 text-xs text-[color:var(--color-text-muted)] flex flex-wrap items-center gap-2">
+      <span>Periodo aplicado: <span class="font-semibold text-[color:var(--color-text)]">{{ applied_period_label }}</span></span>
+      <span class="hidden md:inline">|</span>
+      <span>Escopo: <span class="font-semibold text-[color:var(--color-text)]">{{ period_scope_label }}</span></span>
     </div>
     {% if filter_warning %}
       <div class="mt-3 rounded-lg border border-amber-400/40 bg-amber-500/10 p-3 text-sm">
         {{ filter_warning }}
       </div>
     {% endif %}
+
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+      <article class="dashboard-kpi rounded-lg p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Decisao 1</div>
+        <div class="text-lg font-semibold mt-1">Conferir capacidade</div>
+        <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Ativos {{ active_agents_count }} | Com atividade {{ agents_with_activity_count }}.</div>
+      </article>
+      <article class="dashboard-kpi rounded-lg p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Decisao 2</div>
+        <div class="text-lg font-semibold mt-1">Avaliar risco</div>
+        <div class="text-xs text-[color:var(--color-text-muted)] mt-1">{{ risk_agents|length }} agentes em risco e {{ alerts|length }} alertas.</div>
+      </article>
+      <article class="dashboard-kpi rounded-lg p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Decisao 3</div>
+        <div class="text-lg font-semibold mt-1">Validar confiabilidade</div>
+        <div class="text-xs text-[color:var(--color-text-muted)] mt-1">{{ completeness_panel|length }} fontes monitoradas e saude de jobs abaixo.</div>
+      </article>
+      <article class="dashboard-kpi rounded-lg p-3">
+        <div class="text-xs text-[color:var(--color-text-muted)]">Decisao 4</div>
+        <div class="text-lg font-semibold mt-1">Acessar dashboards</div>
+        <div class="text-xs text-[color:var(--color-text-muted)] mt-1">Navegue por Executivo, Produtividade, Risco e Confiabilidade.</div>
+      </article>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+      <div class="rounded-lg border border-[color:var(--color-border)] bg-black/20 px-3 py-2">
+        <span class="font-semibold">1.</span> Defina periodo e busca.
+      </div>
+      <div class="rounded-lg border border-[color:var(--color-border)] bg-black/20 px-3 py-2">
+        <span class="font-semibold">2.</span> Veja Executivo e Produtividade.
+      </div>
+      <div class="rounded-lg border border-[color:var(--color-border)] bg-black/20 px-3 py-2">
+        <span class="font-semibold">3.</span> Priorize Risco e Confiabilidade.
+      </div>
+    </div>
   </section>
 
   {% if messages %}
@@ -95,14 +607,75 @@
     </section>
   {% endif %}
 
+  <section class="dashboard-panel rounded-xl p-4 space-y-3">
+    <div class="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+      <h2 class="text-sm font-semibold">Area de dashboards</h2>
+      <span class="text-xs text-[color:var(--color-text-muted)]">Visao integrada para operacao, risco e confiabilidade</span>
+    </div>
+
+    <div class="dashboard-view-switch" role="toolbar" aria-label="Modo de visualizacao do dashboard">
+      <button type="button" class="dashboard-view-btn" data-dashboard-view-button data-dashboard-view="all" aria-pressed="false">Tudo</button>
+      <button type="button" class="dashboard-view-btn is-active" data-dashboard-view-button data-dashboard-view="executivo" aria-pressed="true">Executivo</button>
+      <button type="button" class="dashboard-view-btn" data-dashboard-view-button data-dashboard-view="produtividade" aria-pressed="false">Produtividade</button>
+      <button type="button" class="dashboard-view-btn" data-dashboard-view-button data-dashboard-view="risco" aria-pressed="false">Risco</button>
+      <button type="button" class="dashboard-view-btn" data-dashboard-view-button data-dashboard-view="confiabilidade" aria-pressed="false">Confiabilidade</button>
+    </div>
+
+    <nav class="dashboard-nav" aria-label="Navegacao dos dashboards">
+      <a href="#dashboard-executivo" class="dashboard-nav__item" data-dashboard-view-trigger data-dashboard-view="executivo">
+        <div class="dashboard-nav__title">Dashboard Executivo</div>
+        <div class="dashboard-nav__meta">Resumo de capacidade, volume e ocupacao</div>
+      </a>
+      <a href="#dashboard-produtividade" class="dashboard-nav__item" data-dashboard-view-trigger data-dashboard-view="produtividade">
+        <div class="dashboard-nav__title">Dashboard de Produtividade</div>
+        <div class="dashboard-nav__meta">Rankings e distribuicao de pausas</div>
+      </a>
+      <a href="#dashboard-risco" class="dashboard-nav__item" data-dashboard-view-trigger data-dashboard-view="risco">
+        <div class="dashboard-nav__title">Dashboard de Risco</div>
+        <div class="dashboard-nav__meta">Alertas e operadores com risco elevado</div>
+      </a>
+      <a href="#dashboard-confiabilidade" class="dashboard-nav__item" data-dashboard-view-trigger data-dashboard-view="confiabilidade">
+        <div class="dashboard-nav__title">Dashboard de Confiabilidade</div>
+        <div class="dashboard-nav__meta">Integridade de dados e saude de jobs</div>
+      </a>
+    </nav>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+      <article class="dashboard-mini" data-dashboard-mini="executivo">
+        <div class="text-xs uppercase tracking-wide text-[color:var(--color-text-muted)]">Capacidade operacional</div>
+        <div class="mt-1 text-lg font-semibold">{{ taxa_ocupacao_pct }}% de ocupacao no {{ period_scope_label }}</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">{{ active_agents_count }} ativos | {{ agents_with_activity_count }} com atividade</div>
+        <div class="mt-3 h-[180px]"><canvas id="occupancyGaugeChart"></canvas></div>
+      </article>
+      <article class="dashboard-mini" data-dashboard-mini="produtividade">
+        <div class="text-xs uppercase tracking-wide text-[color:var(--color-text-muted)]">Mix de produtividade</div>
+        <div class="mt-1 text-lg font-semibold">Tempo classificado no periodo</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">Produtivo {{ tempo_produtivo_total_hhmm }} | Improdutivo {{ tempo_improdutivo_total_hhmm }}</div>
+        <div class="mt-3 h-[180px]"><canvas id="productivityMixChart"></canvas></div>
+      </article>
+      <article class="dashboard-mini" data-dashboard-mini="risco">
+        <div class="text-xs uppercase tracking-wide text-[color:var(--color-text-muted)]">Risco e priorizacao</div>
+        <div class="mt-1 text-lg font-semibold">{{ alerts|length }} alertas | {{ risk_agents|length }} agentes em risco</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">Distribuicao por severidade operacional</div>
+        <div class="mt-3 h-[180px]"><canvas id="alertSeverityChart"></canvas></div>
+      </article>
+      <article class="dashboard-mini" data-dashboard-mini="confiabilidade">
+        <div class="text-xs uppercase tracking-wide text-[color:var(--color-text-muted)]">Confiabilidade de dados</div>
+        <div class="mt-1 text-lg font-semibold">{{ completeness_panel|length }} fontes monitoradas</div>
+        <div class="text-xs text-[color:var(--color-text-muted)]">Status de cobertura e execucao do pipeline</div>
+        <div class="mt-3 h-[180px]"><canvas id="datasetStatusChart"></canvas></div>
+      </article>
+    </div>
+  </section>
+
   {% if can_manage_jobs %}
-    <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4 space-y-3">
+    <section class="dashboard-panel rounded-xl p-4 space-y-3" data-dashboard-section="confiabilidade">
       <div class="flex items-center justify-between">
         <h2 class="text-sm font-semibold">Acoes operacionais</h2>
         <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="{% url 'runs-list' %}">Ver detalhes do job</a>
       </div>
       <div class="flex flex-wrap gap-2">
-        <form method="post" action="{% url 'dashboard-rebuild-day-stats' %}">
+        <form method="post" action="{% url 'dashboard-rebuild-day-stats' %}" data-safe-submit="rebuild-stats">
           {% csrf_token %}
           <input type="hidden" name="data_ref" value="{{ day_iso }}">
           <button type="submit" class="h-9 px-3 rounded-lg bg-[color:var(--color-primary)] text-white text-xs font-semibold">Gerar stats do dia</button>
@@ -113,10 +686,13 @@
       <div class="text-xs text-[color:var(--color-text-muted)]">
         Use os comandos acima quando nao houver integracao direta por UI para import.
       </div>
+      <div class="text-xs text-sky-200/85 rounded-lg border border-sky-300/20 bg-sky-500/10 px-3 py-2" role="note">
+        Controle seguro: a geracao de stats exige confirmacao explicita antes de executar a acao.
+      </div>
     </section>
   {% endif %}
 
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+  <section id="dashboard-confiabilidade" class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4" data-dashboard-section="confiabilidade">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-sm font-semibold">Data Completeness Panel</h2>
       <span class="text-xs text-[color:var(--color-text-muted)]">Periodo: {{ applied_period_label }}</span>
@@ -141,10 +717,33 @@
     </div>
   </section>
 
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+  <section id="dashboard-executivo" class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4" data-dashboard-section="executivo">
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-sm font-semibold">Resumo executivo do {{ period_scope_label }}</h2>
       <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="{{ day_detail_url }}">Ver detalhes</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-3">
+      <article class="dashboard-priority">
+        <div class="dashboard-priority__label">Capacidade ativa</div>
+        <div class="dashboard-priority__value">{{ agents_with_activity_count }}/{{ active_agents_count }}</div>
+        <div class="dashboard-priority__meta">Agentes com atividade real no periodo</div>
+      </article>
+      <article class="dashboard-priority">
+        <div class="dashboard-priority__label">Volume operacional</div>
+        <div class="dashboard-priority__value">{{ total_events_day }}</div>
+        <div class="dashboard-priority__meta">Eventos capturados | Jornadas: {{ workday_count }}</div>
+      </article>
+      <article class="dashboard-priority">
+        <div class="dashboard-priority__label">Ocupacao</div>
+        <div class="dashboard-priority__value">{{ taxa_ocupacao_pct }}%</div>
+        <div class="dashboard-priority__meta">Base: tempo produtivo / tempo logado</div>
+      </article>
+      <article class="dashboard-priority">
+        <div class="dashboard-priority__label">Risco imediato</div>
+        <div class="dashboard-priority__value">{{ risk_agents|length }}</div>
+        <div class="dashboard-priority__meta">Agentes no bloco de maior risco</div>
+      </article>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -212,12 +811,25 @@
     </div>
   </section>
 
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden" data-dashboard-section="executivo">
     <div class="px-4 py-3 border-b border-[color:var(--color-border)] flex items-center justify-between">
       <h2 class="text-sm font-semibold">Agentes ativos sem atividade no {{ period_scope_label }}</h2>
       <a class="text-xs text-[color:var(--color-text-muted)] hover:underline" href="{{ day_detail_url }}">Ver detalhes</a>
     </div>
     {% if active_agents_without_activity %}
+      <div class="px-4 py-2 border-b border-[color:var(--color-border)] text-xs text-[color:var(--color-text-muted)] flex flex-wrap items-center justify-between gap-2">
+        <span>{{ active_agents_without_activity|length }} agentes sem atividade identificados para acompanhamento.</span>
+        {% if active_agents_without_activity|length > 8 %}
+          <button
+            type="button"
+            id="toggleInactiveAgents"
+            class="h-8 px-3 rounded-lg border border-[color:var(--color-border)] text-xs"
+            data-expanded="false"
+          >
+            Mostrar todos
+          </button>
+        {% endif %}
+      </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
@@ -228,7 +840,10 @@
           </thead>
           <tbody>
             {% for agent in active_agents_without_activity %}
-              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+              <tr
+                class="border-b border-[color:var(--color-border)] last:border-0 {% if forloop.counter > 8 %}hidden{% endif %}"
+                data-inactive-agent-row
+              >
                 <td class="px-4 py-3">{{ agent.cd_operador }}</td>
                 <td class="px-4 py-3">{{ agent.nm_agente|default:"Sem nome" }}</td>
               </tr>
@@ -241,7 +856,7 @@
     {% endif %}
   </section>
 
-  <section class="grid grid-cols-1 xl:grid-cols-3 gap-3 items-start">
+  <section id="dashboard-produtividade" class="grid grid-cols-1 xl:grid-cols-3 gap-3 items-start" data-dashboard-section="produtividade">
     <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
       <div class="px-4 py-3 border-b border-[color:var(--color-border)] flex items-center justify-between">
         <h2 class="text-sm font-semibold">Top 10 por tempo improdutivo ({{ ranking_counts.top_pause_time }})</h2>
@@ -348,7 +963,7 @@
     </article>
   </section>
 
-  <section class="grid grid-cols-1 xl:grid-cols-2 gap-3 items-start">
+  <section id="dashboard-risco" class="grid grid-cols-1 xl:grid-cols-2 gap-3 items-start" data-dashboard-section="risco">
     <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
       <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
         <h2 class="text-sm font-semibold">Agentes com maior risco ({{ risk_agents|length }})</h2>
@@ -402,7 +1017,7 @@
     </article>
   </section>
 
-  <section class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-3" data-dashboard-section="produtividade">
     <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
       <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
         <h2 class="text-sm font-semibold">Eventos por hora x Pausas por hora</h2>
@@ -431,7 +1046,7 @@
     </article>
   </section>
 
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden" data-dashboard-section="confiabilidade">
     <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
       <h2 class="text-sm font-semibold">Saude do sistema (jobs)</h2>
     </div>
@@ -474,6 +1089,8 @@
 {{ events_by_hour.counts|json_script:"events-hour-counts" }}
 {{ pauses_by_hour.counts|json_script:"pauses-hour-counts" }}
 {{ pause_distribution|json_script:"pause-distribution-data" }}
+{{ alerts|json_script:"alerts-data" }}
+{{ completeness_panel|json_script:"completeness-panel-data" }}
 {% endblock %}
 
 {% block scripts %}
@@ -481,8 +1098,71 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   <script>
     (function () {
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+
+      const dateFromInput = document.getElementById("date_from");
+      const dateToInput = document.getElementById("date_to");
+      const legacyDayInput = document.getElementById("data_ref");
+      const searchInput = document.getElementById("q");
+      const filterForm = document.querySelector("form[method='get']");
+
+      if (searchInput) {
+        searchInput.addEventListener("input", () => {
+          if (searchInput.value.length > 80) {
+            searchInput.value = searchInput.value.slice(0, 80);
+          }
+        });
+      }
+
+      if (filterForm && dateFromInput && dateToInput) {
+        const validateRange = () => {
+          const fromValue = dateFromInput.value;
+          const toValue = dateToInput.value;
+          if (fromValue && toValue && fromValue > toValue) {
+            dateToInput.setCustomValidity("Data final deve ser maior ou igual a data inicial.");
+          } else {
+            dateToInput.setCustomValidity("");
+          }
+        };
+
+        dateFromInput.addEventListener("change", validateRange);
+        dateToInput.addEventListener("change", validateRange);
+
+        if (legacyDayInput) {
+          legacyDayInput.addEventListener("change", () => {
+            if (legacyDayInput.value && (!dateFromInput.value || !dateToInput.value)) {
+              dateFromInput.value = legacyDayInput.value;
+              dateToInput.value = legacyDayInput.value;
+            }
+          });
+        }
+
+        filterForm.addEventListener("submit", (event) => {
+          validateRange();
+          if (!filterForm.checkValidity()) {
+            event.preventDefault();
+            filterForm.reportValidity();
+          }
+        });
+      }
+
+      const sensitiveForms = document.querySelectorAll("form[data-safe-submit='rebuild-stats']");
+      sensitiveForms.forEach((form) => {
+        form.addEventListener("submit", (event) => {
+          const confirmed = window.confirm(
+            "Confirmar geracao de stats do periodo selecionado? Esta acao pode consumir recursos do sistema."
+          );
+          if (!confirmed) {
+            event.preventDefault();
+          }
+        });
+      });
+
       const copyButtons = document.querySelectorAll("[data-copy-command]");
       copyButtons.forEach((button) => {
+        const originalLabel = button.textContent;
         button.addEventListener("click", async () => {
           const command = button.getAttribute("data-copy-command");
           if (!command) return;
@@ -490,7 +1170,7 @@
             await navigator.clipboard.writeText(command);
             button.textContent = "Comando copiado";
             setTimeout(() => {
-              button.textContent = button.getAttribute("data-copy-command").includes("pause") ? "Copiar import de pausas" : "Copiar import de jornada";
+              button.textContent = originalLabel;
             }, 1400);
           } catch (err) {
             console.error("Falha ao copiar comando", err);
@@ -498,11 +1178,108 @@
         });
       });
 
+      const inactiveRows = document.querySelectorAll("[data-inactive-agent-row]");
+      const toggleInactiveButton = document.getElementById("toggleInactiveAgents");
+      if (toggleInactiveButton && inactiveRows.length > 0) {
+        toggleInactiveButton.addEventListener("click", () => {
+          const isExpanded = toggleInactiveButton.getAttribute("data-expanded") === "true";
+          inactiveRows.forEach((row, index) => {
+            if (index >= 8) {
+              row.classList.toggle("hidden", isExpanded);
+            }
+          });
+          toggleInactiveButton.setAttribute("data-expanded", String(!isExpanded));
+          toggleInactiveButton.textContent = isExpanded ? "Mostrar todos" : "Mostrar menos";
+        });
+      }
+
+      const heroProgressBars = document.querySelectorAll("[data-hero-progress]");
+      heroProgressBars.forEach((bar) => {
+        const value = Number(bar.getAttribute("data-hero-progress") || 0);
+        const max = Number(bar.getAttribute("data-hero-max") || 100);
+        const percent = max > 0 ? Math.max(0, Math.min((value / max) * 100, 100)) : 0;
+        bar.style.width = `${percent}%`;
+      });
+
+      const validDashboardViews = new Set(["all", "executivo", "produtividade", "risco", "confiabilidade"]);
+      const dashboardViewButtons = document.querySelectorAll("[data-dashboard-view-button]");
+      const dashboardViewTriggers = document.querySelectorAll("[data-dashboard-view-trigger]");
+      const dashboardSections = document.querySelectorAll("[data-dashboard-section]");
+      const dashboardMiniCards = document.querySelectorAll("[data-dashboard-mini]");
+      const getInitialDashboardView = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlView = urlParams.get("view");
+        if (urlView && validDashboardViews.has(urlView)) {
+          return urlView;
+        }
+
+        const hash = window.location.hash;
+        if (hash) {
+          const linkedTrigger = document.querySelector(`[data-dashboard-view-trigger][href='${hash}']`);
+          const linkedView = linkedTrigger ? linkedTrigger.getAttribute("data-dashboard-view") : "";
+          if (linkedView && validDashboardViews.has(linkedView)) {
+            return linkedView;
+          }
+        }
+
+        return "executivo";
+      };
+      const applyDashboardView = (view) => {
+        if (!validDashboardViews.has(view)) {
+          return;
+        }
+
+        dashboardSections.forEach((section) => {
+          const sectionView = section.getAttribute("data-dashboard-section");
+          section.hidden = !(view === "all" || sectionView === view);
+        });
+
+        dashboardMiniCards.forEach((card) => {
+          const cardView = card.getAttribute("data-dashboard-mini");
+          card.hidden = !(view === "all" || cardView === view);
+        });
+
+        dashboardViewButtons.forEach((button) => {
+          const isActive = button.getAttribute("data-dashboard-view") === view;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+        });
+      };
+      let currentDashboardView = getInitialDashboardView();
+
+      dashboardViewButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const nextView = button.getAttribute("data-dashboard-view") || "";
+          if (!validDashboardViews.has(nextView)) {
+            return;
+          }
+
+          currentDashboardView = nextView;
+          applyDashboardView(currentDashboardView);
+        });
+      });
+
+      dashboardViewTriggers.forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+          const nextView = trigger.getAttribute("data-dashboard-view") || "";
+          if (!validDashboardViews.has(nextView)) {
+            return;
+          }
+
+          currentDashboardView = nextView;
+          applyDashboardView(currentDashboardView);
+        });
+      });
+
+      applyDashboardView(currentDashboardView);
+
       if (!window.Chart) return;
       const labels = JSON.parse(document.getElementById("events-hour-labels").textContent || "[]");
       const eventsSeries = JSON.parse(document.getElementById("events-hour-counts").textContent || "[]");
       const pausesSeries = JSON.parse(document.getElementById("pauses-hour-counts").textContent || "[]");
       const pauseDist = JSON.parse(document.getElementById("pause-distribution-data").textContent || "[]");
+      const alertsData = JSON.parse(document.getElementById("alerts-data").textContent || "[]");
+      const completenessData = JSON.parse(document.getElementById("completeness-panel-data").textContent || "[]");
       const formatDurationHhMmSs = (value) => {
         const totalSeconds = Math.max(Number(value || 0), 0);
         const hours = Math.floor(totalSeconds / 3600);
@@ -510,6 +1287,141 @@
         const seconds = Math.floor(totalSeconds % 60);
         return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
       };
+
+      const occupancyRaw = Number("{{ taxa_ocupacao_pct|default:0 }}") || 0;
+      const occupancyValue = Math.max(0, Math.min(occupancyRaw, 100));
+      const occupancyCanvas = document.getElementById("occupancyGaugeChart");
+      if (occupancyCanvas) {
+        new Chart(occupancyCanvas, {
+          type: "doughnut",
+          data: {
+            labels: ["Ocupado", "Disponivel"],
+            datasets: [{
+              data: [occupancyValue, Math.max(0, 100 - occupancyValue)],
+              backgroundColor: ["#22c55e", "rgba(148,163,184,0.25)"],
+              borderWidth: 0,
+            }],
+          },
+          options: {
+            maintainAspectRatio: false,
+            cutout: "72%",
+            plugins: {
+              legend: { labels: { color: "#cbd5e1" } },
+              tooltip: {
+                callbacks: {
+                  label: (context) => `${context.label}: ${Number(context.parsed || 0).toFixed(2)}%`,
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const pauseByTypeSeconds = {
+        "Tempo Produtivo": 0,
+        "Tempo Neutro": 0,
+        "Tempo Improdutivo": 0,
+        "Tempo Nao Classificado": 0,
+      };
+      pauseDist.forEach((item) => {
+        const label = String(item.pause_type || "");
+        if (Object.prototype.hasOwnProperty.call(pauseByTypeSeconds, label)) {
+          pauseByTypeSeconds[label] = Number(item.tempo_seg || 0);
+        }
+      });
+
+      const productivityMixCanvas = document.getElementById("productivityMixChart");
+      if (productivityMixCanvas) {
+        new Chart(productivityMixCanvas, {
+          type: "bar",
+          data: {
+            labels: Object.keys(pauseByTypeSeconds),
+            datasets: [{
+              label: "Tempo por categoria",
+              data: Object.values(pauseByTypeSeconds),
+              backgroundColor: ["#22c55e", "#0ea5e9", "#f97316", "#facc15"],
+              borderRadius: 8,
+            }],
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: "#cbd5e1" } } },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  callback: (value) => formatDurationHhMmSs(value),
+                },
+              },
+            },
+          },
+        });
+      }
+
+      const alertCountBySeverity = {};
+      alertsData.forEach((item) => {
+        const key = String(item.severity_label || "Sem classificacao");
+        alertCountBySeverity[key] = (alertCountBySeverity[key] || 0) + 1;
+      });
+
+      const alertSeverityCanvas = document.getElementById("alertSeverityChart");
+      if (alertSeverityCanvas) {
+        const alertLabels = Object.keys(alertCountBySeverity);
+        const alertValues = Object.values(alertCountBySeverity);
+        new Chart(alertSeverityCanvas, {
+          type: "polarArea",
+          data: {
+            labels: alertLabels.length ? alertLabels : ["Sem alertas"],
+            datasets: [{
+              data: alertValues.length ? alertValues : [1],
+              backgroundColor: ["rgba(239,68,68,0.65)", "rgba(245,158,11,0.65)", "rgba(14,165,233,0.65)", "rgba(34,197,94,0.65)"],
+              borderColor: ["#ef4444", "#f59e0b", "#0ea5e9", "#22c55e"],
+              borderWidth: 1,
+            }],
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { color: "#cbd5e1" } },
+            },
+            scales: {
+              r: {
+                ticks: { precision: 0, color: "#94a3b8" },
+                grid: { color: "rgba(148,163,184,0.22)" },
+              },
+            },
+          },
+        });
+      }
+
+      const statusCountByType = {};
+      completenessData.forEach((item) => {
+        const key = String(item.status || "SEM STATUS");
+        statusCountByType[key] = (statusCountByType[key] || 0) + 1;
+      });
+
+      const datasetStatusCanvas = document.getElementById("datasetStatusChart");
+      if (datasetStatusCanvas) {
+        const statusLabels = Object.keys(statusCountByType);
+        const statusValues = Object.values(statusCountByType);
+        new Chart(datasetStatusCanvas, {
+          type: "doughnut",
+          data: {
+            labels: statusLabels.length ? statusLabels : ["SEM STATUS"],
+            datasets: [{
+              data: statusValues.length ? statusValues : [1],
+              backgroundColor: ["#22c55e", "#f59e0b", "#ef4444", "#38bdf8"],
+              borderWidth: 0,
+            }],
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { color: "#cbd5e1" } },
+            },
+          },
+        });
+      }
 
       const hourlyCanvas = document.getElementById("hourlyChart");
       if (hourlyCanvas) {
@@ -592,6 +1504,7 @@
           },
         });
       }
+
     })();
   </script>
 {% endblock %}

@@ -99,6 +99,11 @@
       {% endif %}
     </header>
 
+    <div class="assistant-page__context">
+      <span class="assistant-page__context-label">Contexto operacional</span>
+      <p class="assistant-page__context-copy">Copiloto integrado ao monitoramento para produtividade, risco, pipeline e alertas em linguagem executiva.</p>
+    </div>
+
     <div id="assistant-page-main-flash" class="assistant-page__flash hidden" role="status" aria-live="polite"></div>
 
     <div id="assistant-page-messages" class="assistant-page__messages" aria-live="polite">
@@ -115,8 +120,8 @@
         </div>
       {% else %}
         <div class="assistant-page__empty-state">
-          <div class="assistant-page__empty-title">Historico persistido do {{ assistant_name }}</div>
-          <p class="assistant-page__empty-copy">Aqui ficam apenas conversas salvas da pagina dedicada. O widget continua temporario e separado.</p>
+          <div class="assistant-page__empty-title">O Eustácio pode ajudar você a entender a operação.</div>
+          <p class="assistant-page__empty-copy">Use as sugestões ao lado ou pergunte livremente para investigar produtividade, risco e alertas críticos.</p>
         </div>
       {% endif %}
     </div>
@@ -139,6 +144,33 @@
       </button>
     </form>
   </section>
+
+  <aside class="assistant-page__suggestions">
+    <div class="assistant-page__suggestions-head">
+      <div class="assistant-page__eyebrow">Copiloto corporativo</div>
+      <h2 class="assistant-page__suggestions-title">Sugestões de perguntas</h2>
+    </div>
+    <div class="assistant-page__suggestions-list">
+      <button type="button" class="assistant-page__suggestion" data-suggested-question="Quem são os agentes com pior produtividade?">
+        Quem são os agentes com pior produtividade?
+      </button>
+      <button type="button" class="assistant-page__suggestion" data-suggested-question="Existem alertas críticos agora?">
+        Existem alertas críticos agora?
+      </button>
+      <button type="button" class="assistant-page__suggestion" data-suggested-question="Qual equipe tem maior risco operacional?">
+        Qual equipe tem maior risco operacional?
+      </button>
+    </div>
+
+    <div class="assistant-page__ops-card">
+      <div class="assistant-page__ops-title">Radar operacional</div>
+      <ul class="assistant-page__ops-list">
+        <li>Analise agentes de menor ocupação</li>
+        <li>Cheque alertas críticos e médios</li>
+        <li>Valide estabilidade de ingestão</li>
+      </ul>
+    </div>
+  </aside>
 </section>
 
 {{ assistant_page_initial_data|json_script:"assistant-page-initial-data" }}

@@ -1,6 +1,6 @@
 ﻿{% extends "base.html" %}
 
-{% block title %}Agente {{ agent.cd_operador }} | NEF Cadencia{% endblock %}
+{% block title %}Agente {{ agent.cd_operador }} | NEF Cadência{% endblock %}
 {% block page_title %}Agente {{ agent.cd_operador }}{% endblock %}
 {% block page_subtitle %}{{ agent.nm_agente|default:"Sem nome" }}{% endblock %}
 
@@ -13,7 +13,7 @@
   <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-sm">
       <div>
-        <div class="text-[color:var(--color-text-muted)]">Codigo interno</div>
+        <div class="text-[color:var(--color-text-muted)]">Código interno</div>
         <div>{{ agent.nm_agente_code|default:"-" }}</div>
       </div>
       <div>
@@ -29,7 +29,7 @@
         {% if agent.ativo %}
           <span class="inline-flex rounded-full px-2 py-1 text-xs bg-emerald-500/20 text-emerald-300">Sim</span>
         {% else %}
-          <span class="inline-flex rounded-full px-2 py-1 text-xs bg-slate-500/20 text-slate-300">Nao</span>
+          <span class="inline-flex rounded-full px-2 py-1 text-xs bg-slate-500/20 text-slate-300">Não</span>
         {% endif %}
       </div>
     </div>
@@ -37,7 +37,7 @@
 
   <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
     <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
-      <h2 class="text-sm font-semibold">Estatisticas dos ultimos 7 dias</h2>
+      <h2 class="text-sm font-semibold">Estatísticas dos últimos 7 dias</h2>
     </div>
 
     {% if stats_page.object_list %}
@@ -48,7 +48,7 @@
               <th class="px-4 py-3 font-medium">Data</th>
               <th class="px-4 py-3 font-medium">Qtd pausas</th>
               <th class="px-4 py-3 font-medium">Tempo pausas</th>
-              <th class="px-4 py-3 font-medium">Ultima pausa inicio</th>
+              <th class="px-4 py-3 font-medium">Última pausa início</th>
             </tr>
           </thead>
           <tbody>
@@ -64,7 +64,7 @@
         </table>
       </div>
     {% else %}
-      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Sem estatisticas para os ultimos 7 dias.</div>
+      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Sem estatísticas para os últimos 7 dias.</div>
     {% endif %}
 
     {% if stats_page.paginator.num_pages > 1 %}
@@ -74,11 +74,11 @@
         {% else %}
           <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>
         {% endif %}
-        <span class="text-[color:var(--color-text-muted)]">Pagina {{ stats_page.number }} de {{ stats_page.paginator.num_pages }}</span>
+        <span class="text-[color:var(--color-text-muted)]">Página {{ stats_page.number }} de {{ stats_page.paginator.num_pages }}</span>
         {% if stats_page.has_next %}
-          <a href="?stats_page={{ stats_page.next_page_number }}{{ stats_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>
+          <a href="?stats_page={{ stats_page.next_page_number }}{{ stats_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>
         {% else %}
-          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>
         {% endif %}
       </div>
     {% endif %}
@@ -86,7 +86,7 @@
 
   <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
     <div class="px-4 py-3 border-b border-[color:var(--color-border)]">
-      <h2 class="text-sm font-semibold">Eventos recentes (ultimos 2 dias ou 200 eventos)</h2>
+      <h2 class="text-sm font-semibold">Eventos recentes (últimos 2 dias ou 200 eventos)</h2>
     </div>
 
     {% if events_page.object_list %}
@@ -94,11 +94,11 @@
         <table class="w-full text-sm">
           <thead>
             <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
-              <th class="px-4 py-3 font-medium">Inicio</th>
+              <th class="px-4 py-3 font-medium">Início</th>
               <th class="px-4 py-3 font-medium">Tipo</th>
               <th class="px-4 py-3 font-medium">Pausa</th>
               <th class="px-4 py-3 font-medium">Fim</th>
-              <th class="px-4 py-3 font-medium">Duracao (seg)</th>
+              <th class="px-4 py-3 font-medium">Duração (seg)</th>
               <th class="px-4 py-3 font-medium">Source</th>
             </tr>
           </thead>
@@ -127,11 +127,11 @@
         {% else %}
           <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>
         {% endif %}
-        <span class="text-[color:var(--color-text-muted)]">Pagina {{ events_page.number }} de {{ events_page.paginator.num_pages }}</span>
+        <span class="text-[color:var(--color-text-muted)]">Página {{ events_page.number }} de {{ events_page.paginator.num_pages }}</span>
         {% if events_page.has_next %}
-          <a href="?events_page={{ events_page.next_page_number }}{{ events_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>
+          <a href="?events_page={{ events_page.next_page_number }}{{ events_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>
         {% else %}
-          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>
+          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>
         {% endif %}
       </div>
     {% endif %}

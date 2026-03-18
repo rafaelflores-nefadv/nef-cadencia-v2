@@ -1,82 +1,222 @@
 ﻿{% extends "base.html" %}
 
-{% block title %}Agentes | NEF Cadencia{% endblock %}
+{% block title %}Agentes | NEF Cadência{% endblock %}
 {% block page_title %}Agentes{% endblock %}
-{% block page_subtitle %}Cadastro canonico dos agentes sincronizados.{% endblock %}
+{% block page_subtitle %}Quem são os operadores e como estão performando?{% endblock %}
 
 {% block content %}
-<div class="space-y-4">
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
-    <form method="get" class="flex flex-col sm:flex-row gap-2">
-      <input
-        type="text"
-        name="q"
-        class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent"
-        placeholder="Buscar por codigo, nome ou code"
-        value="{{ search }}"
-      >
-      <button type="submit" class="h-10 px-4 rounded-lg bg-[color:var(--color-primary)] text-white text-sm font-semibold">Buscar</button>
-      <a href="{% url 'agents-list' %}" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Limpar</a>
+<div class="agents-page">
+  <section class="agents-filters ds-panel">
+    <form method="get" class="agents-filters__form" autocomplete="off">
+      <div class="agents-filters__field agents-filters__field--search">
+        <label for="q" class="agents-filters__label">Buscar agente</label>
+        <input
+          id="q"
+          type="text"
+          name="q"
+          class="agents-filters__input"
+          placeholder="Código, nome ou code"
+          value="{{ search }}"
+        >
+      </div>
+      <div class="agents-filters__field">
+        <label for="status" class="agents-filters__label">Status</label>
+        <select id="status" name="status" class="agents-filters__input">
+          <option value="">Todos</option>
+          <option value="ativos" {% if selected_status == 'ativos' %}selected{% endif %}>Ativos</option>
+          <option value="inativos" {% if selected_status == 'inativos' %}selected{% endif %}>Inativos</option>
+        </select>
+      </div>
+      <div class="agents-filters__field">
+        <label for="produtivo_min" class="agents-filters__label">Tempo produtivo mínimo (min)</label>
+        <input id="produtivo_min" name="produtivo_min" type="number" min="0" class="agents-filters__input" value="{{ selected_produtivo_min }}">
+      </div>
+      <div class="agents-filters__actions">
+        <button type="submit" class="agents-filters__button agents-filters__button--primary">Aplicar</button>
+        <a href="{% url 'agents-list' %}" class="agents-filters__button">Limpar</a>
+      </div>
     </form>
   </section>
 
-  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
-    {% if agents %}
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
-              <th class="px-4 py-3 font-medium">Codigo</th>
-              <th class="px-4 py-3 font-medium">Nome</th>
-              <th class="px-4 py-3 font-medium">Code</th>
-              <th class="px-4 py-3 font-medium">Ramal</th>
-              <th class="px-4 py-3 font-medium">Ativo</th>
-              <th class="px-4 py-3 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for agent in agents %}
-              <tr class="border-b border-[color:var(--color-border)] last:border-0">
-                <td class="px-4 py-3">{{ agent.cd_operador }}</td>
-                <td class="px-4 py-3">{{ agent.nm_agente|default:"-" }}</td>
-                <td class="px-4 py-3">{{ agent.nm_agente_code|default:"-" }}</td>
-                <td class="px-4 py-3">{{ agent.nr_ramal|default:"-" }}</td>
-                <td class="px-4 py-3">
-                  {% if agent.ativo %}
-                    <span class="inline-flex rounded-full px-2 py-1 text-xs bg-emerald-500/20 text-emerald-300">Sim</span>
-                  {% else %}
-                    <span class="inline-flex rounded-full px-2 py-1 text-xs bg-slate-500/20 text-slate-300">Nao</span>
-                  {% endif %}
-                </td>
-                <td class="px-4 py-3 text-right">
-                  <a class="inline-flex h-9 items-center rounded-lg px-3 border border-[color:var(--color-border)]" href="{% url 'agent-detail' pk=agent.pk %}">Detalhes</a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Nenhum agente encontrado.</div>
-    {% endif %}
+  <section class="agents-grid">
+    {% for agent in agents %}
+      <article
+        class="agent-card"
+        data-agent-card
+        data-agent-name="{{ agent.nm_agente|default:'Sem nome'|escape }}"
+        data-agent-id="{{ agent.cd_operador }}"
+        data-agent-status="{% if agent.ativo %}Online{% else %}Offline{% endif %}"
+        data-agent-logged="{{ agent.dashboard_metrics.tempo_logado_display|default:'Sem dados' }}"
+        data-agent-productivity="{{ agent.dashboard_metrics.taxa_ocupacao_display|default:'Sem dados' }}"
+        data-agent-risk="{{ agent.dashboard_metrics.risk_label|default:'Indisponível'|escape }}"
+        data-agent-detail-url="{% url 'agent-detail' pk=agent.pk %}"
+      >
+        <div class="agent-card__header">
+          <div class="agent-card__identity">
+            <span class="agent-card__avatar">
+              <i data-lucide="user-round" class="agent-card__avatar-icon" aria-hidden="true"></i>
+              <span class="agent-card__avatar-initial">{{ agent.nm_agente|default:'A'|slice:':1'|upper }}</span>
+            </span>
+            <div class="agent-card__meta">
+              <h3 class="agent-card__name">{{ agent.nm_agente|default:"Sem nome" }}</h3>
+              <div class="agent-card__id">ID {{ agent.cd_operador }}</div>
+            </div>
+          </div>
+          {% if agent.ativo %}
+            <span class="agent-card__status agent-status-badge agent-status-badge--online">Online</span>
+          {% else %}
+            <span class="agent-card__status agent-status-badge agent-status-badge--offline">Offline</span>
+          {% endif %}
+        </div>
 
-    {% if page_obj.paginator.num_pages > 1 %}
-      <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
-        {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}{{ page_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>
-        {% else %}
-          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>
-        {% endif %}
+        <div class="agent-card__body">
+          <div class="agent-card__row">
+            <span>Tempo logado</span>
+            <strong>{{ agent.dashboard_metrics.tempo_logado_display|default:"Sem dados" }}</strong>
+          </div>
+          <div class="agent-card__row">
+            <span>Produtividade</span>
+            <strong>{{ agent.dashboard_metrics.taxa_ocupacao_display|default:"Sem dados" }}</strong>
+          </div>
+          <div class="agent-card__row">
+            <span>Risco</span>
+            <strong>{{ agent.dashboard_metrics.risk_label|default:"Indisponível" }}</strong>
+          </div>
+        </div>
 
-        <span class="text-[color:var(--color-text-muted)]">Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-
-        {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}{{ page_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Proxima</a>
-        {% else %}
-          <span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Proxima</span>
-        {% endif %}
-      </div>
-    {% endif %}
+        <div class="agent-card__footer">
+          <button
+            type="button"
+            data-agent-open
+            class="agent-card__button"
+          >
+            Ver detalhes
+          </button>
+        </div>
+      </article>
+    {% empty %}
+      <article class="agents-empty">
+        Nenhum agente encontrado para os filtros selecionados.
+      </article>
+    {% endfor %}
   </section>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <section class="agents-pagination ds-panel">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{{ page_query_suffix }}" class="agents-pagination__link">Anterior</a>
+      {% else %}
+        <span class="agents-pagination__link is-disabled">Anterior</span>
+      {% endif %}
+
+      <span class="agents-pagination__info">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{{ page_query_suffix }}" class="agents-pagination__link">Próxima</a>
+      {% else %}
+        <span class="agents-pagination__link is-disabled">Próxima</span>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  <aside data-agent-drawer class="agent-drawer">
+    <div class="agent-drawer__panel">
+      <div class="agent-drawer__header">
+        <div>
+          <div class="agent-drawer__id" data-agent-drawer-id>Agente</div>
+          <div class="agent-drawer__name" data-agent-drawer-name>Detalhes</div>
+        </div>
+        <button type="button" data-agent-drawer-close class="agent-drawer__close">Fechar</button>
+      </div>
+      <div class="agent-drawer__content" data-agent-drawer-content>
+        <div class="agent-drawer__item">
+          <div class="agent-drawer__item-label">Status</div>
+          <div class="agent-drawer__item-value" data-agent-drawer-status>-</div>
+        </div>
+        <div class="agent-drawer__item">
+          <div class="agent-drawer__item-label">Tempo logado</div>
+          <div class="agent-drawer__item-value" data-agent-drawer-logged>-</div>
+        </div>
+        <div class="agent-drawer__item">
+          <div class="agent-drawer__item-label">Produtividade</div>
+          <div class="agent-drawer__item-value" data-agent-drawer-productivity>-</div>
+        </div>
+        <div class="agent-drawer__item">
+          <div class="agent-drawer__item-label">Risco</div>
+          <div class="agent-drawer__item-value" data-agent-drawer-risk>-</div>
+        </div>
+      </div>
+      <div class="agent-drawer__footer">
+        <a data-agent-drawer-open-full href="#" class="agent-drawer__open-full">Abrir painel completo</a>
+      </div>
+    </div>
+  </aside>
+
+  <div data-agent-drawer-backdrop class="agent-drawer__backdrop"></div>
+
 </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script>
+    (function () {
+      const cards = document.querySelectorAll("[data-agent-card]");
+      const openButtons = document.querySelectorAll("[data-agent-open]");
+      const drawer = document.querySelector("[data-agent-drawer]");
+      const backdrop = document.querySelector("[data-agent-drawer-backdrop]");
+      const closeBtn = document.querySelector("[data-agent-drawer-close]");
+      if (!cards.length || !drawer || !backdrop || !closeBtn) return;
+
+      const nameEl = document.querySelector("[data-agent-drawer-name]");
+      const idEl = document.querySelector("[data-agent-drawer-id]");
+      const statusEl = document.querySelector("[data-agent-drawer-status]");
+      const loggedEl = document.querySelector("[data-agent-drawer-logged]");
+      const productivityEl = document.querySelector("[data-agent-drawer-productivity]");
+      const riskEl = document.querySelector("[data-agent-drawer-risk]");
+      const openFullEl = document.querySelector("[data-agent-drawer-open-full]");
+
+      function openDrawer() {
+        document.documentElement.classList.remove("sidebar-drawer-open");
+        drawer.classList.add("is-open");
+        backdrop.classList.add("is-visible");
+        document.documentElement.classList.add("agent-drawer-open");
+      }
+      function closeDrawer() {
+        drawer.classList.remove("is-open");
+        backdrop.classList.remove("is-visible");
+        document.documentElement.classList.remove("agent-drawer-open");
+      }
+
+      function populateDrawer(card) {
+        if (!card) return;
+        const detailUrl = card.getAttribute("data-agent-detail-url") || "#";
+        const loggedText = card.getAttribute("data-agent-logged") || "Sem dados";
+        const productivityText = card.getAttribute("data-agent-productivity") || "Sem dados";
+        nameEl.textContent = card.getAttribute("data-agent-name") || "Sem nome";
+        idEl.textContent = "ID " + (card.getAttribute("data-agent-id") || "-");
+        statusEl.textContent = card.getAttribute("data-agent-status") || "-";
+        loggedEl.textContent = loggedText;
+        productivityEl.textContent = productivityText;
+        riskEl.textContent = card.getAttribute("data-agent-risk") || "Indisponível";
+        openFullEl.setAttribute("href", detailUrl);
+      }
+
+      openButtons.forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          const card = button.closest("[data-agent-card]");
+          if (!card) return;
+          populateDrawer(card);
+          openDrawer();
+        });
+      });
+
+      closeBtn.addEventListener("click", closeDrawer);
+      backdrop.addEventListener("click", closeDrawer);
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") closeDrawer();
+      });
+    })();
+  </script>
 {% endblock %}

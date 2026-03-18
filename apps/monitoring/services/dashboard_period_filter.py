@@ -8,7 +8,7 @@ from django.utils.dateparse import parse_date
 MONTH_OPTIONS = [
     {"value": 1, "label": "Janeiro"},
     {"value": 2, "label": "Fevereiro"},
-    {"value": 3, "label": "Marco"},
+    {"value": 3, "label": "Março"},
     {"value": 4, "label": "Abril"},
     {"value": 5, "label": "Maio"},
     {"value": 6, "label": "Junho"},
@@ -23,9 +23,9 @@ MONTH_OPTIONS = [
 QUICK_RANGE_OPTIONS = [
     {"key": "today", "label": "Hoje"},
     {"key": "yesterday", "label": "Ontem"},
-    {"key": "last_7_days", "label": "Ultimos 7 dias"},
-    {"key": "this_month", "label": "Este mes"},
-    {"key": "last_month", "label": "Mes passado"},
+    {"key": "last_7_days", "label": "Últimos 7 dias"},
+    {"key": "this_month", "label": "Este mês"},
+    {"key": "last_month", "label": "Mês passado"},
     {"key": "this_year", "label": "Este ano"},
 ]
 
@@ -91,7 +91,7 @@ def resolve_dashboard_period_filter(params: Mapping[str, str]) -> DashboardPerio
 
     if selected_date_from and selected_date_to:
         if selected_date_from > selected_date_to:
-            warning = "Data inicial nao pode ser maior que data final."
+            warning = "Data inicial não pode ser maior que data final."
         else:
             date_from = selected_date_from
             date_to = selected_date_to
@@ -111,7 +111,7 @@ def resolve_dashboard_period_filter(params: Mapping[str, str]) -> DashboardPerio
             mode = "year"
         elif selected_month:
             if warning is None:
-                warning = "Filtro por mes exige ano."
+                warning = "Filtro por mês exige ano."
 
     if date_from is None or date_to is None:
         if selected_quick_range in QUICK_RANGE_KEYS:
