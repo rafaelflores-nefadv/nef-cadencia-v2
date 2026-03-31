@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Templates de Mensagens | NEF Cadencia{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block page_subtitle %}{{ page_subtitle }}{% endblock %}
+
+{% block content %}
+<section class="ds-panel p-6 space-y-4">
+  <div>
+    <p class="text-sm text-[color:var(--color-text-muted)]">Comunicacao operacional</p>
+    <h2 class="text-2xl font-semibold">Templates gerenciaveis</h2>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+      <p class="text-sm text-[color:var(--color-text-muted)]">Total</p>
+      <strong class="text-2xl">{{ stats.total|default:0 }}</strong>
+    </div>
+    <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+      <p class="text-sm text-[color:var(--color-text-muted)]">Ativos</p>
+      <strong class="text-2xl">{{ stats.active|default:0 }}</strong>
+    </div>
+    <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+      <p class="text-sm text-[color:var(--color-text-muted)]">Inativos</p>
+      <strong class="text-2xl">{{ stats.inactive|default:0 }}</strong>
+    </div>
+  </div>
+</section>
+{% endblock %}

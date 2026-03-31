@@ -1,0 +1,107 @@
+{% extends "layouts/base.html" %}
+{% load i18n static %}
+{% get_current_language_bidi as LANGUAGE_BIDI %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% block stylesheet %}{% static 'admin/css/base.css' %}{% endblock %}">
+{% block dark-mode-vars %}
+<link rel="stylesheet" href="{% static 'admin/css/dark_mode.css' %}">
+<script src="{% static 'admin/js/theme.js' %}" defer></script>
+{% endblock %}
+{% if not is_popup and is_nav_sidebar_enabled %}
+<link rel="stylesheet" href="{% static 'admin/css/nav_sidebar.css' %}">
+<script src="{% static 'admin/js/nav_sidebar.js' %}" defer></script>
+{% endif %}
+{% block extrastyle %}{% endblock %}
+{% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% block stylesheet_rtl %}{% static 'admin/css/rtl.css' %}{% endblock %}">{% endif %}
+{% block extrahead %}{% endblock %}
+{% block responsive %}
+<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" href="{% static 'admin/css/responsive.css' %}">
+{% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% static 'admin/css/responsive_rtl.css' %}">{% endif %}
+{% endblock %}
+{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE">{% endblock %}
+<link rel="stylesheet" href="{% static 'css/admin_custom.css' %}?v=4">
+{% endblock %}
+
+{% block bodyclass_extra %}nef-admin {% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}{% endblock %}
+{% block body_attrs %}data-admin-utc-offset="{% now 'Z' %}"{% endblock %}
+{% block assistant_widget_assets %}{% endblock %}
+{% block assistant_widget %}{% endblock %}
+
+{% block page_title %}{{ site_header|default:_("Django administration") }}{% endblock %}
+{% block page_subtitle %}{% if title %}{{ title }}{% else %}{% translate "Administracao do sistema" %}{% endif %}{% endblock %}
+
+{% block return_to_main_menu %}
+{% if not is_popup %}
+<a href="{% url 'dashboard-productivity' %}" class="hidden md:inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-card)] hover:bg-[color:var(--color-card-hover)] transition-colors">
+  <i data-lucide="arrow-left" class="w-3 h-3" aria-hidden="true"></i>
+  <span>Voltar ao Menu Principal</span>
+</a>
+{% endif %}
+{% endblock %}
+
+{% block topbar_right %}
+  {% block usertools %}
+    {% if has_permission %}
+      {{ block.super }}
+    {% endif %}
+  {% endblock %}
+{% endblock %}
+
+{% block page_container %}
+<a href="#content-start" class="admin-skip-link">{% translate 'Skip to main content' %}</a>
+<div id="content-start" tabindex="-1" class="space-y-4 admin-shell">
+  <section class="admin-page-hero">
+    <div class="admin-page-hero__eyebrow">{% translate "Painel de sistema" %}</div>
+    <h1 class="admin-page-hero__title">{% if title %}{{ title }}{% else %}{{ site_header|default:_("Django administration") }}{% endif %}</h1>
+    <p class="admin-page-hero__subtitle">{% if subtitle %}{{ subtitle }}{% else %}{% translate "Gerencie módulos, integrações e governança com visão centralizada." %}{% endif %}</p>
+  </section>
+  {% if not is_popup %}
+    {% block nav-breadcrumbs %}
+    <nav aria-label="{% translate 'Breadcrumbs' %}" class="admin-breadcrumbs">
+      {% block breadcrumbs %}
+      <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+      {% if title %}<span>/</span><span>{{ title }}</span>{% endif %}
+      {% endblock %}
+    </nav>
+    {% endblock %}
+
+    <nav class="admin-system-nav" aria-label="Navegação de Sistema">
+      <a href="{% url 'admin:index' %}" class="admin-system-nav__item{% if request.resolver_match.namespace == 'admin' and request.resolver_match.url_name == 'index' %} is-active{% endif %}">Configurações</a>
+      <a href="{% url 'runs-list' %}" class="admin-system-nav__item{% if request.resolver_match.url_name == 'runs-list' or request.resolver_match.url_name == 'run-detail' %} is-active{% endif %}">Logs operacionais</a>
+      <a href="/admin/admin/logentry/" class="admin-system-nav__item{% if request.path|slice:':21' == '/admin/admin/logentry/' %} is-active{% endif %}">Logs administrativos</a>
+      <a href="/admin/monitoring/" class="admin-system-nav__item{% if request.path|slice:':18' == '/admin/monitoring/' %} is-active{% endif %}">Monitoramento</a>
+      <a href="/admin/integrations/integration/" class="admin-system-nav__item{% if request.path|slice:':31' == '/admin/integrations/integration/' %} is-active{% endif %}">Integrações</a>
+      <a href="/admin/rules/systemconfig/" class="admin-system-nav__item{% if request.path|slice:':26' == '/admin/rules/systemconfig/' %} is-active{% endif %}">Regras operacionais</a>
+      <a href="/admin/assistant/assistantauditlog/" class="admin-system-nav__item{% if request.path|slice:':33' == '/admin/assistant/assistantauditlog/' %} is-active{% endif %}">Auditoria</a>
+    </nav>
+  {% endif %}
+
+  {% block messages %}
+    {% if messages %}
+      <ul class="messagelist">{% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>
+      {% endfor %}</ul>
+    {% endif %}
+  {% endblock messages %}
+
+  <div id="content" class="admin-card {% block coltype %}colM{% endblock %}">
+    {% block pretitle %}{% endblock %}
+    {% block content_title %}{% if title %}<h1 class="admin-title">{{ title }}</h1>{% endif %}{% endblock %}
+    {% block content_subtitle %}{% if subtitle %}<h2 class="admin-subtitle">{{ subtitle }}</h2>{% endif %}{% endblock %}
+    {% block content %}
+      {% block object-tools %}{% endblock %}
+      {{ content }}
+    {% endblock %}
+    {% block sidebar %}{% endblock %}
+  </div>
+
+  {% block footer %}<div id="footer"></div>{% endblock %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script src="{% static 'js/admin_ui.js' %}?v=3"></script>
+{% endblock %}

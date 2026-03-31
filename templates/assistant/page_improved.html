@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ assistant_name }} | NEF Cadencia{% endblock %}
+{% block page_title %}{{ assistant_name }}{% endblock %}
+{% block page_subtitle %}Assistente inteligente para análise operacional{% endblock %}
+
+{% block head_extra %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'assistant/assistant_page.css' %}">
+{% endblock %}
+
+{% block assistant_widget %}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb de Navegação -->
+<nav class="mb-6 flex items-center gap-2 text-sm">
+  <a href="{% url 'dashboard' %}" class="text-[color:var(--color-text-muted)] hover:text-[color:var(--color-primary)] transition-colors">
+    <i data-lucide="home" class="w-4 h-4 inline"></i>
+    Dashboard
+  </a>
+  <i data-lucide="chevron-right" class="w-4 h-4 text-[color:var(--color-text-muted)]"></i>
+  <span class="text-[color:var(--color-text)]">Assistente Eustácio</span>
+</nav>
+
+<section
+  id="assistant-page-root"
+  class="assistant-page"
+  data-page-url="{% url 'assistant-page' %}"
+  data-chat-url="{% url 'assistant-chat' %}"
+  data-conversations-url="{% url 'assistant-page-conversations-api' %}"
+  data-conversation-url-template="{% url 'assistant-page-conversation-api' conversation_id=0 %}"
+  data-delete-url-template="{% url 'assistant-page-delete-conversation' conversation_id=0 %}"
+>
+  <!-- Sidebar de Conversas -->
+  <aside class="assistant-page__sidebar">
+    <div class="assistant-page__sidebar-top">
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+            <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+          </div>
+          <div>
+            <div class="assistant-page__eyebrow">Assistente IA</div>
+            <h1 class="assistant-page__brand">{{ assistant_name }}</h1>
+          </div>
+        </div>
+        <p class="assistant-page__meta">
+          <span id="assistant-page-count">{{ conversation_count }}</span>/<span id="assistant-page-limit">{{ conversation_limit }}</span>
+          conversas salvas
+        </p>
+      </div>
+      <button
+        id="assistant-page-new"
+        class="assistant-page__new-button"
+        type="button"
+        {% if conversation_limit_reached %}disabled{% endif %}
+      >
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        Nova conversa
+      </button>
+    </div>
+
+    <div id="assistant-page-limit-notice" class="assistant-page__notice{% if not conversation_limit_reached %} hidden{% endif %}">
+      <i data-lucide="alert-circle" class="w-4 h-4 inline"></i>
+      Limite atingido. Exclua uma conversa antiga.
+    </div>
+
+    <div id="assistant-page-sidebar-flash" class="assistant-page__flash hidden" role="status" aria-live="polite"></div>
+
+    <div id="assistant-page-list" class="assistant-page__list" role="list" aria-label="Historico de conversas">
+      {% if conversations %}
+        {% for conversation in conversations %}
+          <a
+            href="{% url 'assistant-page' %}?conversation_id={{ conversation.id }}"
+            class="assistant-page__thread{% if selected_conversation and selected_conversation.id == conversation.id %} is-active{% endif %}"
+            data-conversation-link
+            data-conversation-id="{{ conversation.id }}"
+            role="listitem"
+          >
+            <div class="flex items-start gap-2">
+              <i data-lucide="message-circle" class="w-4 h-4 mt-1 flex-shrink-0 text-[color:var(--color-text-muted)]"></i>
+              <div class="flex-1 min-w-0">
+                <span class="assistant-page__thread-title">{{ conversation.title }}</span>
+                <span class="assistant-page__thread-meta">
+                  {{ conversation.message_count }} {% if conversation.message_count == 1 %}msg{% else %}msgs{% endif %} · {{ conversation.updated_at|slice:":16"|cut:"T" }}
+                </span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      {% else %}
+        <div id="assistant-page-list-empty" class="assistant-page__list-empty">
+          <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-[color:var(--color-text-muted)]"></i>
+          <p>Nenhuma conversa ainda.</p>
+          <p class="text-xs">Clique em "Nova conversa" para começar.</p>
+        </div>
+      {% endif %}
+    </div>
+  </aside>
+
+  <!-- Área Principal do Chat -->
+  <section class="assistant-page__main">
+    <header class="assistant-page__header">
+      {% if selected_conversation %}
+        <div class="assistant-page__header-copy">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center">
+              <i data-lucide="message-square" class="w-4 h-4 text-violet-400"></i>
+            </div>
+            <div class="assistant-page__header-label">Conversa ativa</div>
+          </div>
+          <h2 id="assistant-page-title" class="assistant-page__header-title">{{ selected_conversation.title }}</h2>
+          <p id="assistant-page-subtitle" class="assistant-page__header-subtitle">
+            <i data-lucide="clock" class="w-3 h-3 inline"></i>
+            {{ selected_conversation.updated_at|slice:":16"|cut:"T" }} · 
+            <i data-lucide="message-circle" class="w-3 h-3 inline"></i>
+            {{ selected_conversation.message_count }} {% if selected_conversation.message_count == 1 %}mensagem{% else %}mensagens{% endif %}
+          </p>
+        </div>
+        <button id="assistant-page-delete" class="assistant-page__delete-button" type="button">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          Excluir
+        </button>
+      {% else %}
+        <div class="assistant-page__header-copy">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+              <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+            </div>
+            <div class="assistant-page__header-label">Bem-vindo</div>
+          </div>
+          <h2 id="assistant-page-title" class="assistant-page__header-title">{{ assistant_name }}</h2>
+          <p id="assistant-page-subtitle" class="assistant-page__header-subtitle">
+            Selecione uma conversa ou crie uma nova para começar
+          </p>
+        </div>
+        <button id="assistant-page-delete" class="assistant-page__delete-button hidden" type="button">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          Excluir
+        </button>
+      {% endif %}
+    </header>
+
+    <div class="assistant-page__context">
+      <div class="flex items-start gap-3 p-4 rounded-lg bg-violet-500/10 border border-violet-500/20">
+        <i data-lucide="info" class="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5"></i>
+        <div>
+          <span class="assistant-page__context-label">Contexto operacional</span>
+          <p class="assistant-page__context-copy">
+            Copiloto integrado ao monitoramento para análise de produtividade, risco, pipeline e alertas em linguagem executiva.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="assistant-page-main-flash" class="assistant-page__flash hidden" role="status" aria-live="polite"></div>
+
+    <div id="assistant-page-messages" class="assistant-page__messages" aria-live="polite">
+      {% if selected_conversation and selected_conversation.messages %}
+        {% for message in selected_conversation.messages %}
+          <div class="assistant-page__message assistant-page__message--{{ message.role }}">
+            <div class="flex items-start gap-3">
+              {% if message.role == 'user' %}
+                <div class="w-8 h-8 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0">
+                  <i data-lucide="user" class="w-4 h-4 text-sky-400"></i>
+                </div>
+              {% else %}
+                <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                  <i data-lucide="bot" class="w-4 h-4 text-violet-400"></i>
+                </div>
+              {% endif %}
+              <div class="assistant-page__bubble">{{ message.content }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% elif selected_conversation %}
+        <div class="assistant-page__empty-state">
+          <i data-lucide="message-square-plus" class="w-12 h-12 mx-auto mb-3 text-[color:var(--color-text-muted)]"></i>
+          <div class="assistant-page__empty-title">Conversa iniciada</div>
+          <p class="assistant-page__empty-copy">Envie a primeira pergunta para começar a conversar com o Eustácio.</p>
+        </div>
+      {% else %}
+        <div class="assistant-page__empty-state">
+          <i data-lucide="sparkles" class="w-12 h-12 mx-auto mb-3 text-violet-400"></i>
+          <div class="assistant-page__empty-title">O Eustácio pode ajudar você</div>
+          <p class="assistant-page__empty-copy">
+            Use as sugestões ao lado ou pergunte livremente sobre produtividade, risco, alertas e pipeline de dados.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div id="assistant-page-typing" class="assistant-page__typing" hidden aria-live="polite">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center">
+          <i data-lucide="bot" class="w-4 h-4 text-violet-400"></i>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="assistant-processing__dot" aria-hidden="true"></span>
+          <span class="assistant-processing__text">Eustácio está pensando...</span>
+        </div>
+      </div>
+    </div>
+
+    <form id="assistant-page-form" class="assistant-page__composer">
+      <label class="sr-only" for="assistant-page-input">Mensagem para {{ assistant_name }}</label>
+      <div class="flex items-end gap-3">
+        <textarea
+          id="assistant-page-input"
+          class="assistant-page__input"
+          rows="2"
+          placeholder="Pergunte ao {{ assistant_name }} sobre monitoramento, produtividade, pausas e regras..."
+        ></textarea>
+        <button id="assistant-page-send" class="assistant-page__send" type="submit">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span class="sr-only">Enviar</span>
+        </button>
+      </div>
+      <p class="text-xs text-[color:var(--color-text-muted)] mt-2">
+        <i data-lucide="zap" class="w-3 h-3 inline"></i>
+        Pressione Enter para enviar, Shift+Enter para nova linha
+      </p>
+    </form>
+  </section>
+
+  <!-- Sidebar de Sugestões -->
+  <aside class="assistant-page__suggestions">
+    <div class="assistant-page__suggestions-head">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+          <i data-lucide="lightbulb" class="w-4 h-4 text-white"></i>
+        </div>
+        <div>
+          <div class="assistant-page__eyebrow">Copiloto</div>
+          <h2 class="assistant-page__suggestions-title">Sugestões</h2>
+        </div>
+      </div>
+    </div>
+    
+    <div class="assistant-page__suggestions-list">
+      <button type="button" class="assistant-page__suggestion" data-suggested-question="Quem são os agentes com pior produtividade hoje?">
+        <i data-lucide="trending-down" class="w-4 h-4"></i>
+        Agentes com pior produtividade
+      </button>
+      <button type="button" class="assistant-page__suggestion" data-suggested-question="Existem alertas críticos agora?">
+        <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+        Alertas críticos ativos
+      </button>
+      <button type="button" class="assistant-page__suggestion" data-suggested-question="Qual equipe tem maior risco operacional?">
+        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+        Equipe com maior risco
+      </button>
+      <button type="button" class="assistant-page__suggestion" data-suggested-question="Como está o pipeline de dados?">
+        <i data-lucide="database" class="w-4 h-4"></i>
+        Status do pipeline
+      </button>
+      <button type="button" class="assistant-page__suggestion" data-suggested-question="Mostre um resumo da operação de hoje">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        Resumo da operação
+      </button>
+    </div>
+
+    <div class="assistant-page__ops-card">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="radar" class="w-5 h-5 text-sky-400"></i>
+        <div class="assistant-page__ops-title">Radar Operacional</div>
+      </div>
+      <ul class="assistant-page__ops-list">
+        <li>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+          Analise agentes de menor ocupação
+        </li>
+        <li>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+          Cheque alertas críticos e médios
+        </li>
+        <li>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+          Valide estabilidade de ingestão
+        </li>
+        <li>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+          Revise pausas improdutivas
+        </li>
+      </ul>
+    </div>
+
+    <div class="mt-4 p-4 rounded-lg bg-[color:var(--color-card-hover)] border border-[color:var(--color-border)]">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="help-circle" class="w-4 h-4 text-[color:var(--color-text-muted)]"></i>
+        <span class="text-sm font-medium">Dicas de uso</span>
+      </div>
+      <ul class="text-xs text-[color:var(--color-text-muted)] space-y-1">
+        <li>• Seja específico nas perguntas</li>
+        <li>• Use datas quando relevante</li>
+        <li>• Pergunte sobre métricas específicas</li>
+        <li>• Solicite comparações de períodos</li>
+      </ul>
+    </div>
+  </aside>
+</section>
+
+{{ assistant_page_initial_data|json_script:"assistant-page-initial-data" }}
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script src="{% static 'assistant/assistant_processing_ui.js' %}"></script>
+  <script src="{% static 'assistant/assistant_message_rendering.js' %}"></script>
+  <script src="{% static 'assistant/assistant_page.js' %}"></script>
+{% endblock %}

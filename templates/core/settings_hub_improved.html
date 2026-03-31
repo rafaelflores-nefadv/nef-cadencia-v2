@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações | NEF Cadencia{% endblock %}
+{% block page_title %}Configurações do Sistema{% endblock %}
+{% block page_subtitle %}Central de gerenciamento e configuração{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  
+  {% if messages %}
+    <section class="space-y-2">
+      {% for message in messages %}
+        <div class="rounded-lg border p-3 text-sm {% if message.tags == 'error' %}border-red-500/40 bg-red-500/10{% elif message.tags == 'success' %}border-emerald-500/40 bg-emerald-500/10{% else %}border-[color:var(--color-border)] bg-[color:var(--color-card)]{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  <!-- Hero Section Simplificado -->
+  <section class="ds-panel p-6">
+    <div class="flex items-start justify-between">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center">
+            <i data-lucide="settings-2" class="w-6 h-6 text-white"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold">Central de Configurações</h2>
+            <p class="text-sm text-[color:var(--color-text-muted)]">Gerencie todos os aspectos do sistema</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-right">
+        <div class="text-3xl font-bold text-sky-400">{{ system_configs.total|default:0 }}</div>
+        <p class="text-xs text-[color:var(--color-text-muted)]">configurações ativas</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEÇÃO: Configurações Principais -->
+  <section>
+    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+      <span class="w-1 h-5 bg-sky-500 rounded"></span>
+      Configurações Principais
+    </h3>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Sistema Geral -->
+      <article class="ds-panel p-6 hover:border-sky-500/30 transition-all group">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-lg bg-sky-500/10 flex items-center justify-center group-hover:bg-sky-500/20 transition-colors">
+              <i data-lucide="settings" class="w-6 h-6 text-sky-400"></i>
+            </div>
+            <div>
+              <h4 class="text-base font-semibold">Sistema Geral</h4>
+              <p class="text-sm text-[color:var(--color-text-muted)]">Configurações globais</p>
+            </div>
+          </div>
+          <span class="ds-badge ds-badge--info">{{ system_configs.total|default:0 }}</span>
+        </div>
+        
+        <div class="space-y-3 mb-4">
+          <div class="flex items-center justify-between p-3 rounded-lg bg-[color:var(--color-card-hover)]">
+            <span class="text-sm text-[color:var(--color-text-muted)]">Categorias</span>
+            <strong class="text-sm">{{ system_configs.categories|length }}</strong>
+          </div>
+          {% if system_configs.last_updated %}
+          <div class="flex items-center justify-between p-3 rounded-lg bg-[color:var(--color-card-hover)]">
+            <span class="text-sm text-[color:var(--color-text-muted)]">Última atualização</span>
+            <strong class="text-sm">{{ system_configs.last_updated|date:"d/m/Y H:i" }}</strong>
+          </div>
+          {% endif %}
+        </div>
+        
+        <a href="{% url 'config-list' %}" class="block w-full text-center px-4 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors text-sm font-medium">
+          Gerenciar Configurações
+        </a>
+      </article>
+
+      <!-- Regras Operacionais -->
+      <article class="ds-panel p-6 hover:border-purple-500/30 transition-all group">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
+              <i data-lucide="shield-check" class="w-6 h-6 text-purple-400"></i>
+            </div>
+            <div>
+              <h4 class="text-base font-semibold">Regras Operacionais</h4>
+              <p class="text-sm text-[color:var(--color-text-muted)]">Limites e thresholds</p>
+            </div>
+          </div>
+          <span class="ds-badge ds-badge--ok">{{ operational_rules.total|default:0 }}</span>
+        </div>
+        
+        <p class="text-sm text-[color:var(--color-text-muted)] mb-4">
+          Configure limites de pausas, ocupação, alertas e outras regras operacionais do sistema.
+        </p>
+        
+        <div class="grid grid-cols-2 gap-2 mb-4">
+          <div class="p-3 rounded-lg bg-[color:var(--color-card-hover)] text-center">
+            <div class="text-xs text-[color:var(--color-text-muted)] mb-1">Pausas</div>
+            <div class="text-lg font-bold text-purple-400">{{ operational_rules.pause_limit|default:"--" }}</div>
+          </div>
+          <div class="p-3 rounded-lg bg-[color:var(--color-card-hover)] text-center">
+            <div class="text-xs text-[color:var(--color-text-muted)] mb-1">Ocupação</div>
+            <div class="text-lg font-bold text-purple-400">{{ operational_rules.occupancy_min|default:"--" }}%</div>
+          </div>
+        </div>
+        
+        <a href="/admin/rules/systemconfig/" class="block w-full text-center px-4 py-2.5 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium">
+          Configurar Regras
+        </a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- SEÇÃO: Integrações e Dados -->
+  <section>
+    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+      <span class="w-1 h-5 bg-emerald-500 rounded"></span>
+      Integrações e Dados
+    </h3>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Banco Legado -->
+      <article class="ds-panel p-6 hover:border-emerald-500/30 transition-all group">
+        <div class="flex items-start justify-between mb-4">
+          <div class="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+            <i data-lucide="database" class="w-6 h-6 text-emerald-400"></i>
+          </div>
+          <span class="ds-badge ds-badge--{% if legacy_db.status == 'connected' %}ok{% else %}crit{% endif %}">
+            {{ legacy_db.status|default:"Desconhecido" }}
+          </span>
+        </div>
+        
+        <h4 class="text-base font-semibold mb-1">Banco Legado</h4>
+        <p class="text-sm text-[color:var(--color-text-muted)] mb-4">SQL Server LH_ALIVE</p>
+        
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-[color:var(--color-text-muted)]">Servidor</span>
+            <strong>{{ legacy_db.server|default:"--" }}</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[color:var(--color-text-muted)]">Database</span>
+            <strong>{{ legacy_db.database|default:"--" }}</strong>
+          </div>
+        </div>
+        
+        <a href="/admin/integrations/integration/" class="block w-full text-center px-4 py-2.5 mt-4 border border-emerald-500/30 text-emerald-400 rounded-lg hover:bg-emerald-500/10 transition-colors text-sm font-medium">
+          Configurar Conexão
+        </a>
+      </article>
+
+      <!-- Assistente IA -->
+      <article class="ds-panel p-6 hover:border-violet-500/30 transition-all group">
+        <div class="flex items-start justify-between mb-4">
+          <div class="w-12 h-12 rounded-lg bg-violet-500/10 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors">
+            <i data-lucide="sparkles" class="w-6 h-6 text-violet-400"></i>
+          </div>
+          <span class="ds-badge ds-badge--{% if assistant_config.status == 'active' %}ok{% else %}info{% endif %}">
+            {{ assistant_config.status|default:"Inativo" }}
+          </span>
+        </div>
+        
+        <h4 class="text-base font-semibold mb-1">Assistente IA</h4>
+        <p class="text-sm text-[color:var(--color-text-muted)] mb-4">OpenAI GPT-4</p>
+        
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-[color:var(--color-text-muted)]">Modelo</span>
+            <strong>{{ assistant_config.model|default:"gpt-4" }}</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[color:var(--color-text-muted)]">Tools</span>
+            <strong>{{ assistant_config.tools_count|default:0 }}</strong>
+          </div>
+        </div>
+        
+        <a href="/admin/assistant/" class="block w-full text-center px-4 py-2.5 mt-4 border border-violet-500/30 text-violet-400 rounded-lg hover:bg-violet-500/10 transition-colors text-sm font-medium">
+          Configurar IA
+        </a>
+      </article>
+
+      <!-- Mensagens -->
+      <article class="ds-panel p-6 hover:border-amber-500/30 transition-all group">
+        <div class="flex items-start justify-between mb-4">
+          <div class="w-12 h-12 rounded-lg bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+            <i data-lucide="mail" class="w-6 h-6 text-amber-400"></i>
+          </div>
+          <span class="ds-badge ds-badge--info">{{ message_templates.total|default:0 }}</span>
+        </div>
+        
+        <h4 class="text-base font-semibold mb-1">Templates de Mensagens</h4>
+        <p class="text-sm text-[color:var(--color-text-muted)] mb-4">Notificações e alertas</p>
+        
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-[color:var(--color-text-muted)]">Ativos</span>
+            <strong>{{ message_templates.active|default:0 }}</strong>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-[color:var(--color-text-muted)]">Canais</span>
+            <strong>{{ message_templates.channels|default:0 }}</strong>
+          </div>
+        </div>
+        
+        <a href="/admin/messaging/messagetemplate/" class="block w-full text-center px-4 py-2.5 mt-4 border border-amber-500/30 text-amber-400 rounded-lg hover:bg-amber-500/10 transition-colors text-sm font-medium">
+          Gerenciar Templates
+        </a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- SEÇÃO: Monitoramento e Dados -->
+  <section>
+    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+      <span class="w-1 h-5 bg-cyan-500 rounded"></span>
+      Monitoramento e Dados
+    </h3>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- Agentes -->
+      <article class="ds-panel p-6 hover:border-cyan-500/30 transition-all group">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
+              <i data-lucide="users" class="w-6 h-6 text-cyan-400"></i>
+            </div>
+            <div>
+              <h4 class="text-base font-semibold">Agentes</h4>
+              <p class="text-sm text-[color:var(--color-text-muted)]">Cadastro e gestão</p>
+            </div>
+          </div>
+          <span class="ds-badge ds-badge--ok">{{ agents.total|default:0 }}</span>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <div class="p-3 rounded-lg bg-[color:var(--color-card-hover)] text-center">
+            <div class="text-xs text-[color:var(--color-text-muted)] mb-1">Total</div>
+            <div class="text-lg font-bold text-cyan-400">{{ agents.total|default:0 }}</div>
+          </div>
+          <div class="p-3 rounded-lg bg-[color:var(--color-card-hover)] text-center">
+            <div class="text-xs text-[color:var(--color-text-muted)] mb-1">Ativos</div>
+            <div class="text-lg font-bold text-emerald-400">{{ agents.active|default:0 }}</div>
+          </div>
+          <div class="p-3 rounded-lg bg-[color:var(--color-card-hover)] text-center">
+            <div class="text-xs text-[color:var(--color-text-muted)] mb-1">Inativos</div>
+            <div class="text-lg font-bold text-gray-400">{{ agents.inactive|default:0 }}</div>
+          </div>
+        </div>
+        
+        <a href="/admin/monitoring/agent/" class="block w-full text-center px-4 py-2.5 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors text-sm font-medium">
+          Gerenciar Agentes
+        </a>
+      </article>
+
+      <!-- Classificação de Pausas -->
+      <article class="ds-panel p-6 hover:border-orange-500/30 transition-all group">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
+              <i data-lucide="tag" class="w-6 h-6 text-orange-400"></i>
+            </div>
+            <div>
+              <h4 class="text-base font-semibold">Classificação de Pausas</h4>
+              <p class="text-sm text-[color:var(--color-text-muted)]">Categorias e regras</p>
+            </div>
+          </div>
+          <span class="ds-badge ds-badge--warn">{{ pause_classifications.total|default:0 }}</span>
+        </div>
+        
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <div class="p-3 rounded-lg bg-[color:var(--color-card-hover)] text-center">
+            <div class="text-xs text-[color:var(--color-text-muted)] mb-1">Legal</div>
+            <div class="text-lg font-bold text-emerald-400">{{ pause_classifications.legal|default:0 }}</div>
+          </div>
+          <div class="p-3 rounded-lg bg-[color:var(--color-card-hover)] text-center">
+            <div class="text-xs text-[color:var(--color-text-muted)] mb-1">Neutro</div>
+            <div class="text-lg font-bold text-sky-400">{{ pause_classifications.neutral|default:0 }}</div>
+          </div>
+          <div class="p-3 rounded-lg bg-[color:var(--color-card-hover)] text-center">
+            <div class="text-xs text-[color:var(--color-text-muted)] mb-1">Nocivo</div>
+            <div class="text-lg font-bold text-red-400">{{ pause_classifications.harmful|default:0 }}</div>
+          </div>
+        </div>
+        
+        <a href="/admin/monitoring/pauseclassification/" class="block w-full text-center px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium">
+          Configurar Classificações
+        </a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- SEÇÃO: Acesso Administrativo -->
+  <section>
+    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+      <span class="w-1 h-5 bg-red-500 rounded"></span>
+      Acesso Administrativo
+    </h3>
+    
+    <article class="ds-panel p-6 border-red-500/20">
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+          <i data-lucide="shield-alert" class="w-6 h-6 text-red-400"></i>
+        </div>
+        <div class="flex-1">
+          <h4 class="text-base font-semibold mb-1">Painel Administrativo Django</h4>
+          <p class="text-sm text-[color:var(--color-text-muted)] mb-4">
+            Para configurações avançadas e gerenciamento de baixo nível, acesse o painel administrativo completo do Django.
+          </p>
+          <div class="flex gap-3">
+            <a href="/admin/" target="_blank" class="px-4 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium inline-flex items-center gap-2">
+              <i data-lucide="external-link" class="w-4 h-4"></i>
+              Acessar Admin Django
+            </a>
+            <a href="/admin/monitoring/" class="px-4 py-2.5 border border-[color:var(--color-border)] rounded-lg hover:bg-[color:var(--color-card-hover)] transition-colors text-sm font-medium inline-flex items-center gap-2">
+              <i data-lucide="database" class="w-4 h-4"></i>
+              Dados Brutos
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+</div>
+{% endblock %}

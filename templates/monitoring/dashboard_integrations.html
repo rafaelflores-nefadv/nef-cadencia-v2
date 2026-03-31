@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Integrações - Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6 integrations-dashboard">
+  <!-- Abas de navegação -->
+  <div class="flex gap-2 border-b border-[color:var(--color-border)] px-4 -mx-4">
+    <button class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text)]" data-tab="agentes-ia">
+      Agentes de IA
+    </button>
+    <button class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text)]" data-tab="recebimento">
+      Recebimento de Dados
+    </button>
+    <button class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text)]" data-tab="envio">
+      Envio de dados
+    </button>
+    <button class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text)]" data-tab="integracoes">
+      Integrações
+    </button>
+  </div>
+
+  <!-- Conteúdo da aba Agentes de IA -->
+  <div class="tab-content" data-tab-content="agentes-ia">
+    <section class="ds-panel p-5">
+      <h2 class="text-sm font-semibold mb-4">Agentes de IA</h2>
+      <p class="text-[color:var(--color-text-muted)]">Conteúdo de Agentes de IA será carregado aqui.</p>
+    </section>
+  </div>
+
+  <!-- Conteúdo da aba Recebimento de Dados -->
+  <div class="tab-content" data-tab-content="recebimento" style="display: none;">
+    <section class="ds-panel p-5">
+      <h2 class="text-sm font-semibold mb-4">Recebimento de Dados</h2>
+      <p class="text-[color:var(--color-text-muted)]">Conteúdo de Recebimento de Dados será carregado aqui.</p>
+    </section>
+  </div>
+
+  <!-- Conteúdo da aba Envio de dados -->
+  <div class="tab-content" data-tab-content="envio" style="display: none;">
+    <section class="ds-panel p-5">
+      <h2 class="text-sm font-semibold mb-4">Envio de dados</h2>
+      <p class="text-[color:var(--color-text-muted)]">Conteúdo de Envio de dados será carregado aqui.</p>
+    </section>
+  </div>
+
+  <!-- Conteúdo da aba Integrações -->
+  <div class="tab-content" data-tab-content="integracoes" style="display: none;">
+    <section class="ds-panel p-5">
+      <h2 class="text-sm font-semibold mb-4">Integrações</h2>
+      <p class="text-[color:var(--color-text-muted)]">Conteúdo de Integrações será carregado aqui.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script>
+    (function () {
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      function activateTab(tabName) {
+        // Remove active class from all buttons and hide all contents
+        tabButtons.forEach((btn) => {
+          btn.classList.remove('tab-button--active');
+          btn.style.borderBottomColor = 'transparent';
+          btn.style.color = 'var(--color-text-muted)';
+        });
+        tabContents.forEach((content) => {
+          content.style.display = 'none';
+        });
+
+        // Find and activate the button with matching data-tab
+        const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
+        if (activeButton) {
+          activeButton.classList.add('tab-button--active');
+          activeButton.style.borderBottomColor = 'var(--color-primary)';
+          activeButton.style.color = 'var(--color-text)';
+        }
+
+        // Show corresponding content
+        const activeContent = document.querySelector(`[data-tab-content="${tabName}"]`);
+        if (activeContent) {
+          activeContent.style.display = 'block';
+        }
+      }
+
+      // Get tab from URL parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const activeTab = urlParams.get('tab') || 'agentes-ia';
+      activateTab(activeTab);
+
+      // Add click listeners to buttons
+      tabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const tabName = button.getAttribute('data-tab');
+          activateTab(tabName);
+          // Update URL without reloading
+          window.history.replaceState({}, '', `?tab=${tabName}`);
+        });
+      });
+    })();
+  </script>
+{% endblock %}

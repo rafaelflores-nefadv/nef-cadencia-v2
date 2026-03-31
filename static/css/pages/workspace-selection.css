@@ -1,0 +1,295 @@
+/**
+ * Workspace Selection Page - Refined Styles
+ * SaaS Modern Design with Dark Mode Support
+ */
+
+.workspace-selection-container {
+  min-height: 100vh;
+  background-color: var(--color-background);
+  padding: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.workspace-selection-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+  animation: fadeIn 0.4s ease-out;
+}
+
+.workspace-selection-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.workspace-selection-header p {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+/* Workspace grid */
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-lg);
+  width: 100%;
+  max-width: 1200px;
+  animation: slideUp 0.4s ease-out 0.1s both;
+}
+
+/* Workspace card */
+.workspace-card {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.workspace-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-base);
+}
+
+.workspace-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.workspace-card:hover::before {
+  transform: scaleX(1);
+}
+
+.workspace-card:active {
+  transform: translateY(-2px);
+}
+
+/* Default workspace badge */
+.workspace-card.is-default {
+  border-color: var(--color-primary);
+}
+
+.workspace-card.is-default::before {
+  transform: scaleX(1);
+}
+
+/* Workspace card header */
+.workspace-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+.workspace-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.workspace-badges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  align-items: flex-end;
+}
+
+.workspace-badge {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.workspace-badge.badge-default {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.workspace-badge.badge-role {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+}
+
+/* Workspace card body */
+.workspace-card-body {
+  margin-bottom: var(--spacing-md);
+}
+
+.workspace-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.workspace-description {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* Workspace card footer */
+.workspace-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.workspace-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: 0.8125rem;
+  color: var(--color-text-tertiary);
+}
+
+.workspace-meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.workspace-meta-item svg {
+  width: 16px;
+  height: 16px;
+}
+
+.workspace-arrow {
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-fast);
+}
+
+.workspace-card:hover .workspace-arrow {
+  color: var(--color-primary);
+  transform: translateX(4px);
+}
+
+/* Loading state */
+.workspace-selection-loading {
+  text-align: center;
+  padding: var(--spacing-2xl);
+}
+
+.workspace-selection-loading .spinner {
+  width: 3rem;
+  height: 3rem;
+  border-width: 3px;
+  margin: 0 auto var(--spacing-lg);
+}
+
+/* Empty state */
+.workspace-selection-empty {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.workspace-selection-empty svg {
+  width: 80px;
+  height: 80px;
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.workspace-selection-empty h3 {
+  font-size: 1.25rem;
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.workspace-selection-empty p {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Error state */
+.workspace-selection-error {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.workspace-selection-error .error-message {
+  display: inline-flex;
+  margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .workspace-selection-container {
+    padding: var(--spacing-lg);
+  }
+  
+  .workspace-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .workspace-selection-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .workspace-card {
+    padding: var(--spacing-lg);
+  }
+  
+  .workspace-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+  }
+  
+  .workspace-name {
+    font-size: 1.125rem;
+  }
+}
+
+/* Dark mode specific adjustments */
+[data-theme="dark"] .workspace-card {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .workspace-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary), var(--shadow-lg);
+}
+
+[data-theme="dark"] .workspace-icon {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}

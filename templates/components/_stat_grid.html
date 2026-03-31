@@ -1,0 +1,22 @@
+{% comment %}
+Componente: Grid de Estatísticas
+Uso:
+  {% include "components/_stat_grid.html" with 
+    stats=stats_list
+    columns=3
+  %}
+  
+  stats_list = [
+    {"label": "Total", "value": 100, "color": "cyan"},
+    {"label": "Ativos", "value": 80, "color": "emerald"},
+  ]
+{% endcomment %}
+
+<div class="grid grid-cols-{{ columns|default:3 }} gap-2 mb-4">
+  {% for stat in stats %}
+  <div class="p-3 rounded-lg bg-[color:var(--color-card-hover)] text-center">
+    <div class="text-xs text-[color:var(--color-text-muted)] mb-1">{{ stat.label }}</div>
+    <div class="text-lg font-bold text-{{ stat.color|default:'sky' }}-400">{{ stat.value }}</div>
+  </div>
+  {% endfor %}
+</div>

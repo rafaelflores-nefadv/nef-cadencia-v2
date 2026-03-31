@@ -1,0 +1,205 @@
+# ==============================================================================
+# Environment and Secrets - CRITICAL
+# ==============================================================================
+.env
+.env.*
+!.env.example
+*.env
+*.env.*
+!*.env.example
+
+# Backup files that might contain secrets
+*.env.backup
+*.env.old
+*.env.local
+*.env.production
+*.env.staging
+.env.production.local
+.env.development.local
+
+# Secret files
+secrets/
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Configuration files with potential secrets
+config.ini
+config.json
+credentials.json
+service-account.json
+
+# ==============================================================================
+# Python
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.pyc
+
+# ==============================================================================
+# Virtual Environments
+# ==============================================================================
+.venv/
+venv/
+env/
+ENV/
+virtualenv/
+.virtualenv/
+
+# ==============================================================================
+# Django
+# ==============================================================================
+*.log
+*.log.*
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+static_root/
+local_settings.py
+
+# Django migrations (optional - uncomment if needed)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# ==============================================================================
+# Database
+# ==============================================================================
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.backup
+
+# Database backups
+backups/
+*.bak
+
+# ==============================================================================
+# Node
+# ==============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+
+# ==============================================================================
+# Build Artifacts
+# ==============================================================================
+dist/
+build/
+coverage/
+*.egg-info/
+.eggs/
+*.egg
+
+# ==============================================================================
+# Editors and OS
+# ==============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==============================================================================
+# Temporary Files - DO NOT DEPLOY
+# ==============================================================================
+tmp/
+temp/
+tmp_*
+temp_*
+*.tmp
+*.temp
+
+# Temporary HTML files (like tmp_dashboard_*.html)
+tmp_*.html
+temp_*.html
+
+# ==============================================================================
+# Logs and Monitoring
+# ==============================================================================
+logs/
+*.log
+*.log.*
+log/
+
+# ==============================================================================
+# Testing
+# ==============================================================================
+.tox/
+.nox/
+.hypothesis/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# ==============================================================================
+# Documentation Build
+# ==============================================================================
+docs/_build/
+site/
+
+# ==============================================================================
+# Deployment - DO NOT COMMIT
+# ==============================================================================
+# Deployment scripts with secrets
+deploy_secrets.sh
+deploy_config.sh
+
+# SSL certificates
+ssl/
+certs/
+*.crt
+*.key
+*.pem
+
+# ==============================================================================
+# IDE and Tools
+# ==============================================================================
+.vscode/settings.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ==============================================================================
+# OS Generated
+# ==============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ==============================================================================
+# Backup Files
+# ==============================================================================
+*.bak
+*.backup
+*.old
+*~

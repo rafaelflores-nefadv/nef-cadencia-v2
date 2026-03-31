@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações | NEF Cadencia{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block page_subtitle %}{{ page_subtitle }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  
+  {% if messages %}
+    <section class="space-y-2">
+      {% for message in messages %}
+        <div class="rounded-lg border p-3 text-sm {% if message.tags == 'error' %}border-red-500/40 bg-red-500/10{% elif message.tags == 'success' %}border-emerald-500/40 bg-emerald-500/10{% else %}border-[color:var(--color-border)] bg-[color:var(--color-card)]{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </section>
+  {% endif %}
+
+  <!-- Hero Section -->
+  <section class="ds-panel p-6">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-sm text-gray-500 mb-1">Central de Configurações</p>
+        <h2 class="text-2xl font-bold">Gerencie todas as configurações do sistema</h2>
+      </div>
+      <span class="ds-badge ds-badge--info">{{ system_configs.total|default:0 }} configurações ativas</span>
+    </div>
+    <p class="text-gray-600">
+      Acesse e configure todos os módulos do sistema a partir desta central. 
+      Cada card abaixo representa uma área de configuração com acesso rápido às funcionalidades.
+    </p>
+  </section>
+
+  <!-- Grid de Cards de Configuração -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    
+    <!-- 1. Configurações Gerais do Sistema -->
+    <article class="ds-panel p-5 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg">Configurações Gerais</h3>
+            <p class="text-sm text-gray-500">Sistema e operação</p>
+          </div>
+        </div>
+        <span class="ds-badge ds-badge--{% if system_configs.status == 'active' %}ok{% else %}warn{% endif %}">
+          {{ system_configs.total|default:0 }}
+        </span>
+      </div>
+      
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Categorias</span>
+          <strong>{{ system_configs.categories|length }}</strong>
+        </div>
+        {% if system_configs.last_updated %}
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Última atualização</span>
+          <strong>{{ system_configs.last_updated|date:"d/m/Y H:i" }}</strong>
+        </div>
+        {% endif %}
+      </div>
+      
+      <div class="flex gap-2">
+        <a href="{% url 'config-list' %}" class="flex-1 text-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium">
+          Gerenciar
+        </a>
+      </div>
+    </article>
+
+    <!-- 2. Regras Operacionais -->
+    <article class="ds-panel p-5 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+            <svg class="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg">Regras Operacionais</h3>
+            <p class="text-sm text-gray-500">Thresholds e limites</p>
+          </div>
+        </div>
+        <span class="ds-badge ds-badge--{% if operational_rules.status == 'active' %}ok{% else %}warn{% endif %}">
+          {{ operational_rules.total|default:0 }}
+        </span>
+      </div>
+      
+      <div class="space-y-2 mb-4">
+        <p class="text-sm text-gray-600">
+          Configure limites de pausas, ocupação, alertas e outras regras operacionais do sistema.
+        </p>
+      </div>
+      
+      <div class="flex gap-2">
+        <a href="{% url 'config-list' %}?category=operational" class="flex-1 text-center px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium">
+          Configurar
+        </a>
+      </div>
+    </article>
+
+    <!-- 3. Integrações -->
+    <article class="ds-panel p-5 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg">Integrações</h3>
+            <p class="text-sm text-gray-500">APIs e serviços externos</p>
+          </div>
+        </div>
+        <span class="ds-badge ds-badge--{% if integrations.status == 'active' %}ok{% elif integrations.status == 'warning' %}warn{% else %}info{% endif %}">
+          {{ integrations.enabled|default:0 }}/{{ integrations.total|default:0 }}
+        </span>
+      </div>
+      
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Ativas</span>
+          <strong class="text-green-600">{{ integrations.enabled|default:0 }}</strong>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Inativas</span>
+          <strong class="text-gray-400">{{ integrations.disabled|default:0 }}</strong>
+        </div>
+        {% if integrations.last_updated %}
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Última atualização</span>
+          <strong>{{ integrations.last_updated|date:"d/m/Y" }}</strong>
+        </div>
+        {% endif %}
+      </div>
+      
+      <div class="flex gap-2">
+        <a href="{% url 'integration-list' %}" class="flex-1 text-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium">
+          Gerenciar
+        </a>
+      </div>
+    </article>
+
+    <!-- 4. Templates de Mensagens -->
+    <article class="ds-panel p-5 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+            <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg">Templates de Mensagens</h3>
+            <p class="text-sm text-gray-500">Email, SMS e notificações</p>
+          </div>
+        </div>
+        <span class="ds-badge ds-badge--{% if message_templates.status == 'active' %}ok{% elif message_templates.status == 'warning' %}warn{% else %}info{% endif %}">
+          {{ message_templates.active|default:0 }}/{{ message_templates.total|default:0 }}
+        </span>
+      </div>
+      
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Ativos</span>
+          <strong class="text-green-600">{{ message_templates.active|default:0 }}</strong>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Inativos</span>
+          <strong class="text-gray-400">{{ message_templates.inactive|default:0 }}</strong>
+        </div>
+        {% if message_templates.by_channel %}
+        <div class="text-xs text-gray-500 mt-2">
+          Por canal: 
+          {% for channel, count in message_templates.by_channel.items %}
+            {{ channel }} ({{ count }}){% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      
+      <div class="flex gap-2">
+        <a href="{% url 'template-list' %}" class="flex-1 text-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium">
+          Gerenciar
+        </a>
+      </div>
+    </article>
+
+    <!-- 5. Assistente IA -->
+    <article class="ds-panel p-5 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+            <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg">Assistente IA</h3>
+            <p class="text-sm text-gray-500">OpenAI e configurações</p>
+          </div>
+        </div>
+        <span class="ds-badge ds-badge--{% if assistant_config.status == 'active' %}ok{% else %}info{% endif %}">
+          {{ assistant_config.configs|default:0 }}
+        </span>
+      </div>
+      
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Conversas totais</span>
+          <strong>{{ assistant_config.total_conversations|default:0 }}</strong>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Conversas ativas</span>
+          <strong class="text-green-600">{{ assistant_config.active_conversations|default:0 }}</strong>
+        </div>
+      </div>
+      
+      <div class="flex gap-2">
+        <a href="{% url 'config-list' %}?category=assistant" class="flex-1 text-center px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors text-sm font-medium">
+          Configurar
+        </a>
+        <a href="/assistant" class="px-4 py-2 border border-indigo-500 text-indigo-500 rounded-lg hover:bg-indigo-50 transition-colors text-sm font-medium">
+          Abrir
+        </a>
+      </div>
+    </article>
+
+    <!-- 6. Classificação de Pausas -->
+    <article class="ds-panel p-5 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+            <svg class="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg">Classificação de Pausas</h3>
+            <p class="text-sm text-gray-500">Categorias e regras</p>
+          </div>
+        </div>
+        <span class="ds-badge ds-badge--{% if pause_classification.status == 'active' %}ok{% elif pause_classification.status == 'warning' %}warn{% else %}info{% endif %}">
+          {{ pause_classification.active|default:0 }}/{{ pause_classification.total|default:0 }}
+        </span>
+      </div>
+      
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Ativas</span>
+          <strong class="text-green-600">{{ pause_classification.active|default:0 }}</strong>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Inativas</span>
+          <strong class="text-gray-400">{{ pause_classification.inactive|default:0 }}</strong>
+        </div>
+        {% if pause_classification.by_category %}
+        <div class="text-xs text-gray-500 mt-2">
+          Por categoria: 
+          {% for category, count in pause_classification.by_category.items %}
+            {{ category }} ({{ count }}){% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      
+      <div class="flex gap-2">
+        <a href="/admin/monitoring/pause-classification" class="flex-1 text-center px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium">
+          Gerenciar
+        </a>
+      </div>
+    </article>
+
+    <!-- 7. Gestão de Usuários -->
+    <article class="ds-panel p-5 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg">Gestão de Usuários</h3>
+            <p class="text-sm text-gray-500">Usuários e agentes</p>
+          </div>
+        </div>
+        <span class="ds-badge ds-badge--{% if user_management.status == 'active' %}ok{% else %}warn{% endif %}">
+          {{ user_management.active_users|default:0 }}
+        </span>
+      </div>
+      
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Usuários ativos</span>
+          <strong class="text-green-600">{{ user_management.active_users|default:0 }}</strong>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Usuários staff</span>
+          <strong>{{ user_management.staff_users|default:0 }}</strong>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Agentes ativos</span>
+          <strong class="text-green-600">{{ user_management.active_agents|default:0 }}</strong>
+        </div>
+      </div>
+      
+      <div class="flex gap-2">
+        <a href="/admin/auth/user/" class="flex-1 text-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium">
+          Usuários
+        </a>
+        <a href="/agents" class="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 transition-colors text-sm font-medium">
+          Agentes
+        </a>
+      </div>
+    </article>
+
+    <!-- 8. Aparência e Preferências -->
+    <article class="ds-panel p-5 hover:shadow-lg transition-shadow">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center">
+            <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg">Aparência e Preferências</h3>
+            <p class="text-sm text-gray-500">Interface e personalização</p>
+          </div>
+        </div>
+        <span class="ds-badge ds-badge--ok">
+          Ativo
+        </span>
+      </div>
+      
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600">Tema atual</span>
+          <strong class="capitalize">{{ appearance.theme|default:"default" }}</strong>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">
+          Configure cores, logos e preferências visuais do sistema.
+        </p>
+      </div>
+      
+      <div class="flex gap-2">
+        <button class="flex-1 text-center px-4 py-2 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed text-sm font-medium" disabled>
+          Em breve
+        </button>
+      </div>
+    </article>
+
+  </div>
+
+  <!-- Acesso Rápido ao Admin (para casos especiais) -->
+  <section class="ds-panel p-5">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-semibold text-lg mb-1">Acesso Administrativo Avançado</h3>
+        <p class="text-sm text-gray-600">
+          Para configurações avançadas e gerenciamento de baixo nível, acesse o painel administrativo do Django.
+        </p>
+      </div>
+      <a href="/admin/" target="_blank" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+        </svg>
+        Django Admin
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% comment %}
+Componente: Cabeçalho de Seção
+Uso:
+  {% include "components/_section_header.html" with 
+    title="Título da Seção"
+    color="sky"
+  %}
+{% endcomment %}
+
+<h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+  <span class="w-1 h-5 bg-{{ color|default:'sky' }}-500 rounded"></span>
+  {{ title }}
+</h3>

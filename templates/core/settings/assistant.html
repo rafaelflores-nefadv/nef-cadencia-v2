@@ -1,0 +1,581 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações do Agente Virtual | NEF Cadencia{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block page_subtitle %}{{ page_subtitle }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Header + Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="ds-panel p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+        <i data-lucide="message-square" class="w-6 h-6 text-violet-400"></i>
+      </div>
+      <div>
+        <div class="text-xs uppercase tracking-widest text-[color:var(--color-text-muted)]">Conversas</div>
+        <div class="text-3xl font-bold mt-0.5">{{ stats.total_conversations|default:0 }}</div>
+      </div>
+    </div>
+    <div class="ds-panel p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+        <i data-lucide="activity" class="w-6 h-6 text-emerald-400"></i>
+      </div>
+      <div>
+        <div class="text-xs uppercase tracking-widest text-[color:var(--color-text-muted)]">Ativas</div>
+        <div class="text-3xl font-bold mt-0.5">{{ stats.active_conversations|default:0 }}</div>
+      </div>
+    </div>
+    <div class="ds-panel p-5 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-sky-500/20 flex items-center justify-center flex-shrink-0">
+        <i data-lucide="settings-2" class="w-6 h-6 text-sky-400"></i>
+      </div>
+      <div>
+        <div class="text-xs uppercase tracking-widest text-[color:var(--color-text-muted)]">Configurações</div>
+        <div class="text-3xl font-bold mt-0.5">{{ stats.configs|default:0 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gerador de Mensagens -->
+  <section class="ds-panel p-6">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+        <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+      </div>
+      <div>
+        <h2 class="text-base font-semibold">Gerador de Mensagens para Operadores</h2>
+        <p class="text-xs text-[color:var(--color-text-muted)]">Crie mensagens personalizadas com IA baseadas nas regras de negócio</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Formulário -->
+      <div class="space-y-4">
+
+        <!-- Tipo de Destino -->
+        <div>
+          <label class="block text-xs font-medium uppercase tracking-widest text-[color:var(--color-text-muted)] mb-1.5">Enviar Para</label>
+          <div class="grid grid-cols-2 gap-2" id="msg-target-type-group">
+            <button type="button" class="msg-target-btn active" data-target="agente">
+              <i data-lucide="user" class="w-4 h-4"></i>
+              <span>Agente Específico</span>
+            </button>
+            <button type="button" class="msg-target-btn" data-target="evento">
+              <i data-lucide="users" class="w-4 h-4"></i>
+              <span>Grupo por Evento</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Campo: Agente específico -->
+        <div id="msg-target-agente">
+          <label class="block text-xs font-medium uppercase tracking-widest text-[color:var(--color-text-muted)] mb-1.5">Nome do Agente</label>
+          <input
+            id="msg-operator-name"
+            type="text"
+            placeholder="Ex: João Silva"
+            class="w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-input-bg)] px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60 transition-colors"
+          />
+        </div>
+
+        <!-- Campo: Tipo de evento (massa) -->
+        <div id="msg-target-evento" class="hidden">
+          <label class="block text-xs font-medium uppercase tracking-widest text-[color:var(--color-text-muted)] mb-1.5">Tipo de Evento</label>
+          <select
+            id="msg-event-type"
+            class="w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-input-bg)] px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60 transition-colors"
+          >
+            <option value="">Selecione o tipo de evento...</option>
+            <option value="pausa_excessiva">⏱️ Pausa Excessiva — agentes em pausa longa</option>
+            <option value="pausa_improdutiva">🚫 Pausa Improdutiva — agentes em pausa harmful</option>
+            <option value="baixa_ocupacao">📉 Baixa Ocupação — agentes abaixo de 70%</option>
+            <option value="sem_atividade">⚠️ Sem Atividade — agentes logados sem eventos</option>
+            <option value="alerta_critico">🔴 Alerta Crítico — grupo com alertas ativos</option>
+            <option value="inicio_turno">🌅 Início de Turno — todos os agentes do turno</option>
+            <option value="fim_turno">🌇 Fim de Turno — encerramento geral do turno</option>
+            <option value="treinamento">📚 Treinamento — grupo convocado para treinamento</option>
+            <option value="meta_atingida">✅ Meta Atingida — grupo que bateu a meta</option>
+          </select>
+          <p class="text-[11px] text-[color:var(--color-text-muted)] mt-1.5">A mensagem será gerada no plural, direcionada ao grupo de agentes deste evento.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium uppercase tracking-widest text-[color:var(--color-text-muted)] mb-1.5">Cenário / Regra de Negócio</label>
+          <select
+            id="msg-scenario"
+            class="w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-input-bg)] px-3 py-2 text-sm focus:outline-none focus:border-violet-500/60 transition-colors"
+          >
+            <option value="">Selecione um cenário...</option>
+            <option value="baixa_ocupacao">📉 Baixa Taxa de Ocupação (&lt;70%)</option>
+            <option value="pausa_excessiva">⏱️ Pausa Excessiva</option>
+            <option value="pausa_improdutiva">🚫 Pausa Improdutiva (Harmful)</option>
+            <option value="sem_atividade">⚠️ Sem Atividade Registrada</option>
+            <option value="boa_performance">🏆 Boa Performance / Ranking</option>
+            <option value="meta_atingida">✅ Meta de Ocupação Atingida</option>
+            <option value="alerta_critico">🔴 Alerta Crítico Gerado</option>
+            <option value="inicio_turno">🌅 Início de Turno</option>
+            <option value="fim_turno">🌇 Fim de Turno</option>
+            <option value="treinamento">📚 Treinamento Obrigatório</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium uppercase tracking-widest text-[color:var(--color-text-muted)] mb-1.5">Tom da Mensagem</label>
+          <div class="flex flex-wrap gap-2" id="msg-tone-group">
+            <button type="button" class="msg-tone-btn active" data-tone="profissional">Profissional</button>
+            <button type="button" class="msg-tone-btn" data-tone="formal">Formal</button>
+            <button type="button" class="msg-tone-btn" data-tone="amigavel">Amigável</button>
+            <button type="button" class="msg-tone-btn" data-tone="urgente">Urgente</button>
+            <button type="button" class="msg-tone-btn" data-tone="motivacional">Motivacional</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium uppercase tracking-widest text-[color:var(--color-text-muted)] mb-1.5">Contexto Adicional <span class="normal-case font-normal">(opcional)</span></label>
+          <textarea
+            id="msg-extra-context"
+            rows="2"
+            placeholder="Ex: ocupação atual 45%, 3 pausas no turno, meta do dia era 80%..."
+            class="w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-input-bg)] px-3 py-2 text-sm resize-none focus:outline-none focus:border-violet-500/60 transition-colors"
+          ></textarea>
+        </div>
+
+        <button
+          id="msg-generate-btn"
+          type="button"
+          class="w-full flex items-center justify-center gap-2 rounded-lg bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium py-2.5 px-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+          <span id="msg-generate-label">Gerar Mensagem com IA</span>
+        </button>
+      </div>
+
+      <!-- Preview + Ações -->
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="block text-xs font-medium uppercase tracking-widest text-[color:var(--color-text-muted)] mb-1.5">Mensagem Gerada</label>
+          <textarea
+            id="msg-output"
+            rows="6"
+            placeholder="A mensagem gerada pela IA aparecerá aqui. Você pode editar antes de salvar."
+            class="w-full rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-input-bg)] px-3 py-2 text-sm resize-none focus:outline-none focus:border-violet-500/60 transition-colors"
+          ></textarea>
+        </div>
+
+        <div id="msg-error" class="hidden rounded-lg bg-red-500/15 border border-red-500/30 px-3 py-2 text-sm text-red-300"></div>
+
+        <div class="flex gap-2">
+          <button
+            id="msg-save-btn"
+            type="button"
+            class="flex-1 flex items-center justify-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 text-sm font-medium py-2 px-3 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled
+          >
+            <i data-lucide="save" class="w-4 h-4"></i>
+            Salvar na Grade
+          </button>
+          <button
+            id="msg-copy-btn"
+            type="button"
+            class="flex items-center justify-center gap-2 rounded-lg border border-[color:var(--color-border)] hover:border-sky-500/40 bg-[color:var(--color-card-hover)] hover:bg-sky-500/10 text-[color:var(--color-text-muted)] hover:text-sky-300 text-sm py-2 px-3 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            disabled
+          >
+            <i data-lucide="copy" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Grade de Mensagens Salvas -->
+  <section class="ds-panel p-6">
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+          <i data-lucide="layout-grid" class="w-5 h-5 text-amber-400"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-semibold">Mensagens Salvas</h2>
+          <p class="text-xs text-[color:var(--color-text-muted)]">Clique em uma mensagem para selecioná-la e usar no campo acima</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="msg-saved-count" class="text-xs text-[color:var(--color-text-muted)]">0 mensagens</span>
+        <button
+          id="msg-clear-all-btn"
+          type="button"
+          class="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs py-1.5 px-3 transition-colors hidden"
+        >
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          Limpar tudo
+        </button>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div id="msg-saved-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      <!-- Empty state -->
+      <div id="msg-saved-empty" class="col-span-full flex flex-col items-center justify-center py-12 text-center">
+        <i data-lucide="inbox" class="w-10 h-10 text-[color:var(--color-text-muted)] mb-3"></i>
+        <p class="text-sm text-[color:var(--color-text-muted)]">Nenhuma mensagem salva ainda.</p>
+        <p class="text-xs text-[color:var(--color-text-muted)] mt-1">Gere e salve mensagens para montá-las aqui em grade.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+(function () {
+  const STORAGE_KEY = "nef_operator_messages_v1";
+  const generateApiUrl = "{% url 'generate-operator-message' %}";
+  const csrfToken = "{{ csrf_token }}";
+
+  // Elements
+  const operatorNameEl = document.getElementById("msg-operator-name");
+  const scenarioEl = document.getElementById("msg-scenario");
+  const outputEl = document.getElementById("msg-output");
+  const errorEl = document.getElementById("msg-error");
+  const generateBtn = document.getElementById("msg-generate-btn");
+  const generateLabel = document.getElementById("msg-generate-label");
+  const saveBtn = document.getElementById("msg-save-btn");
+  const copyBtn = document.getElementById("msg-copy-btn");
+  const savedGrid = document.getElementById("msg-saved-grid");
+  const savedEmpty = document.getElementById("msg-saved-empty");
+  const savedCount = document.getElementById("msg-saved-count");
+  const clearAllBtn = document.getElementById("msg-clear-all-btn");
+
+  let selectedTone = "profissional";
+  let selectedTarget = "agente";
+  let selectedCardId = null;
+
+  // Target type buttons
+  document.querySelectorAll(".msg-target-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".msg-target-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedTarget = btn.dataset.target;
+      document.getElementById("msg-target-agente").classList.toggle("hidden", selectedTarget !== "agente");
+      document.getElementById("msg-target-evento").classList.toggle("hidden", selectedTarget !== "evento");
+    });
+  });
+
+  // Tone buttons
+  document.querySelectorAll(".msg-tone-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".msg-tone-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectedTone = btn.dataset.tone;
+    });
+  });
+
+  // Generate
+  generateBtn.addEventListener("click", async () => {
+    const isEvento = selectedTarget === "evento";
+    const eventType = document.getElementById("msg-event-type").value;
+    const scenario = scenarioEl.value;
+
+    if (isEvento && !eventType) {
+      showError("Selecione o tipo de evento antes de gerar.");
+      return;
+    }
+    if (!isEvento && !scenario) {
+      showError("Selecione um cenário antes de gerar a mensagem.");
+      return;
+    }
+    hideError();
+    setGenerating(true);
+
+    try {
+      const resolvedScenario = isEvento ? eventType : scenario;
+
+      const res = await fetch(generateApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken,
+        },
+        body: JSON.stringify({
+          scenario: resolvedScenario,
+          tone: selectedTone,
+          operator_name: isEvento ? "equipe" : (operatorNameEl.value.trim() || "operador"),
+          extra_context: document.getElementById("msg-extra-context").value.trim(),
+          target_type: selectedTarget,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        showError(data.error || "Erro ao gerar mensagem.");
+        return;
+      }
+      outputEl.value = data.message;
+      saveBtn.disabled = false;
+      copyBtn.disabled = false;
+      selectedCardId = null;
+    } catch (err) {
+      showError("Erro de conexão. Verifique a API.");
+    } finally {
+      setGenerating(false);
+    }
+  });
+
+  // Save
+  saveBtn.addEventListener("click", () => {
+    const text = outputEl.value.trim();
+    if (!text) return;
+
+    const isEvento = selectedTarget === "evento";
+    const eventTypeEl = document.getElementById("msg-event-type");
+    const scenario = isEvento ? eventTypeEl.value : scenarioEl.value;
+    const scenarioLabel = isEvento
+      ? (eventTypeEl.options[eventTypeEl.selectedIndex]?.text || scenario)
+      : (scenarioEl.options[scenarioEl.selectedIndex]?.text || scenario);
+    const operatorName = isEvento ? "Grupo: " + (eventTypeEl.options[eventTypeEl.selectedIndex]?.text?.split(" — ")[0] || "Evento") : (operatorNameEl.value.trim() || "Operador");
+
+    const messages = loadMessages();
+    const newMsg = {
+      id: Date.now().toString(),
+      text,
+      scenario,
+      scenarioLabel,
+      tone: selectedTone,
+      operatorName,
+      createdAt: new Date().toLocaleString("pt-BR"),
+    };
+    messages.unshift(newMsg);
+    saveMessages(messages);
+    renderGrid(messages);
+    saveBtn.disabled = true;
+  });
+
+  // Copy
+  copyBtn.addEventListener("click", () => {
+    const text = outputEl.value.trim();
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+      if (window.lucide) lucide.createIcons();
+      setTimeout(() => {
+        copyBtn.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i>';
+        if (window.lucide) lucide.createIcons();
+      }, 1500);
+    });
+  });
+
+  // Clear all
+  clearAllBtn.addEventListener("click", () => {
+    if (!confirm("Apagar todas as mensagens salvas?")) return;
+    saveMessages([]);
+    renderGrid([]);
+  });
+
+  // Output manual edit enables save
+  outputEl.addEventListener("input", () => {
+    if (outputEl.value.trim()) {
+      saveBtn.disabled = false;
+      copyBtn.disabled = false;
+    }
+  });
+
+  // ---- LocalStorage ----
+  function loadMessages() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+    catch { return []; }
+  }
+  function saveMessages(arr) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+  }
+
+  // ---- Render Grid ----
+  function renderGrid(messages) {
+    // Remove cards existentes (mantém o empty)
+    savedGrid.querySelectorAll(".msg-card").forEach(el => el.remove());
+
+    const count = messages.length;
+    savedCount.textContent = count + " mensage" + (count === 1 ? "m" : "ns");
+
+    if (count === 0) {
+      savedEmpty.classList.remove("hidden");
+      clearAllBtn.classList.add("hidden");
+    } else {
+      savedEmpty.classList.add("hidden");
+      clearAllBtn.classList.remove("hidden");
+    }
+
+    messages.forEach(msg => {
+      const card = document.createElement("article");
+      card.className = "msg-card ds-panel p-4 cursor-pointer border-2 transition-all hover:border-violet-500/40" +
+        (selectedCardId === msg.id ? " border-violet-500/60 bg-violet-500/10" : " border-[color:var(--color-border)]");
+      card.dataset.id = msg.id;
+
+      const toneColors = {
+        profissional: "bg-sky-500/20 text-sky-300",
+        formal: "bg-slate-500/20 text-slate-300",
+        amigavel: "bg-emerald-500/20 text-emerald-300",
+        urgente: "bg-red-500/20 text-red-300",
+        motivacional: "bg-amber-500/20 text-amber-300",
+      };
+      const toneClass = toneColors[msg.tone] || "bg-violet-500/20 text-violet-300";
+
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-2 mb-2">
+          <div class="flex flex-wrap gap-1.5">
+            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${toneClass}">${msg.tone}</span>
+            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-violet-500/15 text-violet-300">${msg.operatorName}</span>
+          </div>
+          <button class="msg-card-delete flex-shrink-0 rounded p-1 hover:bg-red-500/20 text-[color:var(--color-text-muted)] hover:text-red-400 transition-colors" data-delete-id="${msg.id}" title="Excluir">
+            <i data-lucide="x" class="w-3.5 h-3.5 pointer-events-none"></i>
+          </button>
+        </div>
+        <p class="text-xs text-[color:var(--color-text-muted)] mb-2 truncate">${msg.scenarioLabel}</p>
+        <p class="text-sm leading-relaxed line-clamp-4">${escapeHtml(msg.text)}</p>
+        <div class="mt-3 flex items-center justify-between">
+          <span class="text-[10px] text-[color:var(--color-text-muted)]">${msg.createdAt}</span>
+          <button class="msg-card-select inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] bg-violet-500/15 hover:bg-violet-500/25 text-violet-300 transition-colors" data-select-id="${msg.id}">
+            <i data-lucide="check-circle" class="w-3 h-3 pointer-events-none"></i> Usar
+          </button>
+        </div>
+      `;
+
+      // Click no card = seleciona
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".msg-card-delete")) return;
+        selectCard(msg.id, messages);
+      });
+
+      // Botão "Usar"
+      card.querySelector(".msg-card-select").addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectCard(msg.id, messages);
+      });
+
+      // Botão excluir
+      card.querySelector(".msg-card-delete").addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteCard(msg.id);
+      });
+
+      savedGrid.appendChild(card);
+    });
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function selectCard(id, messages) {
+    const msg = messages.find(m => m.id === id);
+    if (!msg) return;
+    selectedCardId = id;
+    outputEl.value = msg.text;
+    saveBtn.disabled = true;
+    copyBtn.disabled = false;
+
+    // Atualiza visual dos cards
+    savedGrid.querySelectorAll(".msg-card").forEach(c => {
+      if (c.dataset.id === id) {
+        c.classList.add("border-violet-500/60", "bg-violet-500/10");
+        c.classList.remove("border-[color:var(--color-border)]");
+      } else {
+        c.classList.remove("border-violet-500/60", "bg-violet-500/10");
+        c.classList.add("border-[color:var(--color-border)]");
+      }
+    });
+
+    // Scroll para o topo
+    outputEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function deleteCard(id) {
+    const messages = loadMessages().filter(m => m.id !== id);
+    if (selectedCardId === id) {
+      selectedCardId = null;
+      outputEl.value = "";
+      saveBtn.disabled = true;
+      copyBtn.disabled = true;
+    }
+    saveMessages(messages);
+    renderGrid(messages);
+  }
+
+  // ---- Helpers ----
+  function setGenerating(state) {
+    generateBtn.disabled = state;
+    generateLabel.textContent = state ? "Gerando..." : "Gerar Mensagem com IA";
+  }
+  function showError(msg) {
+    errorEl.textContent = msg;
+    errorEl.classList.remove("hidden");
+  }
+  function hideError() {
+    errorEl.classList.add("hidden");
+  }
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  // Init
+  renderGrid(loadMessages());
+})();
+</script>
+
+<style>
+.msg-tone-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.msg-tone-btn:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  color: var(--color-text);
+}
+.msg-tone-btn.active {
+  border-color: rgba(139, 92, 246, 0.6);
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+}
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.msg-target-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+.msg-target-btn:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  color: var(--color-text);
+}
+.msg-target-btn.active {
+  border-color: rgba(139, 92, 246, 0.65);
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+}
+</style>
+{% endblock %}

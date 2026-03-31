@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Configuracoes Gerais | NEF Cadencia{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block page_subtitle %}{{ page_subtitle }}{% endblock %}
+
+{% block content %}
+<section class="ds-panel p-6 space-y-4">
+  <div>
+    <p class="text-sm text-[color:var(--color-text-muted)]">Visao geral</p>
+    <h2 class="text-2xl font-semibold">Configuracoes gerais do sistema</h2>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+      <p class="text-sm text-[color:var(--color-text-muted)]">Total</p>
+      <strong class="text-2xl">{{ stats.total|default:0 }}</strong>
+    </div>
+    <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+      <p class="text-sm text-[color:var(--color-text-muted)]">Categorias</p>
+      <strong class="text-2xl">{{ stats.categories_count|default:0 }}</strong>
+    </div>
+    <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+      <p class="text-sm text-[color:var(--color-text-muted)]">Ultima atualizacao</p>
+      <strong class="text-base">{{ stats.last_updated|date:"d/m/Y H:i"|default:"--" }}</strong>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+    <h3 class="text-lg font-semibold mb-3">Alteracoes recentes</h3>
+    {% if recent_changes %}
+      <ul class="space-y-2">
+        {% for item in recent_changes %}
+          <li class="text-sm">{{ item.config_key }}: {{ item.config_value }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-sm text-[color:var(--color-text-muted)]">Nenhuma alteracao recente encontrada.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

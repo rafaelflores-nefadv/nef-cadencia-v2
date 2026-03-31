@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhe do dia | NEF Cadência{% endblock %}
+{% block page_title %}Detalhe do dia{% endblock %}
+{% block page_subtitle %}Drill-down operacional por data.{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+  <div class="flex justify-end">
+    <a href="{% url 'dashboard-productivity' %}?data_ref={{ selected_date|date:'Y-m-d' }}" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Voltar ao dashboard</a>
+  </div>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+      <div class="space-y-1">
+        <label class="text-xs text-[color:var(--color-text-muted)]" for="data_ref">Data</label>
+        <input id="data_ref" name="data_ref" type="date" value="{{ selected_date|date:'Y-m-d' }}" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent">
+      </div>
+      <div class="space-y-1">
+        <label class="text-xs text-[color:var(--color-text-muted)]" for="q">Operador/nome</label>
+        <input id="q" name="q" type="text" value="{{ search }}" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent" placeholder="Código ou nome">
+      </div>
+      <div class="space-y-1">
+        <label class="text-xs text-[color:var(--color-text-muted)]" for="pause_type">Tipo de pausa</label>
+        <select id="pause_type" name="pause_type" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent">
+          <option value="">Todos</option>
+          {% for value in distinct_pause_types %}
+            <option value="{{ value }}" {% if pause_type == value %}selected{% endif %}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="space-y-1">
+        <label class="text-xs text-[color:var(--color-text-muted)]" for="hour">Hora (0-23)</label>
+        <input id="hour" name="hour" type="number" min="0" max="23" value="{% if selected_hour is not None %}{{ selected_hour }}{% endif %}" class="w-full h-10 px-3 rounded-lg border border-[color:var(--color-border)] bg-transparent">
+      </div>
+      <div class="flex gap-2">
+        <button type="submit" class="h-10 px-4 rounded-lg bg-[color:var(--color-primary)] text-white text-sm font-semibold">Filtrar</button>
+        <a href="{% url 'dashboard-day-detail' %}?data_ref={{ selected_date|date:'Y-m-d' }}" class="h-10 px-4 rounded-lg border border-[color:var(--color-border)] text-sm inline-flex items-center">Limpar</a>
+      </div>
+    </form>
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+    <div class="px-4 py-3 border-b border-[color:var(--color-border)]"><h2 class="text-sm font-semibold">Eventos do dia</h2></div>
+    {% if events_page.object_list %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+              <th class="px-4 py-3 font-medium">Início</th>
+              <th class="px-4 py-3 font-medium">Operador</th>
+              <th class="px-4 py-3 font-medium">Nome</th>
+              <th class="px-4 py-3 font-medium">Tipo</th>
+              <th class="px-4 py-3 font-medium">Pausa</th>
+              <th class="px-4 py-3 font-medium">Duração</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in events_page.object_list %}
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">{{ item.dt_inicio|date:"d/m/Y H:i:s" }}</td>
+                <td class="px-4 py-3">{{ item.cd_operador }}</td>
+                <td class="px-4 py-3">{{ item.agent.nm_agente|default:"Sem nome" }}</td>
+                <td class="px-4 py-3">{{ item.tp_evento }}</td>
+                <td class="px-4 py-3">{{ item.nm_pausa|default:"-" }}</td>
+                <td class="px-4 py-3">{{ item.duracao_hhmm }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Nenhum evento encontrado para os filtros selecionados.</div>
+    {% endif %}
+    {% if events_page.paginator.num_pages > 1 %}
+      <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
+        {% if events_page.has_previous %}<a href="?events_page={{ events_page.previous_page_number }}{{ events_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>{% endif %}
+        <span class="text-[color:var(--color-text-muted)]">Página {{ events_page.number }} de {{ events_page.paginator.num_pages }}</span>
+        {% if events_page.has_next %}<a href="?events_page={{ events_page.next_page_number }}{{ events_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>{% endif %}
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-2 gap-3">
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]"><h2 class="text-sm font-semibold">Pausas do dia</h2></div>
+      {% if pauses_page.object_list %}
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+                <th class="px-4 py-3 font-medium">Início</th>
+                <th class="px-4 py-3 font-medium">Operador</th>
+                <th class="px-4 py-3 font-medium">Pausa</th>
+                <th class="px-4 py-3 font-medium">Duração</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in pauses_page.object_list %}
+                <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                  <td class="px-4 py-3">{{ item.dt_inicio|date:"d/m/Y H:i:s" }}</td>
+                  <td class="px-4 py-3">{{ item.cd_operador }}</td>
+                  <td class="px-4 py-3">{{ item.nm_pausa|default:"-" }}</td>
+                  <td class="px-4 py-3">{{ item.duracao_hhmm }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Nenhuma pausa encontrada para os filtros selecionados.</div>
+      {% endif %}
+      {% if pauses_page.paginator.num_pages > 1 %}
+        <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
+          {% if pauses_page.has_previous %}<a href="?pauses_page={{ pauses_page.previous_page_number }}{{ pauses_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>{% endif %}
+          <span class="text-[color:var(--color-text-muted)]">Página {{ pauses_page.number }} de {{ pauses_page.paginator.num_pages }}</span>
+          {% if pauses_page.has_next %}<a href="?pauses_page={{ pauses_page.next_page_number }}{{ pauses_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>{% endif %}
+        </div>
+      {% endif %}
+    </article>
+
+    <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[color:var(--color-border)]"><h2 class="text-sm font-semibold">Jornadas do dia</h2></div>
+      {% if workday_page.object_list %}
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+                <th class="px-4 py-3 font-medium">Operador</th>
+                <th class="px-4 py-3 font-medium">Nome</th>
+                <th class="px-4 py-3 font-medium">Início</th>
+                <th class="px-4 py-3 font-medium">Fim</th>
+                <th class="px-4 py-3 font-medium">Duração</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in workday_page.object_list %}
+                <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                  <td class="px-4 py-3">{{ item.cd_operador }}</td>
+                  <td class="px-4 py-3">{{ item.nm_operador }}</td>
+                  <td class="px-4 py-3">{{ item.dt_inicio|date:"d/m/Y H:i:s" }}</td>
+                  <td class="px-4 py-3">{{ item.dt_fim|date:"d/m/Y H:i:s" }}</td>
+                  <td class="px-4 py-3">{{ item.duracao_hhmm }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Nenhuma jornada encontrada para os filtros selecionados.</div>
+      {% endif %}
+      {% if workday_page.paginator.num_pages > 1 %}
+        <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
+          {% if workday_page.has_previous %}<a href="?workday_page={{ workday_page.previous_page_number }}{{ workday_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>{% endif %}
+          <span class="text-[color:var(--color-text-muted)]">Página {{ workday_page.number }} de {{ workday_page.paginator.num_pages }}</span>
+          {% if workday_page.has_next %}<a href="?workday_page={{ workday_page.next_page_number }}{{ workday_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>{% endif %}
+        </div>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] overflow-hidden">
+    <div class="px-4 py-3 border-b border-[color:var(--color-border)]"><h2 class="text-sm font-semibold">Stats por agente</h2></div>
+    {% if stats_page.object_list %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-[color:var(--color-text-muted)] border-b border-[color:var(--color-border)]">
+              <th class="px-4 py-3 font-medium">Operador</th>
+              <th class="px-4 py-3 font-medium">Nome</th>
+              <th class="px-4 py-3 font-medium">Qtd pausas</th>
+              <th class="px-4 py-3 font-medium">Tempo pausas</th>
+              <th class="px-4 py-3 font-medium">Último logon</th>
+              <th class="px-4 py-3 font-medium">Último logoff</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in stats_page.object_list %}
+              <tr class="border-b border-[color:var(--color-border)] last:border-0">
+                <td class="px-4 py-3">{{ item.cd_operador }}</td>
+                <td class="px-4 py-3">{{ item.agent.nm_agente|default:"Sem nome" }}</td>
+                <td class="px-4 py-3">{{ item.qtd_pausas }}</td>
+                <td class="px-4 py-3">{{ item.tempo_pausas_hhmm }}</td>
+                <td class="px-4 py-3">{% if item.ultimo_logon %}{{ item.ultimo_logon|date:"d/m/Y H:i:s" }}{% else %}-{% endif %}</td>
+                <td class="px-4 py-3">{% if item.ultimo_logoff %}{{ item.ultimo_logoff|date:"d/m/Y H:i:s" }}{% else %}-{% endif %}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-4 text-sm text-[color:var(--color-text-muted)]">Nenhum stat encontrado para os filtros selecionados.</div>
+    {% endif %}
+    {% if stats_page.paginator.num_pages > 1 %}
+      <div class="px-4 py-3 border-t border-[color:var(--color-border)] flex items-center justify-between text-sm">
+        {% if stats_page.has_previous %}<a href="?stats_page={{ stats_page.previous_page_number }}{{ stats_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Anterior</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Anterior</span>{% endif %}
+        <span class="text-[color:var(--color-text-muted)]">Página {{ stats_page.number }} de {{ stats_page.paginator.num_pages }}</span>
+        {% if stats_page.has_next %}<a href="?stats_page={{ stats_page.next_page_number }}{{ stats_query_suffix }}" class="rounded-lg border border-[color:var(--color-border)] px-3 py-2">Próxima</a>{% else %}<span class="rounded-lg border border-[color:var(--color-border)] px-3 py-2 opacity-50">Próxima</span>{% endif %}
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

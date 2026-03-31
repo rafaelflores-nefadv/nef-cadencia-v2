@@ -1,0 +1,557 @@
+{% extends "base.html" %}
+
+{% block title %}Produtividade | NEF Cadência{% endblock %}
+{% block page_title %}Produtividade{% endblock %}
+{% block page_subtitle %}Quem está performando melhor?{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<style>
+/* ---- Leaderboard Hero ---- */
+.leaderboard-hero__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+.leaderboard-hero__eyebrow {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+  margin-bottom: 0.2rem;
+}
+.leaderboard-hero__title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.leaderboard-hero__podium {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+/* ---- Podium Cards ---- */
+.leaderboard-podium-card {
+  border-radius: 0.9rem;
+  border: 1px solid var(--color-border);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: rgba(255,255,255,0.03);
+  min-height: 0;
+}
+.leaderboard-podium-card--1 { border-color: rgba(251,191,36,0.45); background: rgba(251,191,36,0.07); }
+.leaderboard-podium-card--2 { border-color: rgba(148,163,184,0.35); background: rgba(148,163,184,0.06); }
+.leaderboard-podium-card--3 { border-color: rgba(180,120,60,0.35); background: rgba(180,120,60,0.06); }
+.leaderboard-podium-card--empty { border-style: dashed; }
+.leaderboard-podium-card__rank {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.leaderboard-podium-card__medal { font-size: 1.1rem; }
+.leaderboard-podium-card__name { font-size: 0.9rem; font-weight: 600; }
+.leaderboard-podium-card__score { font-size: 1.5rem; font-weight: 700; }
+.leaderboard-podium-card__time { font-size: 0.75rem; color: var(--color-text-muted); }
+.leaderboard-podium-card__badges { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.25rem; }
+/* ---- Streak badge ---- */
+.leaderboard-streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(251,146,60,0.15);
+  border: 1px solid rgba(251,146,60,0.3);
+  color: #fdba74;
+  width: fit-content;
+  margin-top: 0.25rem;
+}
+/* ---- Leaderboard item (top 10) ---- */
+.leaderboard-item { min-height: 0; }
+.leaderboard-item__metrics {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.leaderboard-item__comparison {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: 0.35rem;
+}
+.leaderboard-item__avg-bar {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(148,163,184,0.15);
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+.leaderboard-item__avg-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #6366f1);
+  width: var(--avg-progress, 0%);
+}
+.leaderboard-item__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+}
+/* ---- Generic badge ---- */
+.leaderboard-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(139,92,246,0.15);
+  border: 1px solid rgba(139,92,246,0.3);
+  color: #c4b5fd;
+}
+/* ---- Chart plot ---- */
+.chart-plot-md {
+  height: 290px;
+  max-height: 290px;
+  position: relative;
+  overflow: hidden;
+}
+/* ---- Grid col fix (não-Tailwind) ---- */
+.prod-grid-leaderboard {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+.prod-grid-charts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 1280px) {
+  .prod-grid-leaderboard { grid-template-columns: 1.35fr 0.95fr; }
+  .prod-grid-charts { grid-template-columns: 1.1fr 1.1fr 1.2fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6 productivity-dashboard">
+  <!-- Abas de navegação -->
+  <div class="flex gap-2 border-b border-[color:var(--color-border)] px-4 -mx-4">
+    <button class="tab-button tab-button--active py-3 px-4 text-sm font-semibold border-b-2 border-[color:var(--color-primary)] text-[color:var(--color-text)]" data-tab="produtividade">
+      Produtividade
+    </button>
+    <a href="/admin/integrations/integration/" class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text)]" data-tab="agentes-ia">
+      Agentes de IA
+    </a>
+  </div>
+
+  <!-- Conteúdo da aba Produtividade -->
+  <div class="tab-content" data-tab-content="produtividade">
+  {% include "monitoring/_dashboard_filters.html" %}
+
+  <section class="leaderboard-hero ds-panel p-5">
+    <div class="leaderboard-hero__header">
+      <div>
+        <p class="leaderboard-hero__eyebrow">Arena de Performance</p>
+        <h2 class="leaderboard-hero__title">Top 3 do turno</h2>
+      </div>
+      <div class="ds-badge ds-badge--info">Ranking ao vivo</div>
+    </div>
+    <div class="leaderboard-hero__podium">
+      {% for item in medalists_top3 %}
+        <article class="leaderboard-podium-card leaderboard-podium-card--{{ forloop.counter }}">
+          <div class="leaderboard-podium-card__rank">
+            {% if item.medal %}{{ item.medal.emoji }}{% endif %}
+            #{{ item.position }}
+          </div>
+          <div class="leaderboard-podium-card__name">{{ item.agent_name }}</div>
+          <div class="leaderboard-podium-card__score">{% if item.taxa_ocupacao_pct is not None %}{{ item.taxa_ocupacao_pct|floatformat:0 }}{% else %}--{% endif %} pts</div>
+          <div class="leaderboard-podium-card__time">{{ item.tempo_produtivo_hhmm|default:"Sem dados" }}</div>
+          {% if item.badges %}
+            <div class="leaderboard-podium-card__badges">
+              {% for badge in item.badges %}
+                <div class="leaderboard-badge">{{ badge }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+          <div class="leaderboard-streak-badge">🔥 {{ item.streak_days }} dias</div>
+        </article>
+      {% empty %}
+        <article class="leaderboard-podium-card leaderboard-podium-card--empty">
+          <div class="leaderboard-podium-card__name">Sem dados de ranking para o período.</div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <article class="ds-kpi border-emerald-500/35 bg-gradient-to-br from-emerald-500/20 to-slate-900/85">
+      <div class="flex items-center justify-between">
+        <div class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-400/35 bg-emerald-500/15 text-lg">⚡</div>
+        <div class="ds-badge ds-badge--ok">Produtivo</div>
+      </div>
+      <div class="mt-3 text-xs text-emerald-200 uppercase tracking-wide">Tempo produtivo</div>
+      <div class="mt-1 text-4xl font-bold">{{ tempo_produtivo_total_hhmm }}</div>
+      <div class="text-xs text-emerald-100/80 mt-2">Volume principal de performance operacional.</div>
+    </article>
+    <article class="ds-kpi border-red-500/35 bg-gradient-to-br from-red-500/20 to-slate-900/85">
+      <div class="flex items-center justify-between">
+        <div class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-red-400/35 bg-red-500/15 text-lg">🧯</div>
+        <div class="ds-badge ds-badge--crit">Risco</div>
+      </div>
+      <div class="mt-3 text-xs text-red-200 uppercase tracking-wide">Tempo improdutivo</div>
+      <div class="mt-1 text-4xl font-bold">{{ tempo_improdutivo_total_hhmm }}</div>
+      <div class="text-xs text-red-100/80 mt-2">Impacto direto na eficiência do turno.</div>
+    </article>
+    <article class="ds-kpi border-sky-500/35 bg-gradient-to-br from-sky-500/20 to-slate-900/85">
+      <div class="flex items-center justify-between">
+        <div class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-sky-400/35 bg-sky-500/15 text-lg">🎯</div>
+        <div class="ds-badge ds-badge--info">Média</div>
+      </div>
+      <div class="mt-3 text-xs text-sky-200 uppercase tracking-wide">Taxa média de ocupação</div>
+      <div class="mt-1 text-4xl font-bold">{% if taxa_ocupacao_pct == 0 or taxa_ocupacao_pct %}{{ taxa_ocupacao_pct|floatformat:1 }}%{% else %}Sem dados{% endif %}</div>
+      <div class="text-xs text-sky-100/80 mt-2">Base para o score operacional do ranking.</div>
+    </article>
+    <article class="ds-kpi border-amber-500/35 bg-gradient-to-br from-amber-500/20 to-slate-900/85">
+      <div class="flex items-center justify-between">
+        <div class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-amber-400/35 bg-amber-500/15 text-lg">⏸</div>
+        <div class="ds-badge ds-badge--warn">Neutro</div>
+      </div>
+      <div class="mt-3 text-xs text-amber-200 uppercase tracking-wide">Tempo neutro</div>
+      <div class="mt-1 text-4xl font-bold">{{ tempo_neutro_total_hhmm }}</div>
+      <div class="text-xs text-amber-100/80 mt-2">Tempo não produtivo direto, porém sem risco crítico.</div>
+    </article>
+  </section>
+
+
+  <section class="prod-grid-charts gap-4">
+    <article class="ds-panel p-5">
+      <h2 class="text-sm font-semibold mb-4">Produtividade por agente</h2>
+      <div class="chart-plot-md"><canvas id="productivityByAgentChart"></canvas></div>
+    </article>
+    <article class="ds-panel p-5">
+      <h2 class="text-sm font-semibold mb-4">Tempo produtivo vs improdutivo</h2>
+      <div class="chart-plot-md"><canvas id="productiveVsUnproductiveChart"></canvas></div>
+    </article>
+    <article class="ds-panel p-5">
+      <h2 class="text-sm font-semibold mb-4">Evolução de produtividade</h2>
+      <div class="chart-plot-md"><canvas id="productivityTrendChart"></canvas></div>
+    </article>
+  </section>
+
+  <section class="ds-panel p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-sm font-semibold">Comparativo de desempenho</h2>
+      <div class="text-xs text-[color:var(--color-text-muted)]">Baseado em ocupação</div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <article class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+        <div class="text-[11px] uppercase tracking-[0.12em] text-emerald-200">Melhores agentes</div>
+        <ul class="mt-3 space-y-2 text-sm">
+          {% for item in top3_productivity %}
+            <li class="flex items-center justify-between gap-2">
+              <div>{{ forloop.counter }}º {{ item.agent_name }}</div>
+              <strong>{% if item.taxa_ocupacao_pct is not None %}{{ item.taxa_ocupacao_pct|floatformat:0 }}%{% else %}--{% endif %}</strong>
+            </li>
+          {% empty %}
+            <li class="text-[color:var(--color-text-muted)]">Sem dados para top desempenho.</li>
+          {% endfor %}
+        </ul>
+      </article>
+      <article class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+        <div class="text-[11px] uppercase tracking-[0.12em] text-amber-200">Pontos de atenção</div>
+        <ul class="mt-3 space-y-2 text-sm">
+          {% for item in low_productivity_agents %}
+            <li class="flex items-center justify-between gap-2">
+              <div>{{ item.agent_name }}</div>
+              <strong>{% if item.taxa_ocupacao_pct is not None %}{{ item.taxa_ocupacao_pct|floatformat:0 }}%{% else %}--{% endif %}</strong>
+            </li>
+          {% empty %}
+            <li class="text-[color:var(--color-text-muted)]">Sem dados críticos de baixa produtividade.</li>
+          {% endfor %}
+        </ul>
+      </article>
+    </div>
+  </section>
+  </div>
+  <!-- Fim do conteúdo da aba Produtividade -->
+</div>
+
+{{ productivity_chart_agents|json_script:"productivity-chart-agents-data" }}
+{{ pause_distribution|json_script:"pause-distribution-data" }}
+{{ productivity_evolution|json_script:"productivity-evolution-data" }}
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script>
+    (function () {
+      if (!window.Chart) return;
+      const pauseDist = JSON.parse(document.getElementById("pause-distribution-data").textContent || "[]");
+      const productivityChartAgents = JSON.parse(document.getElementById("productivity-chart-agents-data").textContent || "[]");
+      const productivityEvolution = JSON.parse(document.getElementById("productivity-evolution-data").textContent || "[]");
+      const rankBars = document.querySelectorAll("[data-rank-bar]");
+      let chartInstances = [];
+
+      function cssVar(name, fallback) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(name);
+        return value ? value.trim() : fallback;
+      }
+
+      function destroyCharts() {
+        chartInstances.forEach((chart) => chart.destroy());
+        chartInstances = [];
+      }
+
+      const maxProductive = productivityChartAgents.reduce((acc, item) => {
+        const value = Number(item.tempo_produtivo_seg || 0);
+        return value > acc ? value : acc;
+      }, 0);
+
+      rankBars.forEach((bar) => {
+        const value = Number(bar.getAttribute("data-value") || 0);
+        const pct = maxProductive > 0 ? Math.max(6, Math.min((value / maxProductive) * 100, 100)) : 0;
+        bar.style.width = pct + "%";
+      });
+      document.querySelectorAll("[data-avg-progress]").forEach((bar) => {
+        const pct = Number(bar.getAttribute("data-avg-progress") || 0);
+        const bounded = Math.max(0, Math.min(pct, 180));
+        bar.style.width = bounded + "%";
+      });
+
+      const byType = {
+        "Tempo Produtivo": 0,
+        "Tempo Neutro": 0,
+        "Tempo Improdutivo": 0,
+        "Tempo Não Classificado": 0,
+      };
+      pauseDist.forEach((item) => {
+        const key = String(item.pause_type || "");
+        if (Object.prototype.hasOwnProperty.call(byType, key)) {
+          byType[key] = Number(item.tempo_seg || 0);
+        }
+      });
+
+      const topAgents = productivityChartAgents
+        .filter((item) => Number(item.tempo_produtivo_seg || 0) > 0);
+
+      function segsToHms(s) {
+        s = Math.round(Number(s) || 0);
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        if (h > 0) return h + "h " + String(m).padStart(2, "0") + "m";
+        if (m > 0) return m + "m";
+        return s + "s";
+      }
+
+      function mountCharts() {
+        destroyCharts();
+
+        const mutedColor = cssVar("--color-text-muted", "#94a3b8");
+        const textColor = cssVar("--color-text", "#e2e8f0");
+        const borderColor = cssVar("--color-border", "rgba(148,163,184,0.18)");
+        const primaryColor = cssVar("--color-primary", "#38bdf8");
+
+        const byAgentCanvas = document.getElementById("productivityByAgentChart");
+        if (byAgentCanvas) {
+          chartInstances.push(new Chart(byAgentCanvas, {
+            type: "bar",
+            data: {
+              labels: topAgents.map((item) => item.agent_name),
+              datasets: [{
+                label: "Tempo produtivo",
+                data: topAgents.map((item) => Number(item.tempo_produtivo_seg || 0)),
+                backgroundColor: topAgents.map((_, i) =>
+                  i === 0 ? "#22c55e" : i === 1 ? "#34d399" : "#6ee7b7"
+                ),
+                borderRadius: 10,
+                borderSkipped: false,
+              }],
+            },
+            options: {
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => " " + segsToHms(ctx.raw),
+                  },
+                  backgroundColor: "rgba(15,23,42,0.92)",
+                  titleColor: "#e2e8f0",
+                  bodyColor: "#94a3b8",
+                  borderColor: "rgba(148,163,184,0.2)",
+                  borderWidth: 1,
+                  padding: 10,
+                  cornerRadius: 8,
+                },
+              },
+              scales: {
+                x: {
+                  ticks: { color: mutedColor, maxRotation: 30, font: { size: 11 } },
+                  grid: { color: borderColor },
+                },
+                y: {
+                  ticks: {
+                    color: mutedColor,
+                    callback: (val) => segsToHms(val),
+                  },
+                  grid: { color: borderColor },
+                },
+              },
+            },
+          }));
+        }
+
+        const productiveVsUnproductiveCanvas = document.getElementById("productiveVsUnproductiveChart");
+        if (productiveVsUnproductiveCanvas) {
+          const prodSeg = Number(byType["Tempo Produtivo"] || 0);
+          const imprSeg = Number(byType["Tempo Improdutivo"] || 0);
+          const neutroSeg = Number(byType["Tempo Neutro"] || 0);
+          const totalSeg = prodSeg + imprSeg + neutroSeg;
+          const prodPct = totalSeg > 0 ? Math.round((prodSeg / totalSeg) * 100) : 0;
+
+          const doughnutPlugin = {
+            id: "centerText",
+            afterDraw(chart) {
+              const { ctx, chartArea: { top, bottom, left, right } } = chart;
+              const cx = (left + right) / 2;
+              const cy = (top + bottom) / 2;
+              ctx.save();
+              ctx.font = "bold 22px sans-serif";
+              ctx.fillStyle = textColor;
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.fillText(prodPct + "%", cx, cy - 8);
+              ctx.font = "11px sans-serif";
+              ctx.fillStyle = mutedColor;
+              ctx.fillText("produtivo", cx, cy + 14);
+              ctx.restore();
+            },
+          };
+
+          chartInstances.push(new Chart(productiveVsUnproductiveCanvas, {
+            type: "doughnut",
+            plugins: [doughnutPlugin],
+            data: {
+              labels: ["Produtivo", "Improdutivo", "Neutro"],
+              datasets: [{
+                data: [prodSeg, imprSeg, neutroSeg],
+                backgroundColor: ["#22c55e", "#ef4444", "#f59e0b"],
+                borderColor: cssVar("--color-card", "#0f172a"),
+                borderWidth: 3,
+                hoverOffset: 6,
+              }],
+            },
+            options: {
+              maintainAspectRatio: false,
+              cutout: "70%",
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: {
+                    color: textColor,
+                    padding: 16,
+                    font: { size: 12 },
+                    generateLabels: (chart) => {
+                      const data = chart.data.datasets[0].data;
+                      return chart.data.labels.map((label, i) => ({
+                        text: label + "  " + segsToHms(data[i]),
+                        fillStyle: chart.data.datasets[0].backgroundColor[i],
+                        strokeStyle: "transparent",
+                        index: i,
+                      }));
+                    },
+                  },
+                },
+                tooltip: {
+                  callbacks: {
+                    label: (ctx) => " " + ctx.label + ": " + segsToHms(ctx.raw),
+                  },
+                  backgroundColor: "rgba(15,23,42,0.92)",
+                  titleColor: "#e2e8f0",
+                  bodyColor: "#94a3b8",
+                  borderColor: "rgba(148,163,184,0.2)",
+                  borderWidth: 1,
+                  padding: 10,
+                  cornerRadius: 8,
+                },
+              },
+            },
+          }));
+        }
+
+        const productivityTrendCanvas = document.getElementById("productivityTrendChart");
+        if (productivityTrendCanvas) {
+          const trendData = productivityEvolution.length ? productivityEvolution : [{
+            label: "Sem dados",
+            productive_seconds: 0,
+            improductive_seconds: 0,
+            occupancy_pct: 0,
+          }];
+          chartInstances.push(new Chart(productivityTrendCanvas, {
+            type: "line",
+            data: {
+              labels: trendData.map((item) => item.label),
+              datasets: [
+                {
+                  label: "Ocupacao (%)",
+                  data: trendData.map((item) => Number(item.occupancy_pct || 0)),
+                  borderColor: primaryColor,
+                  backgroundColor: "rgba(56,189,248,0.18)",
+                  fill: true,
+                  tension: 0.35,
+                  pointRadius: 3,
+                  yAxisID: "yPct",
+                },
+                {
+                  label: "Improdutivo (seg)",
+                  data: trendData.map((item) => Number(item.improductive_seconds || 0)),
+                  borderColor: "#ef4444",
+                  backgroundColor: "rgba(239,68,68,0.18)",
+                  tension: 0.28,
+                  pointRadius: 2,
+                  yAxisID: "yTime",
+                },
+              ],
+            },
+            options: {
+              maintainAspectRatio: false,
+              plugins: { legend: { labels: { color: textColor } } },
+              scales: {
+                x: { ticks: { color: mutedColor }, grid: { color: borderColor } },
+                yPct: {
+                  type: "linear",
+                  position: "left",
+                  ticks: { color: mutedColor },
+                  grid: { color: borderColor },
+                  suggestedMax: 100,
+                },
+                yTime: {
+                  type: "linear",
+                  position: "right",
+                  ticks: { color: mutedColor },
+                  grid: { drawOnChartArea: false },
+                },
+              },
+            },
+          }));
+        }
+      }
+
+      mountCharts();
+      document.addEventListener("app:theme-change", mountCharts);
+    })();
+  </script>
+{% endblock %}

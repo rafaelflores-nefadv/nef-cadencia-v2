@@ -1,0 +1,104 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Classificação de Pausas | {{ site_title|default:'NEF Cadência' }}{% endblock %}
+
+{% block breadcrumbs %}
+<a href="{% url 'admin:index' %}">Home</a>
+<span>/</span>
+<a href="{% url 'admin:app_list' app_label='monitoring' %}">Monitoring</a>
+<span>/</span>
+<span>Classificação de pausas</span>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+  <section class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4">
+    <h2 class="text-sm font-semibold">Classificação de Pausas</h2>
+    <div class="mt-2 text-xs text-[color:var(--color-text-muted)]">
+      Pausas distintas no dataset: {{ total_distinct_pause_names }}
+      {% for category_item in dataset_category_summary %}
+        | {{ category_item.label }}: {{ category_item.count }}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {% for column in category_columns %}
+      <article class="rounded-xl border border-[color:var(--color-border)] bg-[color:var(--color-card)] p-4 h-fit">
+        <div class="flex items-start justify-between gap-3">
+          <h3 class="text-base font-semibold">{{ column.label }}</h3>
+          <span class="rounded-full border border-[color:var(--color-border)] px-2 py-1 text-xs">
+            {{ column.items|length }} item(ns)
+          </span>
+        </div>
+
+        <form method="post" class="mt-3 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="add">
+          <input type="hidden" name="category" value="{{ column.key }}">
+          <select
+            name="pause_name"
+            class="h-10 rounded-lg border border-[color:var(--color-border)] bg-transparent px-3 text-sm"
+            {% if not available_pause_names %}disabled{% endif %}
+          >
+            <option value="">Selecione uma pausa</option>
+            {% for pause_name in available_pause_names %}
+              <option value="{{ pause_name }}">{{ pause_name }}</option>
+            {% endfor %}
+          </select>
+          <button
+            type="submit"
+            class="h-10 rounded-lg px-4 text-sm font-semibold bg-[color:var(--color-primary)] text-white disabled:opacity-50"
+            {% if not available_pause_names %}disabled{% endif %}
+          >
+            Adicionar
+          </button>
+        </form>
+
+        <div class="mt-4 space-y-2">
+          {% if column.items %}
+            {% for item in column.items %}
+              <div class="rounded-lg border border-[color:var(--color-border)] px-3 py-3">
+                <div class="text-sm font-medium">{{ item.pause_name }}</div>
+                <div class="mt-2 flex flex-wrap items-center gap-2">
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="remove">
+                    <input type="hidden" name="classification_id" value="{{ item.id }}">
+                    <button type="submit" class="h-8 rounded-lg border border-[color:var(--color-border)] px-3 text-xs">
+                      Remover
+                    </button>
+                  </form>
+
+                  <form method="post" class="flex items-center gap-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="move">
+                    <input type="hidden" name="classification_id" value="{{ item.id }}">
+                    <select
+                      name="target_category"
+                      class="h-8 rounded-lg border border-[color:var(--color-border)] bg-transparent px-2 text-xs"
+                    >
+                      {% for category in category_choices %}
+                        {% if category.key != item.category %}
+                          <option value="{{ category.key }}">Mover para {{ category.label }}</option>
+                        {% endif %}
+                      {% endfor %}
+                    </select>
+                    <button type="submit" class="h-8 rounded-lg border border-[color:var(--color-border)] px-3 text-xs">
+                      Mover
+                    </button>
+                  </form>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="rounded-lg border border-dashed border-[color:var(--color-border)] px-3 py-4 text-xs text-[color:var(--color-text-muted)]">
+              Nenhuma pausa classificada nesta categoria.
+            </div>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

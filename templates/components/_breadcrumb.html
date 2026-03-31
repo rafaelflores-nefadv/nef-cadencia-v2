@@ -1,0 +1,33 @@
+{% comment %}
+Componente: Breadcrumb de Navegação
+Uso:
+  {% include "components/_breadcrumb.html" with 
+    items=breadcrumb_items
+  %}
+  
+  breadcrumb_items = [
+    {"label": "Dashboard", "url": "/dashboard", "icon": "home"},
+    {"label": "Configurações", "url": None, "icon": None},
+  ]
+{% endcomment %}
+
+<nav class="mb-6 flex items-center gap-2 text-sm" aria-label="Breadcrumb">
+  {% for item in items %}
+    {% if not forloop.last %}
+      <a href="{{ item.url }}" class="flex items-center gap-1.5 text-[color:var(--color-text-muted)] hover:text-[color:var(--color-primary)] transition-colors">
+        {% if item.icon %}
+          <i data-lucide="{{ item.icon }}" class="w-4 h-4"></i>
+        {% endif %}
+        {{ item.label }}
+      </a>
+      <i data-lucide="chevron-right" class="w-4 h-4 text-[color:var(--color-text-muted)]"></i>
+    {% else %}
+      <span class="flex items-center gap-1.5 text-[color:var(--color-text)]">
+        {% if item.icon %}
+          <i data-lucide="{{ item.icon }}" class="w-4 h-4"></i>
+        {% endif %}
+        {{ item.label }}
+      </span>
+    {% endif %}
+  {% endfor %}
+</nav>

@@ -1,0 +1,214 @@
+INTERACTION_ORIGIN_WIDGET = "widget"
+INTERACTION_ORIGIN_PAGE = "page"
+
+INTERACTION_ORIGIN_CHOICES = (
+    (INTERACTION_ORIGIN_WIDGET, "Widget"),
+    (INTERACTION_ORIGIN_PAGE, "Page"),
+)
+VALID_INTERACTION_ORIGINS = frozenset(value for value, _ in INTERACTION_ORIGIN_CHOICES)
+
+AUDIT_EVENT_CHAT_MESSAGE = "chat_message"
+AUDIT_EVENT_PAGE_CONVERSATION_CREATED = "page_conversation_created"
+AUDIT_EVENT_WIDGET_SESSION_SAVED = "widget_session_saved"
+AUDIT_EVENT_WIDGET_SESSION_ENDED = "widget_session_ended"
+AUDIT_EVENT_CONVERSATION_DELETED = "conversation_deleted"
+
+AUDIT_EVENT_CHOICES = (
+    (AUDIT_EVENT_CHAT_MESSAGE, "Chat message"),
+    (AUDIT_EVENT_PAGE_CONVERSATION_CREATED, "Page conversation created"),
+    (AUDIT_EVENT_WIDGET_SESSION_SAVED, "Widget session saved"),
+    (AUDIT_EVENT_WIDGET_SESSION_ENDED, "Widget session ended"),
+    (AUDIT_EVENT_CONVERSATION_DELETED, "Conversation deleted"),
+)
+VALID_AUDIT_EVENT_TYPES = frozenset(value for value, _ in AUDIT_EVENT_CHOICES)
+
+AUDIT_STATUS_COMPLETED = "completed"
+AUDIT_STATUS_BLOCKED_SCOPE = "blocked_scope"
+AUDIT_STATUS_BLOCKED_CAPABILITY = "blocked_capability"
+AUDIT_STATUS_BLOCKED_LIMIT = "blocked_limit"
+AUDIT_STATUS_NO_DATA = "no_data"
+AUDIT_STATUS_DISABLED = "disabled"
+AUDIT_STATUS_CONFIG_ERROR = "config_error"
+AUDIT_STATUS_TOOL_FAILURE = "tool_failure"
+AUDIT_STATUS_TEMPORARY_FAILURE = "temporary_failure"
+AUDIT_STATUS_FAIL_SAFE = "fail_safe"
+
+AUDIT_STATUS_CHOICES = (
+    (AUDIT_STATUS_COMPLETED, "Completed"),
+    (AUDIT_STATUS_BLOCKED_SCOPE, "Blocked scope"),
+    (AUDIT_STATUS_BLOCKED_CAPABILITY, "Blocked capability"),
+    (AUDIT_STATUS_BLOCKED_LIMIT, "Blocked limit"),
+    (AUDIT_STATUS_NO_DATA, "No data"),
+    (AUDIT_STATUS_DISABLED, "Disabled"),
+    (AUDIT_STATUS_CONFIG_ERROR, "Config error"),
+    (AUDIT_STATUS_TOOL_FAILURE, "Tool failure"),
+    (AUDIT_STATUS_TEMPORARY_FAILURE, "Temporary failure"),
+    (AUDIT_STATUS_FAIL_SAFE, "Fail-safe"),
+)
+VALID_AUDIT_STATUSES = frozenset(value for value, _ in AUDIT_STATUS_CHOICES)
+
+TOOL_EXECUTION_RESULT_SUCCESS = "success"
+TOOL_EXECUTION_RESULT_ERROR = "error"
+TOOL_EXECUTION_RESULT_DENIED = "denied"
+
+TOOL_EXECUTION_RESULT_CHOICES = (
+    (TOOL_EXECUTION_RESULT_SUCCESS, "Success"),
+    (TOOL_EXECUTION_RESULT_ERROR, "Error"),
+    (TOOL_EXECUTION_RESULT_DENIED, "Denied"),
+)
+VALID_TOOL_EXECUTION_RESULTS = frozenset(
+    value for value, _ in TOOL_EXECUTION_RESULT_CHOICES
+)
+
+BLOCK_REASON_EMPTY_TEXT = "empty_text"
+BLOCK_REASON_PROMPT_INJECTION = "prompt_injection"
+BLOCK_REASON_OUT_OF_SCOPE_PHRASE = "out_of_scope_phrase"
+BLOCK_REASON_EXTERNAL_CONTEXT = "external_context"
+BLOCK_REASON_NO_SCOPE_MATCH = "no_scope_match"
+BLOCK_REASON_GUARDRAIL_INPUT_ERROR = "guardrail_input_error"
+BLOCK_REASON_UNSUPPORTED_PATTERN = "unsupported_pattern"
+BLOCK_REASON_NO_CAPABILITY_MATCH = "no_capability_match"
+BLOCK_REASON_CAPABILITY_ASSESSMENT_ERROR = "capability_assessment_error"
+BLOCK_REASON_CONVERSATION_LIMIT_REACHED = "conversation_limit_reached"
+BLOCK_REASON_EMPTY_WIDGET_SESSION = "empty_widget_session"
+BLOCK_REASON_INVALID_WIDGET_SESSION = "invalid_widget_session"
+BLOCK_REASON_UNKNOWN = "unknown_block_reason"
+
+VALID_BLOCK_REASONS = frozenset(
+    {
+        BLOCK_REASON_EMPTY_TEXT,
+        BLOCK_REASON_PROMPT_INJECTION,
+        BLOCK_REASON_OUT_OF_SCOPE_PHRASE,
+        BLOCK_REASON_EXTERNAL_CONTEXT,
+        BLOCK_REASON_NO_SCOPE_MATCH,
+        BLOCK_REASON_GUARDRAIL_INPUT_ERROR,
+        BLOCK_REASON_UNSUPPORTED_PATTERN,
+        BLOCK_REASON_NO_CAPABILITY_MATCH,
+        BLOCK_REASON_CAPABILITY_ASSESSMENT_ERROR,
+        BLOCK_REASON_CONVERSATION_LIMIT_REACHED,
+        BLOCK_REASON_EMPTY_WIDGET_SESSION,
+        BLOCK_REASON_INVALID_WIDGET_SESSION,
+    }
+)
+
+FALLBACK_REASON_QUERY_TOOL_ERROR = "query_tool_error"
+FALLBACK_REASON_ACTION_TOOL_ERROR = "action_tool_error"
+FALLBACK_REASON_TOOL_OUTSIDE_VALIDATED_CAPABILITY = (
+    "tool_outside_validated_capability"
+)
+FALLBACK_REASON_REQUIRED_QUERY_TOOL_NOT_EXECUTED = (
+    "required_query_tool_not_executed"
+)
+FALLBACK_REASON_REQUIRED_QUERY_TOOL_WITHOUT_SUCCESS = (
+    "required_query_tool_without_success"
+)
+FALLBACK_REASON_SUPPORTED_WITHOUT_DATA = "supported_without_data"
+FALLBACK_REASON_REQUIRED_ACTION_TOOL_NOT_EXECUTED = (
+    "required_action_tool_not_executed"
+)
+FALLBACK_REASON_CAPABILITY_RUNTIME_ERROR = "capability_runtime_error"
+FALLBACK_REASON_EMPTY_MODEL_OUTPUT = "empty_model_output"
+FALLBACK_REASON_OPENAI_CONFIG_ERROR = "openai_config_error"
+FALLBACK_REASON_OPENAI_RUNTIME_ERROR = "openai_runtime_error"
+FALLBACK_REASON_ASSISTANT_RUNTIME_ERROR = "assistant_runtime_error"
+FALLBACK_REASON_GUARDRAIL_OUTPUT_ERROR = "guardrail_output_error"
+FALLBACK_REASON_EMPTY_RESPONSE = "empty_response"
+FALLBACK_REASON_RESPONSE_PROMPT_INJECTION = "response_prompt_injection"
+FALLBACK_REASON_RESPONSE_OUT_OF_SCOPE_PHRASE = "response_out_of_scope_phrase"
+FALLBACK_REASON_RESPONSE_EXTERNAL_CONTEXT = "response_external_context"
+FALLBACK_REASON_RESPONSE_NO_SCOPE_MATCH = "response_no_scope_match"
+FALLBACK_REASON_FALSE_ACTION_CLAIM = "false_action_claim"
+FALLBACK_REASON_FALSE_DATA_CLAIM = "false_data_claim"
+FALLBACK_REASON_SPECULATIVE_CERTAINTY = "speculative_certainty"
+FALLBACK_REASON_QUERY_ANSWER_WITHOUT_VERIFIED_TOOL = (
+    "query_answer_without_verified_tool"
+)
+FALLBACK_REASON_ACTION_ANSWER_WITHOUT_ATTEMPT = (
+    "action_answer_without_attempt"
+)
+FALLBACK_REASON_UNKNOWN = "unknown_fallback_reason"
+
+VALID_FALLBACK_REASONS = frozenset(
+    {
+        FALLBACK_REASON_QUERY_TOOL_ERROR,
+        FALLBACK_REASON_ACTION_TOOL_ERROR,
+        FALLBACK_REASON_TOOL_OUTSIDE_VALIDATED_CAPABILITY,
+        FALLBACK_REASON_REQUIRED_QUERY_TOOL_NOT_EXECUTED,
+        FALLBACK_REASON_REQUIRED_QUERY_TOOL_WITHOUT_SUCCESS,
+        FALLBACK_REASON_SUPPORTED_WITHOUT_DATA,
+        FALLBACK_REASON_REQUIRED_ACTION_TOOL_NOT_EXECUTED,
+        FALLBACK_REASON_CAPABILITY_RUNTIME_ERROR,
+        FALLBACK_REASON_EMPTY_MODEL_OUTPUT,
+        FALLBACK_REASON_OPENAI_CONFIG_ERROR,
+        FALLBACK_REASON_OPENAI_RUNTIME_ERROR,
+        FALLBACK_REASON_ASSISTANT_RUNTIME_ERROR,
+        FALLBACK_REASON_GUARDRAIL_OUTPUT_ERROR,
+        FALLBACK_REASON_EMPTY_RESPONSE,
+        FALLBACK_REASON_RESPONSE_PROMPT_INJECTION,
+        FALLBACK_REASON_RESPONSE_OUT_OF_SCOPE_PHRASE,
+        FALLBACK_REASON_RESPONSE_EXTERNAL_CONTEXT,
+        FALLBACK_REASON_RESPONSE_NO_SCOPE_MATCH,
+        FALLBACK_REASON_FALSE_ACTION_CLAIM,
+        FALLBACK_REASON_FALSE_DATA_CLAIM,
+        FALLBACK_REASON_SPECULATIVE_CERTAINTY,
+        FALLBACK_REASON_QUERY_ANSWER_WITHOUT_VERIFIED_TOOL,
+        FALLBACK_REASON_ACTION_ANSWER_WITHOUT_ATTEMPT,
+    }
+)
+
+TOOL_FAILURE_REASONS = frozenset(
+    {
+        FALLBACK_REASON_QUERY_TOOL_ERROR,
+        FALLBACK_REASON_ACTION_TOOL_ERROR,
+    }
+)
+
+FALLBACK_FINAL_STATUSES = frozenset(
+    {
+        AUDIT_STATUS_NO_DATA,
+        AUDIT_STATUS_DISABLED,
+        AUDIT_STATUS_CONFIG_ERROR,
+        AUDIT_STATUS_TOOL_FAILURE,
+        AUDIT_STATUS_TEMPORARY_FAILURE,
+        AUDIT_STATUS_FAIL_SAFE,
+    }
+)
+
+
+def normalize_interaction_origin(origin: str | None) -> str:
+    if origin in VALID_INTERACTION_ORIGINS:
+        return origin
+    return INTERACTION_ORIGIN_WIDGET
+
+
+def normalize_audit_event_type(event_type: str | None) -> str:
+    if event_type in VALID_AUDIT_EVENT_TYPES:
+        return event_type
+    return AUDIT_EVENT_CHAT_MESSAGE
+
+
+def normalize_audit_status(status: str | None) -> str:
+    if status in VALID_AUDIT_STATUSES:
+        return status
+    return AUDIT_STATUS_FAIL_SAFE
+
+
+def normalize_block_reason(reason: str | None) -> str:
+    if not reason:
+        return ""
+    if reason in VALID_BLOCK_REASONS:
+        return reason
+    return BLOCK_REASON_UNKNOWN
+
+
+def normalize_fallback_reason(reason: str | None) -> str:
+    if not reason:
+        return ""
+    if reason in VALID_FALLBACK_REASONS:
+        return reason
+    return FALLBACK_REASON_UNKNOWN
+
+
+def is_fallback_status(status: str | None) -> bool:
+    return normalize_audit_status(status) in FALLBACK_FINAL_STATUSES
+

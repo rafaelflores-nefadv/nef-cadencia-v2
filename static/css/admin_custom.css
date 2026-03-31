@@ -1,0 +1,773 @@
+body.nef-admin {
+  --admin-bg: #0b1220;
+  --admin-surface: #0f172a;
+  --admin-card: #111827;
+  --admin-border: rgba(255, 255, 255, 0.08);
+  --admin-text: rgba(255, 255, 255, 0.85);
+  --admin-text-muted: rgba(255, 255, 255, 0.6);
+  --admin-link: #93c5fd;
+  --admin-link-hover: #bfdbfe;
+  --admin-primary-bg: rgba(37, 99, 235, 0.22);
+  --admin-primary-border: rgba(37, 99, 235, 0.45);
+
+  /* Keep Django admin defaults aligned with the dark palette. */
+  --body-fg: var(--admin-text);
+  --body-bg: var(--admin-surface);
+  --body-quiet-color: var(--admin-text-muted);
+  --body-loud-color: #f8fafc;
+  --darkened-bg: rgba(255, 255, 255, 0.03);
+  --hairline-color: var(--admin-border);
+  --border-color: var(--admin-border);
+  --link-fg: var(--admin-link);
+  --link-hover-color: var(--admin-link-hover);
+  --link-selected-fg: #bfdbfe;
+  --selected-bg: rgba(148, 163, 184, 0.16);
+  --selected-row: rgba(30, 41, 59, 0.95);
+  --message-success-bg: rgba(15, 23, 42, 0.88);
+  --message-warning-bg: rgba(120, 53, 15, 0.38);
+  --message-error-bg: rgba(127, 29, 29, 0.36);
+}
+
+body.nef-admin,
+body.nef-admin #container,
+body.nef-admin #main,
+body.nef-admin #content-start,
+body.nef-admin #content-main,
+body.nef-admin #content-related {
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+body.nef-admin .admin-shell {
+  color: var(--admin-text);
+}
+
+body.nef-admin .admin-sidebar {
+  border-right: 0;
+}
+
+body.nef-admin .admin-page-hero {
+  border: 1px solid var(--admin-border);
+  border-radius: 0.95rem;
+  padding: 0.95rem 1rem;
+  background: linear-gradient(150deg, rgba(15, 23, 42, 0.92), rgba(11, 19, 36, 0.88));
+}
+
+body.nef-admin .admin-page-hero__eyebrow {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--admin-text-muted);
+}
+
+body.nef-admin .admin-page-hero__title {
+  margin-top: 0.3rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+body.nef-admin .admin-page-hero__subtitle {
+  margin-top: 0.35rem;
+  font-size: 0.84rem;
+  color: var(--admin-text-muted);
+}
+
+body.nef-admin .admin-menu-search {
+  margin-bottom: 0.85rem;
+  padding: 0 0.5rem;
+}
+
+body.nef-admin .admin-menu-search__box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.7rem;
+  background: rgba(15, 23, 42, 0.72);
+  padding: 0.45rem 0.6rem;
+}
+
+body.nef-admin .admin-menu-search__icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  opacity: 0.75;
+  flex: 0 0 auto;
+}
+
+body.nef-admin .admin-menu-search__input {
+  width: 100%;
+  border: 0 !important;
+  outline: none;
+  background: transparent !important;
+  color: var(--admin-text) !important;
+  font-size: 0.8125rem;
+  padding: 0 !important;
+}
+
+body.nef-admin .admin-menu-search__input::placeholder {
+  color: var(--admin-text-muted);
+}
+
+body.nef-admin .admin-menu-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+body.nef-admin .admin-menu-group {
+  border: 1px solid transparent;
+  border-radius: 0.72rem;
+  padding: 0.12rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+body.nef-admin .admin-menu-group.is-active {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+body.nef-admin .admin-menu-group__toggle {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+body.nef-admin .admin-menu-group__chevron {
+  width: 0.9rem;
+  height: 0.9rem;
+  opacity: 0.72;
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+body.nef-admin .admin-menu-group.is-open .admin-menu-group__chevron,
+body.nef-admin .admin-menu-group__toggle[aria-expanded="true"] .admin-menu-group__chevron {
+  transform: rotate(180deg);
+}
+
+body.nef-admin .admin-menu-group__panel {
+  margin-top: 0.25rem;
+}
+
+body.nef-admin .admin-menu-group__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+body.nef-admin .admin-menu-item--child {
+  margin-left: 0.25rem;
+  padding-left: 0.5rem;
+  border-left: 1px dashed rgba(148, 163, 184, 0.28);
+}
+
+body.nef-admin .admin-menu-item--child .menu-item__icon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+body.nef-admin .admin-menu-group__toggle:hover {
+  background: rgba(148, 163, 184, 0.16);
+}
+
+body.nef-admin .menu-item,
+body.nef-admin .admin-menu-group__toggle,
+body.nef-admin .admin-menu-item {
+  min-height: 1.85rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.58rem;
+  font-size: 0.8rem;
+}
+
+body.nef-admin .menu-item__icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+body.nef-admin .admin-menu-group__toggle.menu-item--active {
+  background: linear-gradient(150deg, rgba(37, 99, 235, 0.28), rgba(14, 165, 233, 0.2));
+  color: #e0edff;
+  border-color: rgba(96, 165, 250, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.35);
+}
+
+body.nef-admin .admin-menu-item--child.menu-item--active {
+  background: rgba(37, 99, 235, 0.22);
+  border-left-color: rgba(147, 197, 253, 0.5);
+  color: #dbeafe;
+}
+
+body.nef-admin .admin-menu-item.hidden,
+body.nef-admin .admin-menu-group.hidden {
+  display: none !important;
+}
+
+body.nef-admin .admin-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+}
+
+body.nef-admin .admin-skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+}
+
+body.nef-admin .admin-breadcrumbs,
+body.nef-admin .breadcrumbs {
+  border: 1px solid var(--admin-border);
+  border-radius: 0.75rem;
+  background: var(--admin-surface) !important;
+  color: var(--admin-text-muted) !important;
+}
+
+body.nef-admin .admin-breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.8125rem;
+}
+
+body.nef-admin .breadcrumbs {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+}
+
+body.nef-admin .admin-breadcrumbs a,
+body.nef-admin .breadcrumbs a {
+  color: var(--admin-link) !important;
+}
+
+body.nef-admin .admin-breadcrumbs a:hover,
+body.nef-admin .breadcrumbs a:hover {
+  color: var(--admin-link-hover) !important;
+}
+
+body.nef-admin .admin-system-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 0.35rem;
+}
+
+body.nef-admin .admin-system-nav__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.7rem;
+  background: rgba(15, 23, 42, 0.72);
+  color: var(--admin-text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  min-height: 1.95rem;
+  padding: 0 0.56rem;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+body.nef-admin .admin-system-nav__item:hover {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(30, 41, 59, 0.9);
+  color: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+body.nef-admin .admin-system-nav__item.is-active {
+  border-color: rgba(56, 189, 248, 0.52);
+  background: linear-gradient(145deg, rgba(37, 99, 235, 0.24), rgba(14, 165, 233, 0.14));
+  color: #dbeafe;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.35);
+}
+
+body.nef-admin #content,
+body.nef-admin .admin-card {
+  border: 1px solid var(--admin-border);
+  border-radius: 0.9rem;
+  background: var(--admin-surface);
+  color: var(--admin-text);
+}
+
+body.nef-admin #content {
+  padding: 1rem 1rem 0.95rem;
+  display: flow-root;
+  box-shadow: 0 18px 36px rgba(2, 6, 23, 0.3);
+  border-color: rgba(37, 99, 235, 0.28);
+}
+
+body.nef-admin .admin-card,
+body.nef-admin .module,
+body.nef-admin #changelist,
+body.nef-admin #content-related .module,
+body.nef-admin #recent-actions {
+  box-shadow: 0 16px 34px rgba(2, 6, 23, 0.26);
+}
+
+body.nef-admin #content > #content-main {
+  margin-top: 0.58rem;
+}
+
+body.nef-admin .admin-card--padded {
+  padding: 0.85rem;
+}
+
+body.nef-admin .admin-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+body.nef-admin .admin-subtitle,
+body.nef-admin .admin-muted,
+body.nef-admin .help,
+body.nef-admin .helptext,
+body.nef-admin p.help,
+body.nef-admin .quiet {
+  color: var(--admin-text-muted) !important;
+}
+
+body.nef-admin .admin-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 1200px) {
+  body.nef-admin .admin-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  }
+}
+
+body.nef-admin .dashboard .module,
+body.nef-admin .module,
+body.nef-admin [class*="app-"].module,
+body.nef-admin #content-main .module,
+body.nef-admin #content-related .module,
+body.nef-admin #recent-actions,
+body.nef-admin #recent-actions-module {
+  background: var(--admin-card) !important;
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.75rem;
+  color: var(--admin-text) !important;
+}
+
+body.nef-admin .app-auth,
+body.nef-admin .app-messaging,
+body.nef-admin .app-monitoring,
+body.nef-admin .app-integrations,
+body.nef-admin .app-rules,
+body.nef-admin [class*="model-"] {
+  background: transparent;
+}
+
+body.nef-admin #content .module + .module {
+  margin-top: 0.58rem;
+}
+
+body.nef-admin .module h2,
+body.nef-admin .module caption,
+body.nef-admin #content-related .module h2,
+body.nef-admin #recent-actions .module h2,
+body.nef-admin #recent-actions-module h2,
+body.nef-admin #recent-actions-module h3 {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--admin-text) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  font-weight: 600;
+  font-size: 0.87rem;
+  letter-spacing: 0.01em;
+}
+
+body.nef-admin .module caption a,
+body.nef-admin .module a,
+body.nef-admin .module a:visited {
+  color: var(--admin-link) !important;
+}
+
+body.nef-admin .module a:hover {
+  color: var(--admin-link-hover) !important;
+}
+
+body.nef-admin .module ul,
+body.nef-admin #content-related ul,
+body.nef-admin #recent-actions ul {
+  background: transparent !important;
+  color: var(--admin-text);
+}
+
+body.nef-admin #content table,
+body.nef-admin #result_list,
+body.nef-admin #changelist table {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent !important;
+}
+
+body.nef-admin .module table,
+body.nef-admin .module table thead,
+body.nef-admin .module table tbody,
+body.nef-admin .module table tr,
+body.nef-admin .dashboard #content-main .module table,
+body.nef-admin .dashboard #content-related .module table {
+  background: transparent !important;
+}
+
+body.nef-admin #content thead th,
+body.nef-admin #result_list thead th,
+body.nef-admin #changelist thead th {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--admin-text) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+body.nef-admin #content th,
+body.nef-admin #content td,
+body.nef-admin #result_list th,
+body.nef-admin #result_list td {
+  color: var(--admin-text);
+  border-bottom: 1px solid var(--admin-border) !important;
+  padding: 0.48rem 0.62rem;
+}
+
+body.nef-admin .module table th,
+body.nef-admin .module table td,
+body.nef-admin .dashboard #content-main .module td,
+body.nef-admin .dashboard #content-main .module th,
+body.nef-admin .dashboard #content-related .module td,
+body.nef-admin .dashboard #content-related .module th {
+  background: rgba(17, 24, 39, 0.78) !important;
+  color: var(--admin-text) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+body.nef-admin #result_list tbody tr:nth-child(even),
+body.nef-admin #content tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+body.nef-admin .module table tbody tr:nth-child(even) td,
+body.nef-admin .module table tbody tr:nth-child(even) th {
+  background: rgba(17, 24, 39, 0.92) !important;
+}
+
+body.nef-admin .module table tbody tr:nth-child(odd) td,
+body.nef-admin .module table tbody tr:nth-child(odd) th {
+  background: rgba(15, 23, 42, 0.94) !important;
+}
+
+body.nef-admin #result_list tbody tr:hover,
+body.nef-admin #content tbody tr:hover {
+  background: rgba(148, 163, 184, 0.12) !important;
+}
+
+body.nef-admin .module table tbody tr:hover td,
+body.nef-admin .module table tbody tr:hover th,
+body.nef-admin #result_list tbody tr:hover td,
+body.nef-admin #result_list tbody tr:hover th {
+  background: rgba(30, 41, 59, 0.95) !important;
+}
+
+body.nef-admin a,
+body.nef-admin #content a,
+body.nef-admin #content caption a,
+body.nef-admin #result_list a {
+  color: var(--admin-link);
+}
+
+body.nef-admin a:hover,
+body.nef-admin #content a:hover,
+body.nef-admin #result_list a:hover {
+  color: var(--admin-link-hover);
+}
+
+body.nef-admin .object-tools {
+  float: none;
+  position: static;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.75rem;
+  padding-left: 0;
+}
+
+body.nef-admin .object-tools li {
+  float: none;
+  margin-left: 0;
+  margin-right: 0;
+  height: auto;
+  list-style: none;
+}
+
+body.nef-admin .object-tools a,
+body.nef-admin .object-tools a:link,
+body.nef-admin .object-tools a:visited {
+  float: none;
+}
+
+body.nef-admin .button,
+body.nef-admin input[type="submit"],
+body.nef-admin input[type="button"],
+body.nef-admin button,
+body.nef-admin .object-tools a,
+body.nef-admin .object-tools a:link,
+body.nef-admin .addlink,
+body.nef-admin .changelink,
+body.nef-admin .deletelink,
+body.nef-admin .submit-row a.deletelink {
+  border: 1px solid var(--admin-primary-border) !important;
+  background: var(--admin-primary-bg) !important;
+  color: #bfdbfe !important;
+  border-radius: 0.6rem;
+  padding: 0.45rem 0.75rem;
+  text-decoration: none;
+}
+
+body.nef-admin .button:hover,
+body.nef-admin input[type="submit"]:hover,
+body.nef-admin button:hover,
+body.nef-admin .object-tools a:hover {
+  background: rgba(37, 99, 235, 0.3) !important;
+}
+
+body.nef-admin .submit-row {
+  border-top: 1px solid var(--admin-border);
+  background: transparent !important;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.9rem;
+  margin-top: 0.9rem;
+}
+
+body.nef-admin fieldset,
+body.nef-admin .form-row,
+body.nef-admin .aligned .form-row {
+  background: transparent !important;
+  border-color: var(--admin-border) !important;
+}
+
+body.nef-admin fieldset.module.aligned {
+  background: var(--admin-card) !important;
+}
+
+body.nef-admin label,
+body.nef-admin .required label,
+body.nef-admin .form-row label {
+  color: var(--admin-text) !important;
+}
+
+body.nef-admin input,
+body.nef-admin select,
+body.nef-admin textarea,
+body.nef-admin .vTextField,
+body.nef-admin .vLargeTextField,
+body.nef-admin .selector select,
+body.nef-admin #searchbar {
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.6rem;
+  background: #0b1324 !important;
+  color: var(--admin-text) !important;
+}
+
+body.nef-admin select option {
+  background: #0b1324;
+  color: var(--admin-text);
+}
+
+body.nef-admin input:focus,
+body.nef-admin select:focus,
+body.nef-admin textarea:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 1px;
+}
+
+body.nef-admin #changelist {
+  border: 1px solid var(--admin-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--admin-card) !important;
+}
+
+body.nef-admin #changelist .changelist-form-container,
+body.nef-admin #changelist .results,
+body.nef-admin #changelist-form .results,
+body.nef-admin #result_list,
+body.nef-admin #changelist .paginator,
+body.nef-admin #change-history .paginator {
+  background: var(--admin-card) !important;
+}
+
+body.nef-admin #toolbar,
+body.nef-admin .actions,
+body.nef-admin .actions select,
+body.nef-admin .actions .button {
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+
+body.nef-admin #toolbar {
+  border-bottom: 1px solid var(--admin-border);
+  border-radius: 0.75rem 0.75rem 0 0;
+  padding: 0.48rem 0.68rem;
+}
+
+body.nef-admin #toolbar form {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  flex-wrap: wrap;
+}
+
+body.nef-admin #toolbar #searchbar {
+  min-width: 200px;
+  min-height: 1.95rem;
+}
+
+body.nef-admin .actions {
+  border-top: 1px solid var(--admin-border);
+}
+
+body.nef-admin #changelist-filter {
+  background: var(--admin-card) !important;
+  border-left: 1px solid var(--admin-border) !important;
+  border-radius: 0 0.75rem 0.75rem 0;
+  padding-top: 0.35rem;
+}
+
+body.nef-admin #changelist-filter h2 {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  color: var(--admin-text) !important;
+  font-size: 0.76rem;
+  padding: 0.45rem 0.58rem;
+}
+
+body.nef-admin #changelist-filter h3,
+body.nef-admin #changelist-filter li,
+body.nef-admin #changelist-filter a {
+  color: var(--admin-text-muted) !important;
+  font-size: 0.76rem;
+}
+
+body.nef-admin #changelist-filter ul,
+body.nef-admin #changelist-filter details {
+  padding: 0.18rem 0.3rem;
+}
+
+body.nef-admin #changelist-filter li {
+  border-radius: 0.5rem;
+  margin: 0.12rem 0;
+  padding: 0.22rem 0.36rem;
+}
+
+body.nef-admin #changelist-filter li.selected {
+  background: rgba(37, 99, 235, 0.16);
+  border: 1px solid rgba(37, 99, 235, 0.35);
+}
+
+body.nef-admin #changelist-filter li.selected a,
+body.nef-admin #changelist-filter a:hover {
+  color: #bfdbfe !important;
+}
+
+body.nef-admin .messagelist,
+body.nef-admin ul.messagelist {
+  margin: 0 0 0.75rem;
+}
+
+body.nef-admin .messagelist li,
+body.nef-admin ul.messagelist li,
+body.nef-admin .success,
+body.nef-admin .warning,
+body.nef-admin .error,
+body.nef-admin .errornote,
+body.nef-admin ul.errorlist li {
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.6rem;
+  background: rgba(15, 23, 42, 0.88) !important;
+  color: var(--admin-text) !important;
+  padding: 0.55rem 0.7rem;
+}
+
+body.nef-admin .actionlist li {
+  border-bottom: 1px solid var(--admin-border);
+  padding: 0.55rem 0;
+  color: var(--admin-text);
+}
+
+body.nef-admin .actionlist li:last-child {
+  border-bottom: 0;
+}
+
+body.nef-admin .actionlist .admin-meta,
+body.nef-admin .actionlist span.mini {
+  color: var(--admin-text-muted) !important;
+}
+
+body.nef-admin .paginator,
+body.nef-admin .paginator a,
+body.nef-admin .small.quiet {
+  color: var(--admin-text-muted) !important;
+}
+
+body.nef-admin .current-page {
+  color: var(--admin-text) !important;
+}
+
+body.nef-admin .selector-available h2,
+body.nef-admin .selector-chosen h2 {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+
+body.nef-admin .selector .selector-filter,
+body.nef-admin .selector .selector-available,
+body.nef-admin .selector .selector-chosen {
+  background: transparent !important;
+  border-color: var(--admin-border) !important;
+}
+
+body.nef-admin .inline-group {
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 0.75rem;
+  background: rgba(2, 6, 23, 0.38) !important;
+}
+
+body.nef-admin .inline-group h2 {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+  color: var(--admin-text) !important;
+}
+
+body.nef-admin .inline-related {
+  background: transparent !important;
+  border-color: var(--admin-border) !important;
+}
+
+body.nef-admin.login #content {
+  max-width: 30rem;
+  margin: 1.5rem auto 0;
+}
+
+@media (min-width: 1024px) {
+  body.nef-admin [data-sidebar] {
+    display: block !important;
+    visibility: visible !important;
+    transform: none !important;
+    z-index: 25;
+  }
+
+  body.nef-admin [data-sidebar-drawer] {
+    display: none !important;
+    visibility: hidden !important;
+    transform: translateX(-100%) !important;
+  }
+}

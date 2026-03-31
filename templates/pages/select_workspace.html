@@ -1,0 +1,291 @@
+{% extends "layouts/auth.html" %}
+{% load static %}
+
+{% block title %}Selecionar Workspace | NEF Cadencia{% endblock %}
+{% block card_title %}Selecione seu workspace{% endblock %}
+{% block card_subtitle %}Escolha o ambiente de trabalho que deseja acessar{% endblock %}
+
+{% block content %}
+<div class="workspace-screen">
+  <div id="loadingState" class="workspace-state workspace-state--loading">
+    <div class="workspace-spinner" aria-hidden="true"></div>
+    <p>Carregando seus workspaces...</p>
+  </div>
+
+  <div id="workspacesList" class="workspace-grid hidden" aria-live="polite"></div>
+
+  <div id="errorState" class="workspace-state workspace-state--error hidden">
+    <div class="auth-alert auth-alert--error">
+      <svg class="auth-alert__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <strong>Falha ao carregar seus workspaces</strong>
+        <p id="errorMessage">Tente novamente em instantes.</p>
+      </div>
+    </div>
+    <a href="/login" class="auth-link-muted workspace-state__link">Voltar ao login</a>
+  </div>
+
+  <div id="emptyState" class="workspace-state workspace-state--empty hidden">
+    <h3>Nenhum workspace disponivel</h3>
+    <p>Seu usuario nao possui acesso a workspaces ativos no momento.</p>
+    <a href="/login" class="auth-link-muted workspace-state__link">Voltar ao login</a>
+  </div>
+</div>
+
+<div class="hidden">{% csrf_token %}</div>
+
+<script type="module">
+  import { useAuth } from '{% static "js/hooks/useAuth.js" %}';
+  import { storage } from '{% static "js/utils/storage.js" %}';
+
+  class SelectWorkspacePage {
+    constructor() {
+      this.auth = useAuth();
+      this.workspaces = [];
+
+      this.loadingState = document.getElementById('loadingState');
+      this.workspacesList = document.getElementById('workspacesList');
+      this.errorState = document.getElementById('errorState');
+      this.emptyState = document.getElementById('emptyState');
+      this.errorMessage = document.getElementById('errorMessage');
+
+      this.init();
+    }
+
+    async init() {
+      await this.auth.waitForInit();
+
+      if (!this.auth.isAuthenticated) {
+        window.location.href = '/login';
+        return;
+      }
+
+      await this.loadWorkspaces();
+    }
+
+    getCsrfToken() {
+      const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+      if (csrfInput) {
+        return csrfInput.value;
+      }
+
+      const name = 'csrftoken';
+      const cookies = document.cookie.split(';');
+      for (const cookie of cookies) {
+        const trimmed = cookie.trim();
+        if (trimmed.startsWith(name + '=')) {
+          return trimmed.substring(name.length + 1);
+        }
+      }
+
+      return '';
+    }
+
+    buildHeaders({ json = false } = {}) {
+      const headers = {
+        Accept: 'application/json',
+        'X-CSRFToken': this.getCsrfToken(),
+      };
+
+      if (json) {
+        headers['Content-Type'] = 'application/json';
+      }
+
+      const token = storage.getAuthToken();
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      return headers;
+    }
+
+    escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    normalizeRole(role) {
+      const validRoles = ['admin', 'manager', 'analyst', 'viewer', 'member'];
+      return validRoles.includes(role) ? role : 'member';
+    }
+
+    async loadWorkspaces() {
+      try {
+        const response = await fetch('/api/workspaces/', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: this.buildHeaders(),
+        });
+
+        if (response.status === 401) {
+          storage.clearAuth();
+          window.location.href = '/login';
+          return;
+        }
+
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error || 'Nao foi possivel carregar workspaces.');
+        }
+
+        this.workspaces = Array.isArray(payload.workspaces) ? payload.workspaces : [];
+
+        if (this.workspaces.length === 0) {
+          this.showEmptyState();
+          return;
+        }
+
+        this.renderWorkspaces();
+      } catch (error) {
+        console.error('Workspace load error:', error);
+        this.showError(error.message || 'Erro inesperado ao carregar workspaces.');
+      }
+    }
+
+    renderWorkspaces() {
+      this.loadingState.classList.add('hidden');
+      this.errorState.classList.add('hidden');
+      this.emptyState.classList.add('hidden');
+      this.workspacesList.classList.remove('hidden');
+
+      this.workspacesList.innerHTML = this.workspaces
+        .map((workspace, index) => {
+          const role = this.normalizeRole(workspace.role);
+          const roleLabel = this.getRoleLabel(role);
+          const initials = this.getInitials(workspace.name);
+          const membersCount = Number(workspace.members_count || 0);
+          const safeName = this.escapeHtml(workspace.name || 'Workspace');
+          const safeDescription = this.escapeHtml(workspace.description || 'Workspace sem descricao.');
+
+          return `
+            <button
+              type="button"
+              class="workspace-card"
+              data-workspace-id="${workspace.id}"
+              style="--workspace-index:${index}"
+            >
+              <div class="workspace-card__header">
+                <div class="workspace-card__avatar">${initials}</div>
+                <div class="workspace-card__header-text">
+                  <h3>${safeName}</h3>
+                  <p>${safeDescription}</p>
+                </div>
+              </div>
+
+              <div class="workspace-card__meta">
+                <span>${membersCount} membro(s)</span>
+                <span class="workspace-role workspace-role--${role}">${roleLabel}</span>
+              </div>
+
+              <span class="workspace-card__cta">Entrar</span>
+            </button>
+          `;
+        })
+        .join('');
+
+      this.workspacesList.querySelectorAll('.workspace-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          const workspaceId = Number(card.dataset.workspaceId);
+          const workspace = this.workspaces.find((item) => Number(item.id) === workspaceId);
+          if (workspace) {
+            this.selectWorkspace(workspace, card);
+          }
+        });
+      });
+    }
+
+    getRoleLabel(role) {
+      const labels = {
+        admin: 'Administrador',
+        manager: 'Gestor',
+        analyst: 'Analista',
+        viewer: 'Visualizador',
+        member: 'Membro',
+      };
+      return labels[role] || 'Membro';
+    }
+
+    getInitials(name) {
+      if (!name) {
+        return 'WS';
+      }
+
+      const parts = name.trim().split(/\s+/).filter(Boolean);
+      if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+      }
+
+      return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+    }
+
+    async selectWorkspace(workspace, cardElement) {
+      const cta = cardElement.querySelector('.workspace-card__cta');
+      const previousLabel = cta ? cta.textContent : '';
+
+      try {
+        cardElement.disabled = true;
+        cardElement.classList.add('is-loading');
+        if (cta) {
+          cta.textContent = 'Entrando';
+        }
+
+        const response = await fetch('/api/workspaces/select', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: this.buildHeaders({ json: true }),
+          body: JSON.stringify({ workspace_id: workspace.id }),
+        });
+
+        const payload = await response.json();
+
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error || 'Nao foi possivel selecionar workspace.');
+        }
+
+        this.auth.selectWorkspace(payload.workspace || workspace);
+        setTimeout(() => {
+          window.location.href = '/dashboard/produtividade';
+        }, 180);
+      } catch (error) {
+        console.error('Workspace select error:', error);
+        cardElement.disabled = false;
+        cardElement.classList.remove('is-loading');
+        if (cta) {
+          cta.textContent = previousLabel || 'Entrar';
+        }
+        this.showError(error.message || 'Erro ao selecionar workspace.');
+      }
+    }
+
+    showError(message) {
+      this.loadingState.classList.add('hidden');
+      this.workspacesList.classList.add('hidden');
+      this.emptyState.classList.add('hidden');
+      this.errorState.classList.remove('hidden');
+      this.errorMessage.textContent = message;
+    }
+
+    showEmptyState() {
+      this.loadingState.classList.add('hidden');
+      this.workspacesList.classList.add('hidden');
+      this.errorState.classList.add('hidden');
+      this.emptyState.classList.remove('hidden');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      new SelectWorkspacePage();
+    });
+  } else {
+    new SelectWorkspacePage();
+  }
+</script>
+{% endblock %}

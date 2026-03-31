@@ -1,0 +1,53 @@
+{% comment %}
+Componente: Card de Configuração
+Uso:
+  {% include "components/_config_card.html" with 
+    title="Título do Card"
+    subtitle="Subtítulo"
+    icon="settings"
+    color="sky"
+    badge_text="10"
+    badge_type="ok"
+    stats=stats_dict
+    link_url="/admin/..."
+    link_text="Gerenciar"
+  %}
+{% endcomment %}
+
+<article class="ds-panel p-6 hover:border-{{ color|default:'sky' }}-500/30 transition-all group">
+  <div class="flex items-start justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-lg bg-{{ color|default:'sky' }}-500/10 flex items-center justify-center group-hover:bg-{{ color|default:'sky' }}-500/20 transition-colors">
+        <i data-lucide="{{ icon|default:'settings' }}" class="w-6 h-6 text-{{ color|default:'sky' }}-400"></i>
+      </div>
+      <div>
+        <h4 class="text-base font-semibold">{{ title }}</h4>
+        <p class="text-sm text-[color:var(--color-text-muted)]">{{ subtitle }}</p>
+      </div>
+    </div>
+    {% if badge_text %}
+    <span class="ds-badge ds-badge--{{ badge_type|default:'info' }}">{{ badge_text }}</span>
+    {% endif %}
+  </div>
+  
+  {% if description %}
+  <p class="text-sm text-[color:var(--color-text-muted)] mb-4">{{ description }}</p>
+  {% endif %}
+  
+  {% if stats %}
+  <div class="space-y-3 mb-4">
+    {% for stat in stats %}
+    <div class="flex items-center justify-between p-3 rounded-lg bg-[color:var(--color-card-hover)]">
+      <span class="text-sm text-[color:var(--color-text-muted)]">{{ stat.label }}</span>
+      <strong class="text-sm">{{ stat.value }}</strong>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  
+  {% if link_url %}
+  <a href="{{ link_url }}" class="block w-full text-center px-4 py-2.5 bg-{{ color|default:'sky' }}-500 text-white rounded-lg hover:bg-{{ color|default:'sky' }}-600 transition-colors text-sm font-medium">
+    {{ link_text|default:"Acessar" }}
+  </a>
+  {% endif %}
+</article>

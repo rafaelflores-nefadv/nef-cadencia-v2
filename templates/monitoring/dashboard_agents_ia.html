@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Agentes de IA - Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6 agents-ia-dashboard">
+
+  <!-- Conteúdo das abas -->
+  <div class="tab-content" data-tab-content="agentes-ia">
+    <section class="ds-panel p-5 space-y-4">
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-semibold">Integrações</h2>
+        <button id="btn-add-integracao" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+          + ADICIONAR INTEGRAÇÃO
+        </button>
+      </div>
+
+      <!-- Formulário de Adição (oculto por padrão) -->
+      <div id="form-adicionar" style="display: none;" class="border-t border-[color:var(--color-border)] pt-4">
+        <h3 class="text-sm font-semibold mb-4">Adicionar Integração</h3>
+        <form id="integration-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">Nome:</label>
+            <input type="text" id="int-nome" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" placeholder="Nome da integração">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Canal:</label>
+            <select id="int-canal" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]">
+              <option value="">Selecione um canal</option>
+              <option value="email">E-mail</option>
+              <option value="slack">Slack</option>
+              <option value="teams">Microsoft Teams</option>
+              <option value="webhook">Webhook</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">
+              <input type="checkbox" id="int-habilitada" checked> Habilitada
+            </label>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Configuração JSON:</label>
+            <textarea id="int-config" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)] font-mono text-xs" rows="6" placeholder="{}"></textarea>
+          </div>
+          <div class="flex gap-2">
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+              SALVAR
+            </button>
+            <button type="button" id="btn-cancelar" class="px-4 py-2 bg-[color:var(--color-border)] text-[color:var(--color-text)] rounded-lg text-sm font-medium hover:bg-[color:var(--color-border-hover)] transition">
+              CANCELAR
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filtros e Busca -->
+      <div class="border-t border-[color:var(--color-border)] pt-4">
+        <div class="flex gap-4 mb-4">
+          <input type="text" id="search-integracao" class="flex-1 px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" placeholder="Buscar integração...">
+          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+            Buscar
+          </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">Por Canal</label>
+            <select id="filter-canal" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]">
+              <option value="">Todos</option>
+              <option value="email">E-mail</option>
+              <option value="slack">Slack</option>
+              <option value="teams">Microsoft Teams</option>
+              <option value="webhook">Webhook</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Por Habilidade</label>
+            <select id="filter-habilidade" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]">
+              <option value="">Todos</option>
+              <option value="sim">Sim</option>
+              <option value="nao">Não</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Integrações -->
+      <div class="border-t border-[color:var(--color-border)] pt-4">
+        <p class="text-sm text-[color:var(--color-text-muted)]">0 integrações</p>
+        <div id="integracoes-list" class="mt-4 space-y-2">
+          <!-- Integrações serão listadas aqui -->
+        </div>
+      </div>
+    </section>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script>
+    (function () {
+      const btnAddIntegracao = document.getElementById('btn-add-integracao');
+      const formAdicionar = document.getElementById('form-adicionar');
+      const btnCancelar = document.getElementById('btn-cancelar');
+      const integrationForm = document.getElementById('integration-form');
+
+      // Botão adicionar integração
+      if (btnAddIntegracao) {
+        btnAddIntegracao.addEventListener('click', (e) => {
+          e.preventDefault();
+          formAdicionar.style.display = formAdicionar.style.display === 'none' ? 'block' : 'none';
+        });
+      }
+
+      // Botão cancelar
+      if (btnCancelar) {
+        btnCancelar.addEventListener('click', (e) => {
+          e.preventDefault();
+          formAdicionar.style.display = 'none';
+          integrationForm.reset();
+        });
+      }
+
+      // Salvar integração
+      if (integrationForm) {
+        integrationForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const nome = document.getElementById('int-nome').value;
+          const canal = document.getElementById('int-canal').value;
+          const habilitada = document.getElementById('int-habilitada').checked;
+          const config = document.getElementById('int-config').value;
+
+          if (!nome || !canal) {
+            alert('Preencha todos os campos obrigatórios');
+            return;
+          }
+
+          console.log('Integração salva:', { nome, canal, habilitada, config });
+          formAdicionar.style.display = 'none';
+          integrationForm.reset();
+          alert('Integração adicionada com sucesso!');
+        });
+      }
+    })();
+  </script>
+{% endblock %}

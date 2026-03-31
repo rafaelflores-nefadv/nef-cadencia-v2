@@ -1,0 +1,8 @@
+﻿# NEF Cadencia v2
+
+Aplicacao Django para monitoramento operacional e assistente com OpenAI.
+
+## Documentacao
+
+- [Guia de instalacao Linux](docs/INSTALL_LINUX.md)
+- [Documentacao tecnica](docs/README.md)

@@ -1,0 +1,54 @@
+﻿{% load static %}
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}NEF Cadencia{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/pages/auth-portal.css' %}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="auth-page">
+    <div class="auth-shell">
+      <aside class="auth-hero" aria-hidden="true">
+        <div class="auth-hero__glow auth-hero__glow--one"></div>
+        <div class="auth-hero__glow auth-hero__glow--two"></div>
+
+        <div class="auth-hero__content">
+          <div class="auth-brand">
+            <div class="auth-brand__logo">NC</div>
+            <div>
+              <p class="auth-brand__eyebrow">Plataforma Corporativa</p>
+              <h1 class="auth-brand__title">NEF Cadencia</h1>
+            </div>
+          </div>
+
+          <p class="auth-hero__headline">Monitoramento operacional com foco em precisão, ritmo e tomada de decisão.</p>
+
+          <ul class="auth-hero__bullets">
+            <li>Visao em tempo real dos indicadores</li>
+            <li>Gestao por workspace com controle de acesso</li>
+            <li>Painel orientado para produtividade</li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="auth-main">
+        <section class="auth-card">
+          <header class="auth-card__header">
+            <h2 class="auth-card__title">{% block card_title %}Bem-vindo de volta{% endblock %}</h2>
+            <p class="auth-card__subtitle">{% block card_subtitle %}Acesse sua conta para continuar{% endblock %}</p>
+          </header>
+
+          {% block content %}{% endblock %}
+        </section>
+
+        <p class="auth-main__footnote">Ambiente de desenvolvimento</p>
+      </main>
+    </div>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

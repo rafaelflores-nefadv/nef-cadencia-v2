@@ -1,0 +1,14 @@
+{
+  "name": "nef-cadencia-v2",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -c tailwind.config.js -i ./assets/tailwind.css -o ./static/css/app.css --minify",
+    "watch:css": "tailwindcss -c tailwind.config.js -i ./assets/tailwind.css -o ./static/css/app.css --watch",
+    "test:assistant-ui": "node tests_js/assistant_processing_ui.test.js && node tests_js/assistant_widget.test.js && node tests_js/assistant_message_rendering.test.js"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
+  }
+}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Gestao de Usuarios | NEF Cadencia{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block page_subtitle %}{{ page_subtitle }}{% endblock %}
+
+{% block content %}
+<section class="ds-panel p-6 space-y-4">
+  <div>
+    <p class="text-sm text-[color:var(--color-text-muted)]">Usuarios e agentes</p>
+    <h2 class="text-2xl font-semibold">Acesso e operacao</h2>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+      <p class="text-sm text-[color:var(--color-text-muted)]">Usuarios ativos</p>
+      <strong class="text-2xl">{{ stats.active_users|default:0 }}</strong>
+    </div>
+    <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+      <p class="text-sm text-[color:var(--color-text-muted)]">Staff</p>
+      <strong class="text-2xl">{{ stats.staff_users|default:0 }}</strong>
+    </div>
+    <div class="rounded-xl border border-[color:var(--color-border)] p-4 bg-[color:var(--color-card)]">
+      <p class="text-sm text-[color:var(--color-text-muted)]">Agentes ativos</p>
+      <strong class="text-2xl">{{ stats.active_agents|default:0 }}</strong>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Recebimento de Dados - Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6 data-receiving-dashboard">
+  <!-- Cabeçalho -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[color:var(--color-text)]">Recebimento de Dados</h1>
+    <p class="text-sm text-[color:var(--color-text-muted)] mt-1">Monitore e gerencie o recebimento de dados de APIs e bancos de dados.</p>
+  </div>
+
+  <!-- Filtros e Busca -->
+  <section class="ds-panel p-5">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-medium mb-2">Buscar por Fonte</label>
+        <input type="text" id="search-fonte" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" placeholder="Nome da fonte...">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-2">Status</label>
+        <select id="filter-status" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]">
+          <option value="">Todos</option>
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+          <option value="erro">Erro</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-2">Tipo</label>
+        <select id="filter-tipo" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]">
+          <option value="">Todos</option>
+          <option value="api">API REST</option>
+          <option value="banco">Banco de Dados</option>
+          <option value="webhook">Webhook</option>
+        </select>
+      </div>
+    </div>
+    <button id="btn-filtrar" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">Filtrar</button>
+  </section>
+
+  <!-- Estatísticas -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="ds-panel p-4">
+      <div class="text-sm text-[color:var(--color-text-muted)]">Total de Fontes</div>
+      <div class="text-2xl font-bold text-[color:var(--color-text)] mt-2" id="total-fontes">0</div>
+    </div>
+    <div class="ds-panel p-4">
+      <div class="text-sm text-[color:var(--color-text-muted)]">Ativas</div>
+      <div class="text-2xl font-bold text-green-500 mt-2" id="total-ativas">0</div>
+    </div>
+    <div class="ds-panel p-4">
+      <div class="text-sm text-[color:var(--color-text-muted)]">Com Erro</div>
+      <div class="text-2xl font-bold text-red-500 mt-2" id="total-erros">0</div>
+    </div>
+    <div class="ds-panel p-4">
+      <div class="text-sm text-[color:var(--color-text-muted)]">Última Sincronização</div>
+      <div class="text-sm text-[color:var(--color-text)] mt-2" id="ultima-sync">--</div>
+    </div>
+  </div>
+
+  <!-- Lista de Fontes de Dados -->
+  <section class="ds-panel p-5">
+    <h2 class="text-lg font-semibold mb-4">Fontes de Dados</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-[color:var(--color-border)]">
+            <th class="text-left py-3 px-4 font-semibold">Fonte</th>
+            <th class="text-left py-3 px-4 font-semibold">Tipo</th>
+            <th class="text-left py-3 px-4 font-semibold">Status</th>
+            <th class="text-left py-3 px-4 font-semibold">Última Sincronização</th>
+            <th class="text-left py-3 px-4 font-semibold">Registros</th>
+            <th class="text-left py-3 px-4 font-semibold">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-fontes">
+          <!-- Fontes serão carregadas aqui -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Detalhes da Sincronização -->
+  <section class="ds-panel p-5" id="detalhes-sync" style="display: none;">
+    <h2 class="text-lg font-semibold mb-4">Detalhes da Última Sincronização</h2>
+    <div id="conteudo-detalhes" class="space-y-4">
+      <!-- Detalhes serão carregados aqui -->
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script>
+    (function () {
+      // Dados fictícios de fontes de dados
+      const fontesData = [
+        {
+          id: 1,
+          nome: 'API Salesforce',
+          tipo: 'api',
+          status: 'ativo',
+          ultimaSync: '2026-03-31 12:15:00',
+          registros: 1250,
+          url: 'https://api.salesforce.com/v1/contacts'
+        },
+        {
+          id: 2,
+          nome: 'PostgreSQL Principal',
+          tipo: 'banco',
+          status: 'ativo',
+          ultimaSync: '2026-03-31 12:10:00',
+          registros: 5840,
+          url: 'postgresql://db.internal:5432/production'
+        },
+        {
+          id: 3,
+          nome: 'API HubSpot',
+          tipo: 'api',
+          status: 'ativo',
+          ultimaSync: '2026-03-31 12:05:00',
+          registros: 3200,
+          url: 'https://api.hubapi.com/crm/v3/objects/contacts'
+        },
+        {
+          id: 4,
+          nome: 'Webhook Stripe',
+          tipo: 'webhook',
+          status: 'ativo',
+          ultimaSync: '2026-03-31 11:55:00',
+          registros: 890,
+          url: 'https://webhook.stripe.com/events'
+        },
+        {
+          id: 5,
+          nome: 'MySQL Legado',
+          tipo: 'banco',
+          status: 'erro',
+          ultimaSync: '2026-03-31 11:30:00',
+          registros: 0,
+          url: 'mysql://legacy.internal:3306/old_db'
+        },
+        {
+          id: 6,
+          nome: 'API Google Analytics',
+          tipo: 'api',
+          status: 'inativo',
+          ultimaSync: '2026-03-30 18:00:00',
+          registros: 0,
+          url: 'https://analyticsreporting.googleapis.com/v4/reports:batchGet'
+        }
+      ];
+
+      let fontesFiltradas = [...fontesData];
+
+      function getStatusBadge(status) {
+        const badges = {
+          'ativo': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-600">Ativo</span>',
+          'inativo': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-600">Inativo</span>',
+          'erro': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-600">Erro</span>'
+        };
+        return badges[status] || '';
+      }
+
+      function getTipoBadge(tipo) {
+        const badges = {
+          'api': '<span class="px-2 py-1 rounded text-xs font-medium bg-blue-500/20 text-blue-600">API REST</span>',
+          'banco': '<span class="px-2 py-1 rounded text-xs font-medium bg-purple-500/20 text-purple-600">Banco de Dados</span>',
+          'webhook': '<span class="px-2 py-1 rounded text-xs font-medium bg-orange-500/20 text-orange-600">Webhook</span>'
+        };
+        return badges[tipo] || '';
+      }
+
+      function renderTabela(fontes) {
+        const tbody = document.getElementById('tabela-fontes');
+        tbody.innerHTML = '';
+
+        fontes.forEach(fonte => {
+          const row = document.createElement('tr');
+          row.className = 'border-b border-[color:var(--color-border)] hover:bg-[color:var(--color-bg-secondary)] transition';
+          row.innerHTML = `
+            <td class="py-3 px-4 font-medium">${fonte.nome}</td>
+            <td class="py-3 px-4">${getTipoBadge(fonte.tipo)}</td>
+            <td class="py-3 px-4">${getStatusBadge(fonte.status)}</td>
+            <td class="py-3 px-4 text-xs text-[color:var(--color-text-muted)]">${fonte.ultimaSync}</td>
+            <td class="py-3 px-4">${fonte.registros.toLocaleString()}</td>
+            <td class="py-3 px-4">
+              <button class="btn-detalhes px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition" data-id="${fonte.id}">Detalhes</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        // Atualizar estatísticas
+        document.getElementById('total-fontes').textContent = fontes.length;
+        document.getElementById('total-ativas').textContent = fontes.filter(f => f.status === 'ativo').length;
+        document.getElementById('total-erros').textContent = fontes.filter(f => f.status === 'erro').length;
+        document.getElementById('ultima-sync').textContent = fontes.length > 0 ? fontes[0].ultimaSync : '--';
+
+        // Adicionar listeners aos botões de detalhes
+        document.querySelectorAll('.btn-detalhes').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = parseInt(btn.getAttribute('data-id'));
+            const fonte = fontesData.find(f => f.id === id);
+            mostrarDetalhes(fonte);
+          });
+        });
+      }
+
+      function mostrarDetalhes(fonte) {
+        const detalhesSection = document.getElementById('detalhes-sync');
+        const conteudo = document.getElementById('conteudo-detalhes');
+
+        conteudo.innerHTML = `
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs text-[color:var(--color-text-muted)]">Nome da Fonte</label>
+              <div class="text-sm font-medium mt-1">${fonte.nome}</div>
+            </div>
+            <div>
+              <label class="text-xs text-[color:var(--color-text-muted)]">Tipo</label>
+              <div class="text-sm font-medium mt-1">${getTipoBadge(fonte.tipo)}</div>
+            </div>
+            <div>
+              <label class="text-xs text-[color:var(--color-text-muted)]">URL/Conexão</label>
+              <div class="text-sm font-mono mt-1 break-all">${fonte.url}</div>
+            </div>
+            <div>
+              <label class="text-xs text-[color:var(--color-text-muted)]">Registros Recebidos</label>
+              <div class="text-sm font-medium mt-1">${fonte.registros.toLocaleString()}</div>
+            </div>
+            <div class="col-span-2">
+              <label class="text-xs text-[color:var(--color-text-muted)]">Última Sincronização</label>
+              <div class="text-sm font-medium mt-1">${fonte.ultimaSync}</div>
+            </div>
+          </div>
+          <div class="border-t border-[color:var(--color-border)] pt-4 mt-4">
+            <button id="btn-sincronizar" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
+              Sincronizar Agora
+            </button>
+            <button id="btn-fechar" class="ml-2 px-4 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition">
+              Fechar
+            </button>
+          </div>
+        `;
+
+        detalhesSection.style.display = 'block';
+
+        document.getElementById('btn-sincronizar').addEventListener('click', () => {
+          alert(`Sincronização iniciada para ${fonte.nome}...`);
+        });
+
+        document.getElementById('btn-fechar').addEventListener('click', () => {
+          detalhesSection.style.display = 'none';
+        });
+      }
+
+      function filtrarFontes() {
+        const searchText = document.getElementById('search-fonte').value.toLowerCase();
+        const statusFilter = document.getElementById('filter-status').value;
+        const tipoFilter = document.getElementById('filter-tipo').value;
+
+        fontesFiltradas = fontesData.filter(fonte => {
+          const matchNome = fonte.nome.toLowerCase().includes(searchText);
+          const matchStatus = !statusFilter || fonte.status === statusFilter;
+          const matchTipo = !tipoFilter || fonte.tipo === tipoFilter;
+          return matchNome && matchStatus && matchTipo;
+        });
+
+        renderTabela(fontesFiltradas);
+      }
+
+      // Event listeners
+      document.getElementById('btn-filtrar').addEventListener('click', filtrarFontes);
+      document.getElementById('search-fonte').addEventListener('keyup', filtrarFontes);
+      document.getElementById('filter-status').addEventListener('change', filtrarFontes);
+      document.getElementById('filter-tipo').addEventListener('change', filtrarFontes);
+
+      // Renderizar tabela inicial
+      renderTabela(fontesData);
+    })();
+  </script>
+{% endblock %}

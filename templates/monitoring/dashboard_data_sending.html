@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+
+{% block title %}Envio de Dados - Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6 data-sending-dashboard">
+  <!-- Cabeçalho -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-[color:var(--color-text)]">Envio de Dados</h1>
+    <p class="text-sm text-[color:var(--color-text-muted)] mt-1">Configure e gerencie o envio de dados para APIs externas com autenticação por tokens.</p>
+  </div>
+
+  <!-- Abas de Navegação -->
+  <div class="flex gap-2 border-b border-[color:var(--color-border)] px-0 -mx-0 overflow-x-auto">
+    <button class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-[color:var(--color-primary)] text-[color:var(--color-text)]" data-tab="envios-ativos">
+      Envios Ativos
+    </button>
+    <button class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text)]" data-tab="novo-envio">
+      Novo Envio
+    </button>
+    <button class="tab-button py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text)]" data-tab="historico">
+      Histórico
+    </button>
+  </div>
+
+  <!-- Aba: Envios Ativos -->
+  <div class="tab-content" data-tab-content="envios-ativos">
+    <!-- Estatísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="ds-panel p-4">
+        <div class="text-sm text-[color:var(--color-text-muted)]">Total de Envios</div>
+        <div class="text-2xl font-bold text-[color:var(--color-text)] mt-2" id="total-envios">0</div>
+      </div>
+      <div class="ds-panel p-4">
+        <div class="text-sm text-[color:var(--color-text-muted)]">Sucesso</div>
+        <div class="text-2xl font-bold text-green-500 mt-2" id="total-sucesso">0</div>
+      </div>
+      <div class="ds-panel p-4">
+        <div class="text-sm text-[color:var(--color-text-muted)]">Falhas</div>
+        <div class="text-2xl font-bold text-red-500 mt-2" id="total-falhas">0</div>
+      </div>
+      <div class="ds-panel p-4">
+        <div class="text-sm text-[color:var(--color-text-muted)]">Pendentes</div>
+        <div class="text-2xl font-bold text-yellow-500 mt-2" id="total-pendentes">0</div>
+      </div>
+    </div>
+
+    <!-- Lista de Envios -->
+    <section class="ds-panel p-5">
+      <h2 class="text-lg font-semibold mb-4">Envios Configurados</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-[color:var(--color-border)]">
+              <th class="text-left py-3 px-4 font-semibold">Destino</th>
+              <th class="text-left py-3 px-4 font-semibold">Tipo</th>
+              <th class="text-left py-3 px-4 font-semibold">Status</th>
+              <th class="text-left py-3 px-4 font-semibold">Última Execução</th>
+              <th class="text-left py-3 px-4 font-semibold">Registros</th>
+              <th class="text-left py-3 px-4 font-semibold">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-envios">
+            <!-- Envios serão carregados aqui -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Aba: Novo Envio -->
+  <div class="tab-content" data-tab-content="novo-envio" style="display: none;">
+    <section class="ds-panel p-5">
+      <h2 class="text-lg font-semibold mb-6">Configurar Novo Envio</h2>
+      <form id="form-novo-envio" class="space-y-6">
+        <!-- Informações Básicas -->
+        <div class="border-b border-[color:var(--color-border)] pb-6">
+          <h3 class="text-md font-semibold mb-4">Informações Básicas</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Nome do Envio</label>
+              <input type="text" id="envio-nome" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" placeholder="Ex: Envio para Salesforce" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Tipo de Destino</label>
+              <select id="envio-tipo" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" required>
+                <option value="">Selecione um tipo</option>
+                <option value="api-rest">API REST</option>
+                <option value="webhook">Webhook</option>
+                <option value="ftp">FTP/SFTP</option>
+                <option value="email">Email</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuração de Destino -->
+        <div class="border-b border-[color:var(--color-border)] pb-6">
+          <h3 class="text-md font-semibold mb-4">Configuração de Destino</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">URL/Endpoint</label>
+              <input type="text" id="envio-url" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" placeholder="https://api.exemplo.com/v1/data" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Método HTTP</label>
+              <select id="envio-metodo" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" required>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="PATCH">PATCH</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Autenticação -->
+        <div class="border-b border-[color:var(--color-border)] pb-6">
+          <h3 class="text-md font-semibold mb-4">Autenticação</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Tipo de Autenticação</label>
+              <select id="envio-auth-tipo" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" required>
+                <option value="bearer">Bearer Token</option>
+                <option value="api-key">API Key</option>
+                <option value="basic">Basic Auth</option>
+                <option value="oauth2">OAuth 2.0</option>
+              </select>
+            </div>
+            <div id="auth-fields">
+              <div>
+                <label class="block text-sm font-medium mb-2">Token</label>
+                <input type="password" id="envio-token" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" placeholder="Cole seu token aqui" required>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configurações Avançadas -->
+        <div class="border-b border-[color:var(--color-border)] pb-6">
+          <h3 class="text-md font-semibold mb-4">Configurações Avançadas</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="flex items-center">
+                <input type="checkbox" id="envio-retry" class="mr-2" checked>
+                <span class="text-sm font-medium">Tentar novamente em caso de falha</span>
+              </label>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Número de Tentativas</label>
+              <input type="number" id="envio-tentativas" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" value="3" min="1" max="10">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Intervalo entre Tentativas (segundos)</label>
+              <input type="number" id="envio-intervalo" class="w-full px-3 py-2 border border-[color:var(--color-border)] rounded-lg bg-[color:var(--color-bg-secondary)] text-[color:var(--color-text)]" value="60" min="10" max="3600">
+            </div>
+          </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="flex gap-2">
+          <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition">
+            Salvar Configuração
+          </button>
+          <button type="button" id="btn-testar" class="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+            Testar Conexão
+          </button>
+          <button type="reset" class="px-6 py-2 bg-gray-600 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition">
+            Limpar
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <!-- Aba: Histórico -->
+  <div class="tab-content" data-tab-content="historico" style="display: none;">
+    <section class="ds-panel p-5">
+      <h2 class="text-lg font-semibold mb-4">Histórico de Envios</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-[color:var(--color-border)]">
+              <th class="text-left py-3 px-4 font-semibold">Data/Hora</th>
+              <th class="text-left py-3 px-4 font-semibold">Destino</th>
+              <th class="text-left py-3 px-4 font-semibold">Status</th>
+              <th class="text-left py-3 px-4 font-semibold">Registros</th>
+              <th class="text-left py-3 px-4 font-semibold">Tempo</th>
+              <th class="text-left py-3 px-4 font-semibold">Detalhes</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-historico">
+            <!-- Histórico será carregado aqui -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script>
+    (function () {
+      // Dados fictícios de envios
+      const enviosData = [
+        {
+          id: 1,
+          nome: 'Envio Salesforce',
+          tipo: 'api-rest',
+          url: 'https://api.salesforce.com/v1/data',
+          status: 'ativo',
+          ultimaExecucao: '2026-03-31 12:30:00',
+          registros: 1500,
+          sucesso: 1485,
+          falhas: 15
+        },
+        {
+          id: 2,
+          nome: 'Webhook HubSpot',
+          tipo: 'webhook',
+          url: 'https://webhook.hubspot.com/events',
+          status: 'ativo',
+          ultimaExecucao: '2026-03-31 12:25:00',
+          registros: 890,
+          sucesso: 890,
+          falhas: 0
+        },
+        {
+          id: 3,
+          nome: 'FTP Backup',
+          tipo: 'ftp',
+          url: 'sftp://backup.internal/data',
+          status: 'pendente',
+          ultimaExecucao: '2026-03-31 11:00:00',
+          registros: 0,
+          sucesso: 0,
+          falhas: 0
+        }
+      ];
+
+      const historicoData = [
+        { data: '2026-03-31 12:30:00', destino: 'Salesforce', status: 'sucesso', registros: 1500, tempo: '2.5s' },
+        { data: '2026-03-31 12:25:00', destino: 'HubSpot', status: 'sucesso', registros: 890, tempo: '1.8s' },
+        { data: '2026-03-31 12:20:00', destino: 'Salesforce', status: 'sucesso', registros: 1200, tempo: '2.1s' },
+        { data: '2026-03-31 12:10:00', destino: 'Email', status: 'falha', registros: 500, tempo: '5.2s' },
+        { data: '2026-03-31 12:00:00', destino: 'HubSpot', status: 'sucesso', registros: 750, tempo: '1.9s' }
+      ];
+
+      // Tab switching
+      const tabButtons = document.querySelectorAll('.tab-button');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      function activateTab(tabName) {
+        tabButtons.forEach((btn) => {
+          btn.classList.remove('border-[color:var(--color-primary)]', 'text-[color:var(--color-text)]');
+          btn.classList.add('border-transparent', 'text-[color:var(--color-text-muted)]');
+        });
+        tabContents.forEach((content) => {
+          content.style.display = 'none';
+        });
+
+        const activeButton = document.querySelector(`[data-tab="${tabName}"]`);
+        if (activeButton) {
+          activeButton.classList.remove('border-transparent', 'text-[color:var(--color-text-muted)]');
+          activeButton.classList.add('border-[color:var(--color-primary)]', 'text-[color:var(--color-text)]');
+        }
+
+        const activeContent = document.querySelector(`[data-tab-content="${tabName}"]`);
+        if (activeContent) {
+          activeContent.style.display = 'block';
+        }
+      }
+
+      tabButtons.forEach((button) => {
+        button.addEventListener('click', (e) => {
+          e.preventDefault();
+          const tabName = button.getAttribute('data-tab');
+          activateTab(tabName);
+        });
+      });
+
+      function getStatusBadge(status) {
+        const badges = {
+          'sucesso': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-600">Sucesso</span>',
+          'falha': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-600">Falha</span>',
+          'ativo': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-600">Ativo</span>',
+          'pendente': '<span class="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-600">Pendente</span>'
+        };
+        return badges[status] || '';
+      }
+
+      function renderEnvios() {
+        const tbody = document.getElementById('tabela-envios');
+        tbody.innerHTML = '';
+
+        enviosData.forEach(envio => {
+          const row = document.createElement('tr');
+          row.className = 'border-b border-[color:var(--color-border)] hover:bg-[color:var(--color-bg-secondary)] transition';
+          row.innerHTML = `
+            <td class="py-3 px-4 font-medium">${envio.nome}</td>
+            <td class="py-3 px-4 text-xs">${envio.tipo.toUpperCase()}</td>
+            <td class="py-3 px-4">${getStatusBadge(envio.status)}</td>
+            <td class="py-3 px-4 text-xs text-[color:var(--color-text-muted)]">${envio.ultimaExecucao}</td>
+            <td class="py-3 px-4">${envio.registros}</td>
+            <td class="py-3 px-4">
+              <button class="btn-executar px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition" data-id="${envio.id}">Executar</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        // Atualizar estatísticas
+        document.getElementById('total-envios').textContent = enviosData.length;
+        document.getElementById('total-sucesso').textContent = enviosData.filter(e => e.status === 'ativo').length;
+        document.getElementById('total-falhas').textContent = enviosData.reduce((sum, e) => sum + e.falhas, 0);
+        document.getElementById('total-pendentes').textContent = enviosData.filter(e => e.status === 'pendente').length;
+
+        // Listeners
+        document.querySelectorAll('.btn-executar').forEach(btn => {
+          btn.addEventListener('click', () => {
+            alert(`Executando envio ${btn.getAttribute('data-id')}...`);
+          });
+        });
+      }
+
+      function renderHistorico() {
+        const tbody = document.getElementById('tabela-historico');
+        tbody.innerHTML = '';
+
+        historicoData.forEach(item => {
+          const row = document.createElement('tr');
+          row.className = 'border-b border-[color:var(--color-border)] hover:bg-[color:var(--color-bg-secondary)] transition';
+          row.innerHTML = `
+            <td class="py-3 px-4 text-xs text-[color:var(--color-text-muted)]">${item.data}</td>
+            <td class="py-3 px-4 font-medium">${item.destino}</td>
+            <td class="py-3 px-4">${getStatusBadge(item.status)}</td>
+            <td class="py-3 px-4">${item.registros}</td>
+            <td class="py-3 px-4 text-xs">${item.tempo}</td>
+            <td class="py-3 px-4">
+              <button class="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition">Ver</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // Form handling
+      document.getElementById('form-novo-envio').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nome = document.getElementById('envio-nome').value;
+        const tipo = document.getElementById('envio-tipo').value;
+        const url = document.getElementById('envio-url').value;
+        const token = document.getElementById('envio-token').value;
+
+        if (!nome || !tipo || !url || !token) {
+          alert('Preencha todos os campos obrigatórios');
+          return;
+        }
+
+        alert(`Envio "${nome}" configurado com sucesso!`);
+        document.getElementById('form-novo-envio').reset();
+        activateTab('envios-ativos');
+      });
+
+      document.getElementById('btn-testar').addEventListener('click', () => {
+        const url = document.getElementById('envio-url').value;
+        if (!url) {
+          alert('Preencha a URL/Endpoint');
+          return;
+        }
+        alert(`Testando conexão com ${url}...\nConexão estabelecida com sucesso!`);
+      });
+
+      // Initial render
+      renderEnvios();
+      renderHistorico();
+    })();
+  </script>
+{% endblock %}

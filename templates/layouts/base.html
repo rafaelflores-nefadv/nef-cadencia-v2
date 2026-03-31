@@ -1,0 +1,171 @@
+﻿{% load static %}
+<!doctype html>
+<html lang="pt-br" data-theme="blue">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <script>
+      (function () {
+        var key = "nef_theme_preference";
+        var fallback = "blue";
+        try {
+          var saved = window.localStorage ? window.localStorage.getItem(key) : null;
+          var allowed = { blue: true, dark: true, light: true };
+          var theme = allowed[saved] ? saved : fallback;
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (_error) {
+          document.documentElement.setAttribute("data-theme", fallback);
+        }
+      })();
+    </script>
+    <title>{% block title %}NEF Cadencia{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    {% block assistant_widget_assets %}
+      {% if request.user.is_authenticated %}
+      <link rel="stylesheet" href="{% static 'assistant/assistant_widget.css' %}">
+      {% endif %}
+    {% endblock %}
+    {% block head_extra %}{% endblock %}
+  </head>
+  <body class="app-shell min-h-screen bg-[color:var(--color-bg)] text-[color:var(--color-text)] {% block bodyclass_extra %}{% endblock %}" {% block body_attrs %}{% if request.resolver_match.url_name == 'dashboard-productivity' %}data-module-theme="performance"{% elif request.resolver_match.url_name == 'dashboard-risk' %}data-module-theme="risk"{% elif request.resolver_match.url_name == 'dashboard-pipeline' %}data-module-theme="pipeline"{% elif request.resolver_match.url_name == 'agents-list' or request.resolver_match.url_name == 'agent-detail' %}data-module-theme="agents"{% elif request.path|slice:":6" == "/admin" or request.resolver_match.url_name == 'runs-list' or request.resolver_match.url_name == 'run-detail' or request.resolver_match.url_name == 'assistant-page' or request.resolver_match.url_name == 'assistant-conversation' %}data-module-theme="system"{% else %}data-module-theme="dashboard"{% endif %}{% endblock %}>
+    <div class="app-layout">
+      <!-- Sidebar (desktop) -->
+      <aside data-sidebar class="app-layout__sidebar app-sidebar hidden lg:block" aria-label="Navegacao principal">
+        <div class="app-layout__sidebar-inner">
+          {% block sidebar_content %}
+            {% if request.path|slice:":6" == "/admin" %}
+              {% if request.user.is_authenticated and request.user.is_staff %}
+                {% include "admin/partials/sidebar_menu.html" %}
+              {% endif %}
+            {% else %}
+              {% include "partials/sidebar.html" %}
+            {% endif %}
+          {% endblock %}
+        </div>
+      </aside>
+
+      <main class="app-layout__main app-main min-h-screen min-w-0">
+        <!-- Topbar -->
+        <header class="topbar-shell sticky top-0 z-20 border-b border-[color:var(--color-border)] bg-[color:var(--color-card)]">
+          <div class="px-4 lg:px-6 py-2.5 flex items-center gap-3">
+            <button type="button" data-sidebar-open class="lg:hidden rounded-lg px-3 py-2 border border-[color:var(--color-border)]">Menu</button>
+            
+            {% block return_to_main_menu %}
+            {% if request.path != '/' and request.resolver_match.url_name != 'dashboard-productivity' %}
+            <a href="{% url 'dashboard-productivity' %}" class="hidden md:inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-[color:var(--color-border)] bg-[color:var(--color-card)] hover:bg-[color:var(--color-card-hover)] transition-colors">
+              <i data-lucide="arrow-left" class="w-3 h-3" aria-hidden="true"></i>
+              <span>Voltar ao Menu Principal</span>
+            </a>
+            {% endif %}
+            {% endblock %}
+
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-semibold truncate">{% block page_title %}Dashboard{% endblock %}</div>
+              <div class="text-xs text-[color:var(--color-text-muted)] truncate">{% block page_subtitle %}{% endblock %}</div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              {% block topbar_right %}
+              {% if request.user.is_staff %}
+              {% url 'admin:password_change' as profile_url %}
+              {% url 'admin:index' as settings_url %}
+              {% else %}
+              {% url 'dashboard-productivity' as profile_url %}
+              {% url 'dashboard-productivity' as settings_url %}
+              {% endif %}
+              <div class="topbar-theme-inline" role="group" aria-label="Temas rápidos">
+                <button type="button" class="topbar-theme-inline__button" data-theme-option="blue">Blue</button>
+                <button type="button" class="topbar-theme-inline__button" data-theme-option="dark">Dark</button>
+                <button type="button" class="topbar-theme-inline__button" data-theme-option="light">Light</button>
+              </div>
+              {% with username=request.user.username|default:'Usuario' %}
+              <div class="profile-menu" data-profile-menu>
+                <button
+                  type="button"
+                  class="profile-menu__button"
+                  data-profile-menu-button
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  aria-controls="profile-menu-panel"
+                >
+                  <span class="profile-menu__avatar" aria-hidden="true">{{ username|slice:':1'|upper }}</span>
+                  <span class="profile-menu__name">{{ username }}</span>
+                  <i data-lucide="chevron-down" class="profile-menu__chevron" aria-hidden="true"></i>
+                </button>
+
+                <div id="profile-menu-panel" data-profile-menu-panel class="profile-menu__panel hidden" role="menu" aria-label="Menu do perfil">
+                  <div class="profile-menu__section-title">Tema</div>
+                  <div class="profile-theme-switch" role="group" aria-label="Alternar tema">
+                    <button type="button" class="profile-theme-switch__button" data-theme-option="blue">Blue</button>
+                    <button type="button" class="profile-theme-switch__button" data-theme-option="dark">Dark</button>
+                    <button type="button" class="profile-theme-switch__button" data-theme-option="light">Light</button>
+                  </div>
+                  <div class="profile-menu__divider" role="separator" aria-hidden="true"></div>
+                  <a class="profile-menu__item" href="{{ profile_url }}" role="menuitem" tabindex="-1">
+                    <i data-lucide="user" class="profile-menu__item-icon" aria-hidden="true"></i>
+                    <span>Perfil</span>
+                  </a>
+                  <a class="profile-menu__item" href="{{ settings_url }}" role="menuitem" tabindex="-1">
+                    <i data-lucide="settings" class="profile-menu__item-icon" aria-hidden="true"></i>
+                    <span>Configuracoes</span>
+                  </a>
+                  <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="profile-menu__item" role="menuitem" tabindex="-1">
+                      <i data-lucide="log-out" class="profile-menu__item-icon" aria-hidden="true"></i>
+                      <span>Logout</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+              {% endwith %}
+              {% endblock %}
+            </div>
+          </div>
+        </header>
+
+        <div class="px-4 lg:px-6 py-4">
+          {% block page_container %}
+          {% block content %}{% endblock %}
+          {% endblock %}
+        </div>
+      </main>
+    </div>
+
+    <!-- Mobile navigation layer -->
+    <div class="app-mobile-nav" aria-hidden="true">
+      <div data-sidebar-backdrop class="app-mobile-nav__backdrop"></div>
+      <aside data-sidebar-drawer class="app-mobile-nav__drawer app-sidebar">
+        <div class="app-mobile-nav__header">
+          <div>
+            <div class="app-mobile-nav__subtitle">NEF Cadencia</div>
+            <div class="app-mobile-nav__title">Console Operacional</div>
+          </div>
+          <button type="button" data-sidebar-close class="app-mobile-nav__close">Fechar</button>
+        </div>
+        {% block sidebar_drawer_content %}
+          {% if request.path|slice:":6" == "/admin" %}
+            {% if request.user.is_authenticated and request.user.is_staff %}
+              {% include "admin/partials/sidebar_menu.html" %}
+            {% endif %}
+          {% else %}
+            {% include "partials/sidebar.html" %}
+          {% endif %}
+        {% endblock %}
+      </aside>
+    </div>
+
+    {% block assistant_widget %}
+      {% if request.user.is_authenticated %}
+      {% include "assistant/_assistant_widget.html" %}
+      <script src="{% static 'assistant/assistant_processing_ui.js' %}"></script>
+      <script src="{% static 'assistant/assistant_message_rendering.js' %}"></script>
+      <script src="{% static 'assistant/assistant_widget.js' %}"></script>
+      {% endif %}
+    {% endblock %}
+
+    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>
